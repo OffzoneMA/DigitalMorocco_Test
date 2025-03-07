@@ -1,0 +1,10 @@
+2025-03-07T20:29:00.786Z - Test KO : Can't call "sendKeys" on element with selector "input[name="email"]", it is not a function
+2025-03-07T20:29:01.293Z - Test KO : Can't call "sendKeys" on element with selector "input[name="email"]", it is not a function
+2025-03-07T20:29:01.802Z - Test KO : Can't call "sendKeys" on element with selector "input[name="email"]", it is not a function
+2025-03-07T20:29:02.511Z - Test KO : element not interactable
+  (Session info: chrome=133.0.6943.142)
+2025-03-07T20:32:41.503Z - Test KO : Can't call "sendKeys" on element with selector "input[name="email"]", it is not a function
+2025-03-07T20:32:43.496Z - Test KO : Can't call "sendKeys" on element with selector "input[name="email"]", it is not a function
+2025-03-07T20:32:43.993Z - Test KO : Can't call "sendKeys" on element with selector "input[name="email"]", it is not a function
+2025-03-07T20:32:44.715Z - Test KO : stale element reference: stale element not found in the current frame
+  (Session info: chrome=133.0.6943.142)
