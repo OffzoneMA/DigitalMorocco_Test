@@ -7,8 +7,7 @@ module.exports = {
   invalidEmail: process.env.INVALID_EMAIL || 'invalid@gmail.com',
   invalidPassword: process.env.INVALID_PASSWORD || 'invalidPassword',
   logFilePath: process.env.LOG_FILE_PATH || './logs/test_results.log',
-  MAILOSAUR_API_KEY: process.env.MAILOSAUR_API_KEY,
-  MAILOSAUR_SERVER_ID: process.env.MAILOSAUR_SERVER_ID
+
 };
 
 

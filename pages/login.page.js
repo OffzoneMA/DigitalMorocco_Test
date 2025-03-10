@@ -93,7 +93,8 @@ class LoginPage {
   
   async waitForConfirmationPage() {
     try {
-      await this.driver.wait(async () => {const currentUrl = await this.driver.getCurrentUrl();return currentUrl.includes("ResetPasswordEmail"); }, 10000,"La page de confirmation de réinitialisation n'a pas chargé" );
+      await this.driver.wait(async () => {const currentUrl = await this.driver.getCurrentUrl();
+        return currentUrl.includes("ResetPasswordEmail"); }, 10000,"La page de confirmation de réinitialisation n'a pas chargé" );
       return true;
     } catch (error) {
       throw error;
