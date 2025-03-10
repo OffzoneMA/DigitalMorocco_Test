@@ -1,9 +1,12 @@
+
 const { By, until } = require('selenium-webdriver');
+
 
 class RegisterPage {
   constructor(driver) {
     this.driver = driver;
   }
+
 
   
   async waitForPageLoad() {
@@ -89,7 +92,6 @@ class RegisterPage {
     await this.checkboxOffers(); 
     const signUpBtn = await this.signUpButton();
     await signUpBtn.click();
-  }
-}
+  }}
 
 module.exports = RegisterPage;

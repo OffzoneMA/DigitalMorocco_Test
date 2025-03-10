@@ -1,4 +1,5 @@
 const { Builder, By, until } = require('selenium-webdriver');
+
 const LoginPage = require('../pages/login.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
@@ -97,3 +98,4 @@ describe('Tests de connexion', function () {
       throw error;
     }
   })})
+
