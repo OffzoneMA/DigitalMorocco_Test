@@ -1,0 +1,23 @@
+{
+  "name": "digital_morocoo_testing",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "dependencies": {
+    "mailosaur": "^8.8.1",
+    "selenium-webdriver": "^4.29.0"
+  },
+  "devDependencies": {
+    "@wdio/cli": "^9.11.0",
+    "@wdio/local-runner": "^9.11.0",
+    "@wdio/mocha-framework": "^9.11.0",
+    "@wdio/spec-reporter": "^9.11.0"
+  }
+}
