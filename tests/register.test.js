@@ -19,8 +19,8 @@ describe('Tests d\'inscription', function () {
     host: 'sandbox.smtp.mailtrap.io',
     port: 2525,
     auth: {
-      user: 'd87c253f99bce4', 
-      pass: '78b0dd56e3a502' 
+      user: config.user, 
+      pass: config.pass 
     }
   });
   

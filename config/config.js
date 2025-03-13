@@ -13,6 +13,8 @@ module.exports = {
   apiMailtraToken:process.env.MAILTRAP_API_TOKEN || '74bad0c7414cdd76735d5cec91806796',
   apiaccountID:process.env.ACCOUNT_ID ||'2240531',
   apiInboxID :process.env.INBOX_ID || '3524498',
+  user:process.env.USER || 'd87c253f99bce4',
+  pass:process.env.PASS || '78b0dd56e3a502',
 
 };
 

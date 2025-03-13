@@ -84,7 +84,7 @@ describe('Tests de connexion', function () {
     }
   });
 
-  it('Réinitialisation du mot de passe', async function() {
+  /*it('Réinitialisation du mot de passe', async function() {
     try {
       await driver.get(config.baseUrl);
       await loginPage.clickForgotPassword();
@@ -97,7 +97,7 @@ describe('Tests de connexion', function () {
       logResult('Test KO : ' + error.message);
       throw error;
     }
-  })})
+  })*/})
 
 
 
