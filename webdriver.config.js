@@ -6,9 +6,10 @@ exports.config = {
   framework: 'mocha',
   reporters: ['spec'],  
   capabilities: [{
-    maxInstances: 1,
-    browserName: browser || 'chrome',
-    acceptInsecureCerts: true,
+    browserName: 'chrome',
+    'goog:chromeOptions': {
+      args: ['--headless', '--disable-gpu', '--no-sandbox']
+    }
   }],
   logLevel: 'info',
   baseUrl: process.env.BASE_URL || 'http://localhost:3000',
@@ -21,4 +22,6 @@ exports.config = {
     ui: 'bdd',
     timeout: 60000,
   },
+  services: ['chromedriver'],
+
 };

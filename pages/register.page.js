@@ -94,4 +94,5 @@ class RegisterPage {
     await signUpBtn.click();
   }}
 
+
 module.exports = RegisterPage;
