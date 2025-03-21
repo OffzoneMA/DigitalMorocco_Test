@@ -1,0 +1,7 @@
+2025-03-21T15:19:37.910Z - Test OK: Inscription validée
+2025-03-21T15:19:42.036Z - Test OK: Redirection vers la page de vérification d'email
+2025-03-21T15:19:46.811Z - Test OK: Email de test envoyé avec succès 
+2025-03-21T15:19:57.477Z - Test OK: Processus d'inscription simulé avec succès
+2025-03-21T15:19:57.476Z - Test OK: Validation de l'email réussie
+2025-03-21T15:20:04.213Z - Test OK : Message d'erreur affiché pour un email déjà existant 
+2025-03-21T15:20:09.253Z - Test OK : L'inscription a échoué car le mot de passe ne respecte pas tous les critères

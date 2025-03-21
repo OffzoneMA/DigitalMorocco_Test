@@ -1,0 +1,4 @@
+2025-03-21T15:16:26.007Z - Test OK : Connexion réussie
+2025-03-21T15:16:42.242Z - Test OK : Connexion échouée avec un email incorrect
+2025-03-21T15:16:57.941Z - Test OK : Connexion échouée avec un mot de passe incorrect
+2025-03-21T15:17:10.851Z - Test OK : Demande de réinitialisation de mot de passe envoyée

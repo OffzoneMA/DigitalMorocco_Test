@@ -2,10 +2,12 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-const logFilePath = process.env.LOG_FILE_PATH || './logs/test_results.log';
+const fileTimestamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
+const logDirectory = process.env.LOG_DIRECTORY || './logs';
+const logFilePath = path.join(logDirectory, `test_results_${fileTimestamp}.log`);
 
-if (!fs.existsSync(path.dirname(logFilePath))) {
-  fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
+if (!fs.existsSync(logDirectory)) {
+  fs.mkdirSync(logDirectory, { recursive: true });
 }
 
 function logResult(message) {

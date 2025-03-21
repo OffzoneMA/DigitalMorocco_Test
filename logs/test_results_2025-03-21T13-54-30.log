@@ -1,0 +1,12 @@
+2025-03-21T13:54:39.826Z - Étape 1 OK : Connexion réussie
+2025-03-21T13:54:40.886Z - Étape 2 OK : Navigation vers la page des projets réussie
+2025-03-21T13:54:41.953Z - Étape 3 OK : Navigation vers la page de création de projet réussie
+2025-03-21T13:54:56.758Z - Étape 4 OK : Formulaire de projet rempli avec succès
+2025-03-21T13:54:58.827Z - Étape 5 OK : Soumission du formulaire réussie
+2025-03-21T13:54:58.827Z - Test OK : Création de projet réussie 
+2025-03-21T13:55:10.801Z - Test OK : Echec de la création - Champs obligatoires non remplis.
+2025-03-21T13:55:21.067Z - Test OK :Echec de la création - Champs numériques doivent être positifs
+2025-03-21T13:55:32.100Z - Test OK : Echec de la création - Format email invalide
+2025-03-21T13:55:43.637Z - Test OK : Modification du nom de projet réussie
+2025-03-21T13:55:54.937Z - Test OK :Echec de modification - Champ obligatoire vide
+2025-03-21T13:56:06.626Z - Test OK :Echec de modification - Email invalide
