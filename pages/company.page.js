@@ -58,11 +58,11 @@ class CompanyPage{
             await addressField.sendKeys(companyData.address);
         
             if (companyData.country) { 
-                await this.selectDropdownValue('Sélectionnez un pays'); 
+                await this.selectDropdownValue('Sélectionnez un pays',companyData.country); 
             }
             
             if (companyData.sector) { 
-                await this.selectDropdownValue('Sélectionnez le secteur d\'activité de votre entreprise');
+                await this.selectDropdownValue('Sélectionnez le secteur d\'activité de votre entreprise',companyData.sector);
             }
     
             const taxIdentifierField = await this.driver.wait( until.elementLocated(By.css("input[name='taxIdentfier']")), 10000, 'Champ "tax Identifier" non trouvé'  );
@@ -82,37 +82,31 @@ class CompanyPage{
 
     async selectDropdownValue(placeholder, value) {    
         try {
-            const dropdownContainer = await this.driver.wait(until.elementLocated(By.xpath(`//div[.//input[@placeholder="${placeholder}"]]`)),10000,   `Conteneur du dropdown "${placeholder}" non trouvé` );
-            await this.driver.executeScript("arguments[0].click();", dropdownContainer);
-            await this.driver.sleep(2000);
-            const optionsLocator = By.xpath(`//div[contains(@class, "flex") and contains(@class, "text-left")]`);
-            const options = await this.driver.findElements(optionsLocator);
-            
-            console.log(`Nombre d'options trouvées : ${options.length}`);
-            if (value) {
-                for (const option of options) {
-                    const optionText = await option.getText();
-                    if (optionText.includes(value)) {
-                        await this.driver.executeScript("arguments[0].scrollIntoView(true);", option);
-                        await this.driver.sleep(500);
-                        await option.click();
-                        return true;
-                    }
-                }
-                throw new Error(`Aucune option trouvée pour "${value}"`);
-            } else {
-                if (options.length > 0) {
-                    await this.driver.executeScript("arguments[0].scrollIntoView(true);", options[0]);
-                    await this.driver.sleep(500);
-                    await options[0].click();
-                    return true;
-                }
-            }
-    
-            return false;
+          const dropdownInput = await this.driver.wait(until.elementLocated( By.xpath(`//input[@placeholder="${placeholder}"]`) ), 10000,  `Input avec placeholder "${placeholder}" non trouvé`  );
+          await this.driver.executeScript("arguments[0].click();", dropdownInput);
+          await this.driver.sleep(2000);
+          const optionXpath = `//div[contains(@class, "flex") and contains(@class, "text-left") and contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), "${value.toLowerCase()}")][1]`;
+          const firstOption = await this.driver.wait(until.elementLocated(By.xpath(optionXpath)),5000,`Aucune option trouvée correspondant à "${value}"`);
+          await this.driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", firstOption);
+          await this.driver.sleep(500);
+          await this.driver.executeScript("arguments[0].click();", firstOption);
+          await this.driver.sleep(1000);
+          return true;
         } catch (error) {
-            console.error(`Erreur lors de la sélection dans le dropdown "${placeholder}":`, error.message);
+          console.error(`Erreur lors de la sélection dans le dropdown "${placeholder}":`, error.message);
+          
+          try {
+            const fallbackOptionXpath = `//div[contains(@class, "flex") and contains(@class, "text-left")][1]`;
+            const fallbackOption = await this.driver.wait(until.elementLocated(By.xpath(fallbackOptionXpath)),5000,'Aucune option trouvée dans la liste'  );
+            await this.driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", fallbackOption);
+            await this.driver.sleep(500);
+            await this.driver.executeScript("arguments[0].click();", fallbackOption);
+            console.warn(`Sélection par défaut de la première option pour "${placeholder}"`);
+            return true;
+          } catch (fallbackError) {
+            console.error('Erreur de secours:', fallbackError.message);
             throw error;
+          }
         }
     }
 

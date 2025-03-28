@@ -27,11 +27,11 @@ describe('Tests de création de projet', function () {
     try {
       const projectData = {
         name: 'Projet Test ',
-        details: 'Description détaillée du projet créé par test automatisé',
-        website: 'https://www.example.com',
-        contactEmail: 'contact@example.com',
-        funding: '100000',
-        totalRaised: '50000',
+        details: 'Description détaillée du projet créé par test ',
+        website: config.website,
+        contactEmail: config.mail,
+        funding: config.funding,
+        totalRaised: config.raised,
        
         
       };

@@ -29,11 +29,11 @@ describe('Tests de création de projet', function () {
         name: 'Company Test ',
         legalName: 'Company Legal',
         details: 'Description détaillée ',
-        website: 'https://www.example.com',
-        contactEmail: 'contact@example.com',
+        website: config.website,
+        contactEmail: config.mail,
         address: 'Adresse 1 ',
-        funding: '1000 ', 
-        totalRaised: '5000', 
+        funding: config.funding, 
+        totalRaised: config.raised, 
       };
   
       await driver.get(config.baseUrl);
@@ -78,6 +78,122 @@ describe('Tests de création de projet', function () {
       throw error;
     }
   })
+
+  it('Echec de modification - Champs obligatoires vides', async function() {
+    try {
+      await driver.get(config.baseUrl);
+      await loginPage.login(config.validEmail, config.validPassword);
+      await driver.wait(until.urlContains('Dashboard'), 20000);
+      const navigateSuccess = await companyPage.navigateToCompany();
+      if (!navigateSuccess) {
+        throw new Error('Échec de navigation vers la page des entreprises');
+      }
+      const nameField = await driver.wait(until.elementLocated(By.css("input[name='companyName']")),10000,  'Champ Nom de l\'entreprise non trouvé' );
+      await nameField.clear();
+      const legalNameField = await driver.wait( until.elementLocated(By.css("input[name='legalName']")),  10000, 'Champ Nom légal non trouvé' );
+      await legalNameField.clear();
+      await companyPage.submitCompanyForm();
+      const nameFieldWithError = await driver.findElement(By.css("input[name='companyName'].shadow-inputBsError") );
+      const legalNameFieldWithError = await driver.findElement( By.css("input[name='legalName'].shadow-inputBsError"));
+      if (!nameFieldWithError || !legalNameFieldWithError) {
+        throw new Error('Les champs ne contiennent pas la classe d\'erreur shadow-inputBsError');
+      }
+      
+      logResult('Test OK : Echec de modification - champs obligatoires vides');
+    } catch (error) {
+      logResult('Test KO : ' + error.message);
+      throw error;
+    }
+  })
+
+  it('Echec de modification - Format Email invalide', async function() {
+    try {
+      await driver.get(config.baseUrl);
+      await loginPage.login(config.validEmail, config.validPassword);
+      await driver.wait(until.urlContains('Dashboard'), 20000);
+      const navigateSuccess = await companyPage.navigateToCompany();
+      if (!navigateSuccess) {
+        throw new Error('Échec de navigation vers la page des entreprises');
+      }
+      const contactEmailField = await driver.wait( until.elementLocated(By.css("input[name='contactEmail']")), 10000, 'Champ "Email de contact" non trouvé');
+      await contactEmailField.clear();
+      await contactEmailField.sendKeys('example')
+      await companyPage.submitCompanyForm();
+      const emailFieldWithError = await driver.findElement(By.css("input[name='contactEmail'].shadow-inputBsError"));
+      if (!emailFieldWithError) {
+        throw new Error('Les champs ne contiennent pas la classe d\'erreur shadow-inputBsError');
+      }
+      
+      logResult('Test OK : Echec de modification - Format Email invalide');
+    } catch (error) {
+      logResult('Test KO : ' + error.message);
+      throw error;
+    }
+  })
+
+  
+    it('Echec de modification - Numéro d\'identification fiscale invalide', async function() {
+      try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 20000);
+        const navigateSuccess = await companyPage.navigateToCompany();
+        if (!navigateSuccess) {
+          throw new Error('Échec de navigation vers la page des entreprises');
+        }
+        const taxIdentifierField = await driver.wait(until.elementLocated(By.css("input[name='taxIdentfier']")),10000,'Champ "Tax Identifier" non trouvé' );
+        await taxIdentifierField.clear();
+        await taxIdentifierField.sendKeys('AB');
+        const valueAfterLetters = await taxIdentifierField.getAttribute('value');
+        if (valueAfterLetters !== '') {
+          throw new Error('Le champ devrait être vide après la saisie de lettres');
+        }
+         await taxIdentifierField.clear();
+        await taxIdentifierField.sendKeys('!@#');
+       const valueAfterSpecialChars = await taxIdentifierField.getAttribute('value');
+        if (valueAfterSpecialChars !== '') {
+          throw new Error('Le champ devrait être vide après la saisie de caractères spéciaux');
+        }
+        logResult('Test OK : Validation du champ numéro d\'identification fiscale - Seuls les nombres sont acceptés');
+      } catch (error) {
+        logResult('Test KO : ' + error.message);
+        throw error;
+      }
+    });
+
+    it('Echec de modification - Numéro d\'identification de l\'entreprise invalide', async function() {
+      try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 20000);
+        const navigateSuccess = await companyPage.navigateToCompany();
+        if (!navigateSuccess) {
+          throw new Error('Échec de navigation vers la page des entreprises');
+        }
+        const corporateIdentifierField = await driver.wait(until.elementLocated(By.css("input[name='corporateIdentfier']")),10000,  'Champ "corporate Identifier" non trouvé'   );
+        await corporateIdentifierField.clear();
+        await corporateIdentifierField.sendKeys('AB');
+        
+        const valueAfterLetters = await corporateIdentifierField.getAttribute('value');
+        if (valueAfterLetters !== '') {
+          throw new Error('Le champ devrait être vide après la saisie de lettres');
+        }
+        await corporateIdentifierField.clear();
+        await corporateIdentifierField.sendKeys('!@#');
+        
+        const valueAfterSpecialChars = await corporateIdentifierField.getAttribute('value');
+        if (valueAfterSpecialChars !== '') {
+          throw new Error('Le champ devrait être vide après la saisie de caractères spéciaux');
+        }
+        
+        
+        logResult('Test OK : Validation du champ numéro d\'identification de l\'entreprise - Seuls les nombres sont acceptés');
+      } catch (error) {
+        logResult('Test KO : ' + error.message);
+        throw error;
+      }
+    });
+  
   
 
 });

@@ -15,6 +15,10 @@ module.exports = {
   apiInboxID :process.env.INBOX_ID || '3524498',
   user:process.env.USER || 'd87c253f99bce4',
   pass:process.env.PASS || '78b0dd56e3a502',
+  mail:process.env.EMAIL || 'contact@example.com',
+  website:process.env.WEBSITE || 'https://www.example.com',
+  funding:process.env.FUNDING || '5000',
+  raised:process.env.RAISED || '1000',
 
 };
 

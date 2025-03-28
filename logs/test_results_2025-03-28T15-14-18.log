@@ -1,0 +1,9 @@
+2025-03-28T15:14:26.689Z - Étape 1 OK : Connexion réussie
+2025-03-28T15:14:28.323Z - Étape 2 OK : Navigation vers la page des entreprises réussie
+2025-03-28T15:14:28.864Z - Étape 4 OK : Formulaire de l'entreprise rempli avec succès
+2025-03-28T15:14:30.927Z - Étape 5 OK : Soumission du formulaire réussie
+2025-03-28T15:14:30.928Z - Test OK : Création de l'entreprise réussie 
+2025-03-28T15:14:44.680Z - Test OK : Echec de modification - champs obligatoires vides
+2025-03-28T15:14:56.406Z - Test OK : Echec de modification - Format Email invalide
+2025-03-28T15:15:05.871Z - Test OK : Validation du champ numéro d'identification fiscale - Seuls les nombres sont acceptés
+2025-03-28T15:15:15.469Z - Test OK : Validation du champ numéro d'identification de l'entreprise - Seuls les nombres sont acceptés
