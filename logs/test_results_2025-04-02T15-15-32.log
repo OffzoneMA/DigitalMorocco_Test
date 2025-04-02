@@ -1,0 +1,18 @@
+2025-04-02T15:15:41.182Z - Étape 1 OK : Connexion réussie
+2025-04-02T15:15:42.952Z - Étape 2 OK : Navigation vers la page des employees réussie
+2025-04-02T15:15:44.134Z - Étape 3 OK : Navigation vers la page de création des employees réussie
+2025-04-02T15:16:21.610Z - Étape 4 OK : Formulaire de l'employé rempli avec succès
+2025-04-02T15:16:23.788Z - Étape 5 OK : Soumission du formulaire réussie
+2025-04-02T15:16:23.788Z - Test OK : Création d'un nouveau employé réussie 
+2025-04-02T15:16:36.414Z - Test OK : Echec de la création d'un nouveau employé - Champs obligatoires non remplis.
+2025-04-02T15:16:50.199Z - Test OK : Echec de la création d'un employé - Format email invalide
+2025-04-02T15:17:03.564Z - Test OK : Echec de la création d'un employé - numéro de téléphone trop invalide
+2025-04-02T15:17:17.362Z - Test OK : Echec de la création d'un employé - numéro de téléphone trop long/court
+2025-04-02T15:17:31.249Z - Test OK : Echec de la création d'un employé - numéro de téléphone trop court
+2025-04-02T15:17:41.574Z - Test OK :Echec de la création d'un employé - Champs numériques doivent être positifs
+2025-04-02T15:17:59.301Z - Test OK : Modification du nom d'un employé réussie
+2025-04-02T15:18:16.075Z - Test OK :Echec de modification - Champ obligatoire vide
+2025-04-02T15:18:33.347Z - Test OK :Echec de modification d'un employé - Email invalide
+2025-04-02T15:18:50.419Z - Test OK :Echec de modification d'un employé - numéro de téléphone invalide
+2025-04-02T15:19:03.843Z - Test OK : Suppression d'un employé réussie
+2025-04-02T15:19:14.623Z - Test OK : Annulation de la suppression d'un employé réussie
