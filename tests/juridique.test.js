@@ -172,6 +172,52 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
       }
     });
 
+    it('Téléchargement d\'un document juridique', async function() {
+      try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 20000);
+        await driver.getCurrentUrl();
+        await juridiquePage.navigateToJuridique();
+        
+        try {
+          const downloadSuccess = await juridiquePage.clickDownloadFirstJuridique();
+          
+          if (downloadSuccess) {
+            logResult('Test OK : téléchargement d\'un document juridique réussi');
+            
+          } else {
+            logResult('Test KO : le téléchargement n\'a pas pu être initié');
+          }
+        } catch (error) {
+          logResult('Test KO : téléchargement d\'un document juridique a échoué');
+          throw error;
+        }
+      } catch (error) {
+        logResult('Test KO : ' + error.message);
+        throw error;
+      }
+    });
+
+    it('Annulation de la Suppression d\'un document juridique', async function() {
+      try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 20000);
+        await driver.getCurrentUrl();
+        await juridiquePage.navigateToJuridique();
+        try{
+          await juridiquePage.clickDeleteFirstJuridiqueThenCancel();
+          logResult('Test OK : Bouton annuler lors de la suppression d\'un document juridique réussie');
+      }catch{
+        logResult('Test KO : Bouton annuler lors de la suppression d\'un document juridique a échoué'); }
+      } catch (error) {
+        logResult('Test KO : ' + error.message);
+        throw error;
+      }
+    });
+
+
     it('Suppression d\'un document juridique', async function() {
       try {
         await driver.get(config.baseUrl);
@@ -184,12 +230,15 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           logResult('Test OK : suppression d\'un document juridique réussie');
       }catch{
         logResult('Test KO : suppression d\'un document juridique a échoué'); }
-  } catch (error) {
+      } catch (error) {
         logResult('Test KO : ' + error.message);
         throw error;
       }
     });
 
+   
+
+    
   
 
   

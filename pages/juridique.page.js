@@ -111,8 +111,6 @@ class JuridiquePage {
         throw error;
     }
 }
-
-
 async clickUpdateDocumentButton(newFilePath) {
   try {
       const updateButton = await this.driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'cursorpointer') and contains(text(), 'Mettre à jour votre document')]")),10000,  'Bouton "Mettre à jour votre document" non trouvé' );
@@ -311,6 +309,163 @@ async clickDeleteFirstJuridique() {
   } catch (error) {
     console.error('Erreur lors du clic sur le bouton de supprimer:', error);
     return false;
+  }
+}
+
+async clickDeleteFirstJuridiqueThenCancel() {
+  try {
+    await this.driver.wait(until.elementLocated(By.css('.bg-white-A700')), 10000);
+    try {
+      await this.driver.wait( until.elementLocated(By.css('tbody tr')),  20000 );
+    } catch (timeoutErr) {
+      return false;
+    }
+    const actionContainersXPath = "//tbody/tr[1]/td[last()]//div[@class='relative group']";
+    const actionContainers = await this.driver.findElements(By.xpath(actionContainersXPath));
+    
+    if (actionContainers.length >= 2) {
+        try {
+        const deleteButtonXPath = "//tbody/tr[1]/td[last()]//div[@class='relative group'][2]";
+        const deleteButton = await this.driver.findElement(By.xpath(deleteButtonXPath));
+        await deleteButton.click();
+        const confirmButtonXPath = "//button[contains(text(), 'Annuler')]";
+        await this.driver.wait(until.elementLocated(By.xpath(confirmButtonXPath)), 5000);
+        const confirmButton = await this.driver.findElement(By.xpath(confirmButtonXPath));
+        await confirmButton.click();
+        await this.driver.wait(until.stalenessOf(confirmButton),5000 );
+        return true;
+        try {
+          await this.driver.wait(until.elementLocated(By.name('name')), 5000);
+          return true;
+        } catch (formErr) {
+          console.log("Formulaire de suppression non trouvé après clic direct");
+        }
+      } catch (directClickErr) {
+        console.log("Échec du clic direct sur le bouton de suppression:", directClickErr);
+      }
+      const actions = this.driver.actions({async: true});
+      try {
+        const deleteContainer = actionContainers[1];
+        await actions.move({origin: deleteContainer}).perform();
+        await this.driver.sleep(500);
+        const deleteTextXPath = "//div[contains(@class, 'text-center') and text()='Annuler']";
+        await this.driver.executeScript(`
+          const deleteElement = document.evaluate(
+            "${deleteTextXPath}",
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+          ).singleNodeValue;
+          
+          if (deleteElement) {
+            deleteElement.click();
+            return true;
+          }
+          return false;
+        `);
+        await this.driver.wait(until.elementLocated(By.name('name')), 8000);
+        
+        return true;
+      } catch (actionsErr) {
+          try {
+          await this.driver.executeScript("arguments[0].click();", actionContainers[1]);
+          await this.driver.sleep(500);
+          await this.driver.executeScript(`
+            const elements = document.querySelectorAll('div');
+            for (const el of elements) {
+              if (el.textContent.includes('Annuler')) {
+                el.click();
+                return true;
+              }
+            }
+            return false;
+          `);
+          await this.driver.wait(until.elementLocated(By.name('name')), 8000);
+          
+          return true;
+        } catch (finalErr) {
+          console.log("Toutes les tentatives ont échoué");
+          return false;
+        }
+      }
+    } else {
+      console.log("Conteneurs d'actions non trouvés");
+      return false;
+    }
+  } catch (error) {
+    console.error('Erreur lors du clic sur le bouton de supprimer:', error);
+    return false;
+  }
+}
+
+
+async clickDownloadFirstJuridique() {
+  try {
+    await this.driver.wait(until.elementLocated(By.css('tbody tr')), 20000);
+    const clicked = await this.driver.executeScript(`
+      const row = document.querySelector('tbody tr:first-child');
+      if (!row) return 'Aucune ligne trouvée';
+      const lastCell = row.querySelector('td:last-child');
+      if (!lastCell) return 'Dernière cellule non trouvée';
+      const svgs = lastCell.querySelectorAll('svg');
+      console.log('Nombre de SVGs trouvés:', svgs.length);
+      for (let i = 0; i < svgs.length; i++) {
+        const svg = svgs[i];
+        const hasPolyline = svg.querySelector('polyline[points="7 10 12 15 17 10"]');
+        const hasLine = svg.querySelector('line[x1="12"]');
+        if (hasPolyline && hasLine) {
+         console.log("SVG de téléchargement trouvé à l'index:", i);
+  
+       const clickEvent = new MouseEvent('click', {
+         bubbles: true,
+         cancelable: true,
+         view: window
+         });
+       svg.dispatchEvent(clickEvent);
+       return 'Icône de téléchargement cliquée';
+        }
+      }
+      const allGroups = lastCell.querySelectorAll('.relative.group');
+      for (let i = 0; i < allGroups.length; i++) {
+        const group = allGroups[i];
+        if (group.textContent.includes('Télécharger')) {
+          console.log("Groupe avec texte Télécharger trouvé à l'index:", i);
+          group.click();
+          return 'Groupe de téléchargement cliqué';
+        }
+      }
+      if (allGroups.length >= 3) {
+        console.log("Clic sur le troisième groupe.");
+        allGroups[2].click();
+        return 'Troisième groupe cliqué';
+      }
+      
+      return 'Aucune icône de téléchargement trouvée';
+    `);
+    
+    console.log('Résultat du script JavaScript:', clicked);
+    await this.driver.sleep(1500);
+    
+    return clicked !== 'Aucune icône de téléchargement trouvée';
+  } catch (error) {
+    console.error('Erreur lors de la tentative de téléchargement:', error);
+    try {
+      const groupContainers = await this.driver.findElements(By.xpath("//tbody/tr[1]/td[last()]//div[@class='relative group']"));
+      
+      if (groupContainers.length >= 3) {
+        console.log('Approche alternative: clic sur le troisième conteneur de groupe');
+        const actions = this.driver.actions({async: true});
+        await actions.move({origin: groupContainers[2]}).click().perform();
+        await this.driver.sleep(1500);
+        return true;
+      }
+      
+      return false;
+    } catch (altError) {
+      console.error('Échec de l\'approche alternative:', altError);
+      return false;
+    }
   }
 }
 }
