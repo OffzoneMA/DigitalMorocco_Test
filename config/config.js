@@ -19,6 +19,7 @@ module.exports = {
   website:process.env.WEBSITE || 'https://www.example.com',
   funding:process.env.FUNDING || '5000',
   raised:process.env.RAISED || '1000',
+  member:process.env.MEMBER || 'Ikram Imzi'
 
 };
 
