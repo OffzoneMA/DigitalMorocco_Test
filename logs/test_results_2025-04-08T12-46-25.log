@@ -1,0 +1,13 @@
+2025-04-08T12:46:37.518Z - Étape 1 OK : Connexion réussie
+2025-04-08T12:46:38.628Z - Étape 2 OK : Navigation vers la page des documents réussie
+2025-04-08T12:46:46.104Z - Étape 3 OK : Alerte affichée pour l'ajout d'un document
+2025-04-08T12:46:49.305Z - Test OK : Ajout d'un nouveau document réussi
+2025-04-08T12:47:00.575Z - Test OK : Echec de création d'un document  - champs obligatoires vides.
+2025-04-08T12:47:13.691Z - Test OK : Modification du nom du document réussie
+2025-04-08T12:47:32.242Z - Test OK : Modification du document - mise à jour du fichier vérifiée
+2025-04-08T12:47:50.188Z - Test OK : Modification réussie - Désélection d'un membre
+2025-04-08T12:48:00.518Z - Test OK : bouton Annuler lors de la modification du document
+2025-04-08T12:48:09.613Z - Test OK : Le système n'autorise pas le partage sans sélection de membre
+2025-04-08T12:48:21.885Z - Test OK : Document partagé avec succès avec un membre
+2025-04-08T12:48:31.057Z - Test OK : Bouton annuler lors de la suppression d'un document réussie
+2025-04-08T12:48:45.907Z - Test KO : Le document "Document modifié .pdf" est toujours présent dans la liste après suppression

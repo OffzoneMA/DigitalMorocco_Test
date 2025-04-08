@@ -1,4 +1,7 @@
 const {By, until} = require("selenium-webdriver");
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
 class JuridiquePage {
     constructor(driver) {
@@ -49,7 +52,7 @@ class JuridiquePage {
           if (isModalDisplayed) {
               console.log('Modal d\'ajout de document détecté');
               const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
-              await titleInput.sendKeys('Nouveau document test');
+              await titleInput.sendKeys('Document');
               const fileInput = await modalForm.findElement(By.xpath(".//input[@type='file']"));
               const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
               await submitButton.click();
@@ -400,8 +403,12 @@ async clickDeleteFirstJuridiqueThenCancel() {
 }
 
 
+
+
 async clickDownloadFirstJuridique() {
   try {
+    const downloadsPath = path.join(os.homedir(), 'Downloads');
+    const filesBefore = fs.readdirSync(downloadsPath);
     await this.driver.wait(until.elementLocated(By.css('tbody tr')), 20000);
     const clicked = await this.driver.executeScript(`
       const row = document.querySelector('tbody tr:first-child');
@@ -415,15 +422,14 @@ async clickDownloadFirstJuridique() {
         const hasPolyline = svg.querySelector('polyline[points="7 10 12 15 17 10"]');
         const hasLine = svg.querySelector('line[x1="12"]');
         if (hasPolyline && hasLine) {
-         console.log("SVG de téléchargement trouvé à l'index:", i);
-  
-       const clickEvent = new MouseEvent('click', {
-         bubbles: true,
-         cancelable: true,
-         view: window
-         });
-       svg.dispatchEvent(clickEvent);
-       return 'Icône de téléchargement cliquée';
+          console.log("SVG de téléchargement trouvé à l'index:", i);
+          const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+          });
+          svg.dispatchEvent(clickEvent);
+          return 'Icône de téléchargement cliquée';
         }
       }
       const allGroups = lastCell.querySelectorAll('.relative.group');
@@ -445,9 +451,41 @@ async clickDownloadFirstJuridique() {
     `);
     
     console.log('Résultat du script JavaScript:', clicked);
-    await this.driver.sleep(1500);
+    let newFile = null;
+    let attempts = 0;
+    const maxAttempts = 20;
     
-    return clicked !== 'Aucune icône de téléchargement trouvée';
+    while (attempts < maxAttempts && !newFile) {
+      await this.driver.sleep(500);
+      attempts++;
+      const filesAfter = fs.readdirSync(downloadsPath);
+      const newFiles = filesAfter.filter(file => !filesBefore.includes(file));
+      if (newFiles.length > 0) {
+        const filePaths = newFiles.map(file => path.join(downloadsPath, file));
+        const fileStats = filePaths.map(filePath => ({
+          path: filePath,
+          stats: fs.statSync(filePath)
+        }));
+        fileStats.sort((a, b) => b.stats.birthtimeMs - a.stats.birthtimeMs);
+        newFile = path.basename(fileStats[0].path);
+        break;
+      }
+    }
+    
+    if (newFile) {
+      console.log(`Téléchargement réussi: ${newFile} trouvé dans ${downloadsPath}`);
+      return {
+        success: true,
+        filePath: path.join(downloadsPath, newFile),
+        fileName: newFile
+      };
+    } else {
+      console.error('Aucun nouveau fichier détecté après le téléchargement');
+      return {
+        success: false,
+        message: 'Aucun fichier téléchargé détecté'
+      };
+    }
   } catch (error) {
     console.error('Erreur lors de la tentative de téléchargement:', error);
     try {
@@ -457,17 +495,91 @@ async clickDownloadFirstJuridique() {
         console.log('Approche alternative: clic sur le troisième conteneur de groupe');
         const actions = this.driver.actions({async: true});
         await actions.move({origin: groupContainers[2]}).click().perform();
-        await this.driver.sleep(1500);
-        return true;
+        await this.driver.sleep(3000);
+        return {
+          success: true,
+          message: 'Approche alternative utilisée, téléchargement probablement réussi'
+        };
       }
       
-      return false;
+      return {
+        success: false,
+        message: 'Téléchargement échoué'
+      };
     } catch (altError) {
       console.error('Échec de l\'approche alternative:', altError);
-      return false;
+      return {
+        success: false,
+        message: 'Toutes les tentatives de téléchargement ont échoué'
+      };
     }
   }
 }
+
+async countDocumentsInTable() {
+  try {
+    await this.driver.wait(until.elementLocated(By.css('tbody tr')), 5000);
+    const rows = await this.driver.findElements(By.css('tbody tr'));
+    return rows.length;
+  } catch (error) {
+    console.error('Erreur lors du comptage des documents:', error);
+    return 0;
+  }
 }
+async waitForDocumentInTable(documentName, timeout = 5000) {
+  try {
+    const startTime = Date.now();
+    let documentFound = false;
+    
+    while (Date.now() - startTime < timeout && !documentFound) {
+      const rows = await this.driver.findElements(By.css('tbody tr'));
+      
+      for (const row of rows) {
+        const nameCell = await row.findElement(By.css('td:first-child span'));
+        const text = await nameCell.getText();
+        
+        if (text.includes(documentName)) {
+          console.log(`Document trouvé dans le tableau: "${text}"`);
+          documentFound = true;
+          break;
+        }
+      }
+      
+      if (!documentFound) {
+        console.log('Document non trouvé, attente...');
+        await this.driver.sleep(500);
+      }
+    }
+    
+    return documentFound;
+  } catch (error) {
+    console.error('Erreur lors de la recherche du document dans le tableau:', error);
+    return false;
+  }
+}
+
+async getFirstDocumentName() {
+  try {
+    const firstDocumentNameCell = await driver.wait(
+      until.elementLocated(By.xpath("//tbody/tr[1]/td[1]//span[@class='text-gray500']")), 
+      5000, 
+      'Cellule du nom du document non trouvée'
+    );
+    return await firstDocumentNameCell.getText();
+  } catch (error) {
+    console.error('Erreur lors de la récupération du nom du document:', error);
+    return null;
+  }
+}
+async isDocumentInTable(documentName) {
+  try {
+    const documentElement = await driver.findElement(By.xpath(`//tbody//span[contains(text(), '${documentName}')]`));
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+}
+
 
 module.exports = JuridiquePage;

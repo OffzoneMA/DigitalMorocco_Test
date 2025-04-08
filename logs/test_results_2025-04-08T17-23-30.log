@@ -1,0 +1,12 @@
+2025-04-08T17:23:41.064Z - Étape 1 OK : Connexion réussie
+2025-04-08T17:23:42.966Z - Étape 2 OK : Navigation vers la page des documents juridiques réussie
+2025-04-08T17:23:44.878Z - Étape 3 OK : Alerte affichée pour l'ajout d'un document juridique
+2025-04-08T17:23:47.263Z - Étape 4 OK : Formulaire de l'ajout du document juridique rempli avec succès
+2025-04-08T17:23:52.388Z - Test OK : Ajout et vérification d'un nouveau document juridique réussis
+2025-04-08T17:24:06.461Z - Test OK : Echec de création d'un document juridique - champs obligatoires vides.
+2025-04-08T17:24:21.841Z - Test OK : Modification du nom du document juridique réussie 
+2025-04-08T17:24:41.815Z - Test OK :Modification réussie - Mise à jour du document 
+2025-04-08T17:24:54.009Z - Test OK : bouton Annuler lors de la modification du document juridique
+2025-04-08T17:25:05.023Z - Test OK : téléchargement et vérification du document juridique réussis
+2025-04-08T17:25:19.171Z - Test OK : Bouton annuler lors de la suppression d'un document juridique réussie
+2025-04-08T17:25:33.086Z - Test OK : suppression d'un document juridique réussie

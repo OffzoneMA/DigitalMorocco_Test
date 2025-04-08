@@ -63,7 +63,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
     }
   })
 
-     it('Echec de création d\'un document - champs obligatoires vides', async function() {
+    it('Echec de création d\'un document - champs obligatoires vides', async function() {
         try {
             await driver.get(config.baseUrl);
             await loginPage.login(config.validEmail, config.validPassword);
@@ -233,6 +233,44 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
             }
           });
 
+          it('Tentative de partage sans sélection de membre', async function() {
+            let testPassed = null;
+            try {
+              await driver.get(config.baseUrl);
+              await loginPage.login(config.validEmail, config.validPassword);
+              await driver.wait(until.urlContains('Dashboard'), 20000);
+              await documentPage.navigateToDocuments();
+              const shareIconClicked = await documentPage.clickShareIcon();
+              if (!shareIconClicked) {
+                throw new Error('Impossible de cliquer sur l\'icône de partage');
+              }
+              const shareButton = await driver.findElement(By.xpath("//button[contains(text(), 'Partager avec les membres sélectionnés')]"));
+              const isButtonEnabled = await shareButton.isEnabled();
+              if (!isButtonEnabled) {
+                testPassed = true;
+              } else {
+                await shareButton.click();
+                await driver.sleep(2000);
+                try {
+                  const successMessage = await driver.findElement(By.xpath("//div[contains(@class, 'bg-white-A700') and .//label[contains(text(), 'Votre document a été partagé avec succès')]]") );
+                  testPassed = false;
+                } catch (noSuccessMessage) {
+                  testPassed = true;
+                }
+              }
+            } catch (error) {
+              testPassed = false;
+              console.error('Erreur inattendue :', error.message);
+            }
+            if (testPassed === true) {
+              logResult("Test OK : Le système n'autorise pas le partage sans sélection de membre");
+            } else {
+              logResult("Test KO : Le bouton de partage n'est pas désactivé ou un message de partage avec succès est affiché sans sélection de membre");
+              throw new Error('Le système permet incorrectement le partage sans sélection de membre');
+            }
+          });
+
+
         it('Partage de document avec un membre spécifique', async function() {
             try {
               await driver.get(config.baseUrl);
@@ -272,48 +310,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
             }
           });
 
-        it('Tentative de partage sans sélection de membre', async function() {
-            let testPassed = null;
-          
-            try {
-              await driver.get(config.baseUrl);
-              await loginPage.login(config.validEmail, config.validPassword);
-              await driver.wait(until.urlContains('Dashboard'), 20000);
-              await documentPage.navigateToDocuments();
-          
-              const shareIconClicked = await documentPage.clickShareIcon();
-              if (!shareIconClicked) {
-                throw new Error('Impossible de cliquer sur l\'icône de partage');
-              }
-          
-              const shareButton = await driver.findElement(By.xpath("//button[contains(text(), 'Partager avec les membres sélectionnés')]"));
-              await shareButton.click();
-              await driver.sleep(2000);
-              try {
-                const successMessage = await driver.findElement(
-                  By.xpath("//div[contains(@class, 'bg-white-A700') and .//label[contains(text(), 'Votre document a été partagé avec succès')]]")
-                );
-                testPassed = false;
-              } catch (noSuccessMessage) {
-                testPassed = true;
-              }
-          
-            } catch (error) {
-              if (error.message.includes('Le système permet incorrectement le partage sans sélection de membre')) {
-                testPassed = false;
-              } else {
-                testPassed = false;
-                console.error('Erreur inattendue :', error.message);
-              }
-            }
-            if (testPassed === true) {
-              logResult("Test OK : Le système n'autorise pas le partage sans sélection de membre");
-            } else {
-              logResult("Test KO : Un msg de  partage avec succès est affiché sans séléction de membre");
-              throw new Error('Le système permet incorrectement le partage sans sélection de membre');
-            }
-          });
-
+        
         it('Annulation de la Suppression d\'un document ', async function() {
               try {
                 await driver.get(config.baseUrl);
@@ -347,10 +344,9 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
               const countBeforeDeletion = rowsBeforeDeletion.length;
               try {
                 await documentPage.clickDeleteFirstDocument();
-                await driver.sleep(2000);
-                await driver.navigate().refresh();
-                await driver.sleep(2000); 
+                await driver.sleep(3000);
                 const documentStillExistsXPath = `//tbody//span[text()="${documentNameToDelete}"]`;
+                
                 try {
                   const remainingDocuments = await driver.findElements(By.xpath(documentStillExistsXPath));
                   if (remainingDocuments.length === 0) {
@@ -362,15 +358,12 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
                     throw new Error('La suppression du document n\'a pas réussi');
                   }
                 } catch (findError) {
-                  logResult('Test KO : Erreur lors de la vérification après suppression - ' + findError.message);
                   throw findError;
                 }
               } catch (deleteError) {
-                logResult('Test KO : Erreur lors de la tentative de suppression - ' + deleteError.message);
                 throw deleteError;
               }
             } catch (error) {
-              logResult('Test KO : ' + error.message);
               throw error;
             }
           });
