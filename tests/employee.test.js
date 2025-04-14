@@ -5,6 +5,8 @@ const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const path = require('path');
 const assert = require('assert');
+const chrome = require('selenium-webdriver/chrome');
+
 
 
 describe('Tests de création d\'un employé', function () {
@@ -13,7 +15,14 @@ describe('Tests de création d\'un employé', function () {
   let employeePage;
 
   beforeEach(async function() {
-    driver = await new Builder().forBrowser('chrome').build();
+    const options = new chrome.Options();
+      options.addArguments('--no-sandbox');
+      options.addArguments('--disable-dev-shm-usage');
+      options.addArguments(`--user-data-dir=/tmp/chrome-data-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
+      driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(options)
+        .build();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     employeePage = new EmployeePage(driver);

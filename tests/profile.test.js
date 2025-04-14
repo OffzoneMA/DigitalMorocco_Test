@@ -3,7 +3,9 @@ const LoginPage = require('../pages/login.page');
 const ProfilePage = require('../pages/profile.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
-const assert =require("assert")
+const assert =require("assert");
+const chrome = require('selenium-webdriver/chrome');
+
 
 
 
@@ -13,7 +15,14 @@ describe('Test Profile', function () {
   let profilePage;
 
   beforeEach(async function() {
-    driver = await new Builder().forBrowser('chrome').build();
+    const options = new chrome.Options();
+      options.addArguments('--no-sandbox');
+      options.addArguments('--disable-dev-shm-usage');
+      options.addArguments(`--user-data-dir=/tmp/chrome-data-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
+      driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(options)
+        .build();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     profilePage = new ProfilePage(driver);

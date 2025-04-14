@@ -4,6 +4,8 @@ const ProjectsDetailsPage = require('../pages/projectDetails.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const assert = require('assert');
+const chrome = require('selenium-webdriver/chrome');
+
 
 
 describe('Tests d\'ajout de jalon à un projet', function () {
@@ -13,7 +15,14 @@ describe('Tests d\'ajout de jalon à un projet', function () {
    let projectsDetailsPage;
 
    beforeEach(async function() {
-     driver = await new Builder().forBrowser('chrome').build();
+    const options = new chrome.Options();
+      options.addArguments('--no-sandbox');
+      options.addArguments('--disable-dev-shm-usage');
+      options.addArguments(`--user-data-dir=/tmp/chrome-data-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
+      driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(options)
+        .build();
      await driver.manage().window().maximize();
      loginPage = new LoginPage(driver);
      projectsDetailsPage = new ProjectsDetailsPage(driver);

@@ -6,6 +6,8 @@ const config = require('../config/config');
 const path = require('path');
 const assert = require('assert');
 const { createBugTicket } = require('../utils/jiraUtils');
+const chrome = require('selenium-webdriver/chrome');
+
 
 
 
@@ -15,7 +17,14 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
   let documentPage;
 
   beforeEach(async function() {
-    driver = await new Builder().forBrowser('chrome').build();
+  const options = new chrome.Options();
+  options.addArguments('--no-sandbox');
+  options.addArguments('--disable-dev-shm-usage');
+  options.addArguments(`--user-data-dir=/tmp/chrome-data-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
+  driver = await new Builder()
+    .forBrowser('chrome')
+    .setChromeOptions(options)
+    .build();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     documentPage = new DocumentPage(driver);

@@ -6,6 +6,8 @@ const config = require('../config/config');
 const path = require('path');
 const { createBugTicket} = require('../utils/jiraUtils');
 const testInfo = require('../utils/testInfo');
+const chrome = require('selenium-webdriver/chrome');
+
 
 
 
@@ -17,7 +19,14 @@ describe('Tests de création de projet', function () {
   let projectsPage;
 
   beforeEach(async function() {
-    driver = await new Builder().forBrowser('chrome').build();
+    const options = new chrome.Options();
+      options.addArguments('--no-sandbox');
+      options.addArguments('--disable-dev-shm-usage');
+      options.addArguments(`--user-data-dir=/tmp/chrome-data-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
+      driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(options)
+        .build();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     projectsPage = new ProjectsPage(driver);
