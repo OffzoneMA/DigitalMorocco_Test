@@ -4,6 +4,12 @@ const ProjectsPage = require('../pages/project.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const path = require('path');
+const { createBugTicket} = require('../utils/jiraUtils');
+const testInfo = require('../utils/testInfo');
+
+
+
+
 
 describe('Tests de création de projet', function () {
   let driver;
@@ -18,11 +24,49 @@ describe('Tests de création de projet', function () {
   });
 
   afterEach(async function() {
+    if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
+    
     if (driver) {
       await driver.quit();
     }
-  });  
-
+  });
  it('Création d\'un nouveau projet', async function() {
     try {
       const projectData = {
@@ -239,24 +283,71 @@ describe('Tests de création de projet', function () {
       }
     });
 
-   /* it('Suppression d\'un projet', async function() {
+    it('Suppression d\'un projet', async function() {
       try {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
         await driver.wait(until.urlContains('Dashboard'), 20000);
-        const dashboardUrl = await driver.getCurrentUrl();
         const navigateSuccess = await projectsPage.navigateToProjects();
-        const deleteProjectSuccess = await projectsPage.clickDeleteFirstProject();
-       try {
-          const successMessageXPath = "//div[contains(@class, 'alert-success') or contains(text(), 'supprimé avec succès')]";
-          await driver.wait(until.elementLocated(By.xpath(successMessageXPath)), 5000);
-        } catch (error) {
-          console.log("Pas de message de confirmation trouvé, mais la suppression peut avoir réussi");
+        await driver.wait(until.elementLocated(By.xpath("//tbody")), 10000, "Le tableau des projets n'a pas été chargé après 10 secondes");
+        const projects = await driver.findElements(By.xpath("//tbody/tr"));
+        if (projects.length === 0) {
+          console.log("Aucun projet à supprimer");
+          logResult('Test ignoré : Aucun projet disponible');
+          return;
         }
-        logResult('Test OK : Suppression de projet réussie');
+        const tableElement = await driver.findElement(By.xpath("//tbody"));
+        await driver.executeScript("arguments[0].scrollIntoView(true);", tableElement);
+        const firstProjectNameXPath = "//tbody/tr[1]/td[1]";
+        await driver.wait(until.elementLocated(By.xpath(firstProjectNameXPath)), 5000, "L'élément contenant le nom du projet n'a pas été trouvé");
+        const firstProjectElement = await driver.findElement(By.xpath(firstProjectNameXPath));
+        const projectNameToDelete = await firstProjectElement.getText();
+        console.log(`Projet à supprimer: ${projectNameToDelete}`);
+        const deleteProjectSuccess = await projectsPage.clickDeleteFirstProject();
+        try {
+          await driver.wait(until.elementLocated(By.xpath("//div[contains(@class, 'bg-white-A700')]//label[contains(text(), 'supprimé avec succès')]")), 5000);
+          console.log("Message de confirmation trouvé");
+          const closeButton = await driver.findElement(By.xpath("//div[contains(@class, 'hover:bg-gray-201') and contains(@class, 'rounded-full')]"));
+          await closeButton.click();
+          console.log("Modal de confirmation fermé");
+          await driver.sleep(1000);
+        } catch (error) {
+          console.log("Erreur lors de la gestion de la confirmation:", error.message);
+          console.log("Tentative de continuer le test malgré l'erreur...");
+        }
+        await driver.sleep(2000);
+        try {
+          const allProjectElements = await driver.findElements(By.xpath("//tbody/tr/td[1]"));
+          let projectsAfterDeletion = [];
+          for (let element of allProjectElements) {
+            const projectName = await element.getText();
+            projectsAfterDeletion.push(projectName);
+          }
+          console.log("Projets actuels dans le tableau:", projectsAfterDeletion);
+            const isProjectStillPresent = projectsAfterDeletion.some(name => 
+            name.trim().toLowerCase() === projectNameToDelete.trim().toLowerCase()
+          );
+          
+          if (isProjectStillPresent) {
+            const errorMessage = `Le projet est toujours présent dans le tableau après suppression`;
+            console.log(errorMessage);
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;
+
+            throw new Error(errorMessage);
+          } else {
+            console.log(`Vérification réussie: Le projet "${projectNameToDelete}" a été supprimé avec succès`);
+            logResult('Test OK : Suppression de projet vérifiée');
+          }
+        } catch (error) {
+          console.error("Erreur lors de la vérification:", error.message);
+          logResult('Test KO : ' + error.message);
+          throw error;
+        }
       } catch (error) {
+        console.error("Erreur lors du test de suppression:", error);
         logResult('Test KO : ' + error.message);
         throw error;
       }
-    });*/
+    });
   });

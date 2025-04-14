@@ -5,6 +5,8 @@ const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const path = require('path');
 const assert = require('assert');
+const { createBugTicket } = require('../utils/jiraUtils');
+
 
 
 describe('Tests d\'ajout  d\'un document juridique ', function () {
@@ -20,12 +22,12 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
 });
 
   afterEach(async function() {
-    if (driver) {
-      await driver.quit();
-    }
-  }); 
+      if (driver) {
+        await driver.quit();
+      }
+    });
 
-  it('Création d\'un document avec vérification dans le tableau', async function() {
+ it('Création d\'un document avec vérification dans le tableau', async function() {
     try {
       await driver.get(config.baseUrl);
       await loginPage.login(config.validEmail, config.validPassword);
@@ -271,25 +273,41 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           });
 
 
-        it('Partage de document avec un membre spécifique', async function() {
+          it('Partage de document avec un membre spécifique', async function() {
             try {
               await driver.get(config.baseUrl);
               await loginPage.login(config.validEmail, config.validPassword);
               await driver.wait(until.urlContains('Dashboard'), 20000);
               await documentPage.navigateToDocuments();
+              
               const shareIconClicked = await documentPage.clickShareIcon();
               if (!shareIconClicked) {
                 logResult('Test KO : Impossible de cliquer sur l\'icône de partage');
                 throw new Error('Échec du clic sur l\'icône de partage');
               }
+              
               const memberName = 'Ikram Imzi';
               const memberSelected = await documentPage.selectMemberToShare(memberName);
               if (!memberSelected) {
                 logResult('Test KO : Impossible de sélectionner le membre et de partager');
                 throw new Error('Échec de la sélection du membre');
               }
-              await driver.sleep(1000); 
-              const memberInTableXPath = `//td[contains(@class, 'px-[18px]') and contains(@class, 'py-4') and contains(@class, 'text-gray500') and contains(text(), '${memberName}')]`;
+              await driver.sleep(1000);
+              try {
+                const successAlert = await driver.wait(until.elementLocated(
+                  By.xpath("//div[contains(@class, 'bg-white-A700') and .//label[contains(text(), 'Votre document a été partagé avec succès')]]")
+                ), 5000);
+                const closeButton = await successAlert.findElement(
+                  By.xpath(".//div[contains(@class, 'hover:bg-gray-201') and contains(@class, 'rounded-full')]")
+                );
+                await driver.executeScript("arguments[0].click();", closeButton);
+                await driver.wait(until.stalenessOf(successAlert), 5000);
+                logResult('Information : Alerte de succès fermée');
+              } catch (alertError) {
+                logResult('Avertissement : Alerte de succès non trouvée ou impossible à fermer : ' + alertError.message);
+              }
+                await driver.sleep(2000);
+                const memberInTableXPath = `//td[contains(@class, 'px-[18px]') and contains(@class, 'py-4') and contains(@class, 'text-gray500') and contains(text(), '${memberName}')]`;
               try {
                 const memberElement = await driver.wait(until.elementLocated(By.xpath(memberInTableXPath)), 5000);
                 const memberText = await memberElement.getText();
@@ -309,7 +327,6 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
               throw error;
             }
           });
-
         
         it('Annulation de la Suppression d\'un document ', async function() {
               try {
@@ -367,6 +384,98 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
               throw error;
             }
           });
+
+       /*   it('Échec du téléchargement d\'un fichier avec format non autorisé', async function() {
+            try {
+              await driver.get(config.baseUrl);
+              await loginPage.login(config.validEmail, config.validPassword);
+              await driver.wait(until.urlContains('Dashboard'), 20000);
+              await documentPage.navigateToDocuments();
+              const createDocumentButton = await driver.wait(until.elementLocated(
+                By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Télécharger un nouveau document')]]")
+              ), 10000);
+              await driver.executeScript("arguments[0].click();", createDocumentButton);
+                const modalForm = await driver.wait(until.elementLocated(
+                By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Télécharger un nouveau document')]]]")
+              ), 5000);
+                const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
+              await titleInput.clear();
+              await titleInput.sendKeys("Test fichier non autorisé");
+              const homeDir = require('os').homedir();
+              const filePath = path.join(homeDir, 'Desktop', 'bug suppression.mp4');
+              const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
+              await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
+              await fileInput.sendKeys(filePath);
+              await driver.sleep(2000);
+              const errorMessages = await driver.findElements(By.xpath(
+                "//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"
+              ));
+              
+              if (errorMessages.length > 0) {
+                logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier non autorisé');
+              } else {
+                logResult('Test KO : Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé');
+                throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
+              }
+              const cancelButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
+              await driver.executeScript("arguments[0].click();", cancelButton);
+              
+            } catch (error) {
+              logResult('Test KO : ' + error.message);
+              throw error;
+            }
+          });
+          
+          it('Échec du téléchargement d\'un fichier trop volumineux', async function() {
+            try {
+              await driver.get(config.baseUrl);
+              await loginPage.login(config.validEmail, config.validPassword);
+              await driver.wait(until.urlContains('Dashboard'), 20000);
+              await documentPage.navigateToDocuments();
+              
+              const createDocumentButton = await driver.wait(until.elementLocated(
+                By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Télécharger un nouveau document')]]")
+              ), 10000);
+              await driver.executeScript("arguments[0].click();", createDocumentButton);
+              const modalForm = await driver.wait(until.elementLocated(
+                By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Télécharger un nouveau document')]]]")
+              ), 5000);
+              const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
+              await titleInput.clear();
+              await titleInput.sendKeys("Test fichier volumineux");
+              const homeDir = require('os').homedir();
+              const filePath = path.join(homeDir, 'Downloads', 'Fichier_volumineux.pdf');
+              const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
+              await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
+              await fileInput.sendKeys(filePath);
+              await driver.sleep(1000);
+              const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
+              await driver.executeScript("arguments[0].click();", submitButton);
+              await driver.sleep(2000);
+              const errorMessages = await driver.findElements(By.xpath( "//*[contains(text(), 'trop volumineux') or contains(text(), 'taille maximale') or contains(text(), 'Mo') or contains(@class, 'text-red')]" ));
+              if (errorMessages.length > 0) {
+                logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier trop volumineux');
+              } else {
+                try {
+                  await driver.findElement(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Télécharger un nouveau document')]]]"));
+                  logResult('Test KO : Aucun message d\'erreur ne s\'affiche pour un fichier trop volumineux');
+                  throw new Error('Le système n\'a pas détecté la taille excessive du fichier');
+                } catch (modalError) {
+                  logResult('Test KO : Le fichier volumineux a été accepté sans message d\'erreur');
+                  throw new Error('Le système a accepté un fichier qui devrait être rejeté pour sa taille');
+                }
+              }
+                try {
+                const cancelButton = await driver.findElement(By.xpath("//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
+                await driver.executeScript("arguments[0].click();", cancelButton);
+              } catch (error) {
+              }
+              
+            } catch (error) {
+              logResult('Test KO : ' + error.message);
+              throw error;
+            }
+          });*/
       
 
     
