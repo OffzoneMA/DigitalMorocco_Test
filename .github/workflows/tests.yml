@@ -1,20 +1,23 @@
 name: Selenium Tests
 
 on:
-  push:
-    branches: [master]
-  pull_request:
-    branches: [master]
   workflow_dispatch:
     inputs:
       test_scenario:
         description: 'Scénario de test à exécuter'
         required: false
-        default: 'login.test.js'
         type: choice
         options:
-        - login.test.js
-        - register.test.js
+          - all
+          - login.test.js
+          - register.test.js
+          - company.test.js
+          - document.test.js
+          - employee.test.js
+          - juridique.test.js
+          - profile.test.js
+          - project.test.js
+          - projectDetails.test.js
 
 jobs:
   test:
@@ -37,7 +40,14 @@ jobs:
       with:
         chrome-version: stable
     
-    - name: Run Single Test
-      run: npx wdio run webdriver.config.js --spec ./tests/${{ github.event.inputs.test_scenario }}
+    - name: Run Tests
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.test_scenario }}" != "all" ]]; then
+          echo "Running single test: ${{ github.event.inputs.test_scenario }}"
+          npx wdio run webdriver.config.js --spec ./tests/${{ github.event.inputs.test_scenario }}
+        else
+          echo "Running all tests"
+          npx wdio run webdriver.config.js
+        fi
       env:
         CI: true
