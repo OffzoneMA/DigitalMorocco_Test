@@ -4,7 +4,7 @@ const CompanyPage = require('../pages/company.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const path = require('path');
-const chrome = require('selenium-webdriver/chrome');
+const { createUniqueBrowser } = require('../helpers/browser.helper');
 
 
 describe('Tests de création de projet', function () {
@@ -13,14 +13,8 @@ describe('Tests de création de projet', function () {
   let companyPage;
 
   beforeEach(async function() {
-    const options = new chrome.Options();
-      options.addArguments('--no-sandbox');
-      options.addArguments('--disable-dev-shm-usage');
-      options.addArguments(`--user-data-dir=/tmp/chrome-data-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
-      driver = await new Builder()
-        .forBrowser('chrome')
-        .setChromeOptions(options)
-        .build();
+    driver = await createUniqueBrowser();
+    driver = await new Builder().forBrowser('chrome').build();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     companyPage = new CompanyPage(driver);

@@ -5,7 +5,7 @@ const config = require('../config/config');
 const axios = require('axios');
 const sinon = require('sinon');
 const nodemailer = require('nodemailer');
-const chrome = require('selenium-webdriver/chrome');
+const { createUniqueBrowser } = require('../helpers/browser.helper');
 
 
 
@@ -27,27 +27,20 @@ describe('Tests d\'inscription', function () {
   });
   
   beforeEach(async function() {
-    const options = new chrome.Options();
-    options.addArguments('--no-sandbox');
-    options.addArguments('--disable-dev-shm-usage');
-    options.addArguments(`--user-data-dir=/tmp/chrome-data-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
-    driver = await new Builder()
-      .forBrowser('chrome')
-      .setChromeOptions(options)
-      .build();
-      
+    driver = await createUniqueBrowser();
+    driver = await new Builder().forBrowser('chrome').build();
     await driver.manage().window().maximize();
     registerPage = new RegisterPage(driver);
     originalPost = axios.post;
     axios.post = sinon.stub().callsFake((url, data) => {
       if (url.includes('/api/register') || url.includes('/api/auth/signup')) {
         console.log('Intercepté: Requête d\'enregistrement', data);
-        return Promise.resolve({
-           data: {
-             success: true,
-             message: 'Utilisateur enregistré avec succès, email de vérification envoyé'
-           }
-         });
+        return Promise.resolve({ 
+          data: { 
+            success: true, 
+            message: 'Utilisateur enregistré avec succès, email de vérification envoyé' 
+          } 
+        });
       }
       return originalPost(url, data);
     });
