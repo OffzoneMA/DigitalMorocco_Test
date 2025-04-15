@@ -16,7 +16,6 @@ describe('Tests d\'ajout de jalon à un projet', function () {
 
    beforeEach(async function() {
     driver = await createUniqueBrowser();
-    driver = await new Builder().forBrowser('chrome').build();
      await driver.manage().window().maximize();
      loginPage = new LoginPage(driver);
      projectsDetailsPage = new ProjectsDetailsPage(driver);

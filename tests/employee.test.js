@@ -16,7 +16,6 @@ describe('Tests de création d\'un employé', function () {
 
   beforeEach(async function() {
     driver = await createUniqueBrowser();
-    driver = await new Builder().forBrowser('chrome').build();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     employeePage = new EmployeePage(driver);

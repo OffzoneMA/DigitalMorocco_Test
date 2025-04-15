@@ -28,7 +28,6 @@ describe('Tests d\'inscription', function () {
   
   beforeEach(async function() {
     driver = await createUniqueBrowser();
-    driver = await new Builder().forBrowser('chrome').build();
     await driver.manage().window().maximize();
     registerPage = new RegisterPage(driver);
     originalPost = axios.post;

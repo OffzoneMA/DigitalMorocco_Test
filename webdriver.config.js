@@ -8,7 +8,13 @@ exports.config = {
   capabilities: [{
     browserName: 'chrome',
     'goog:chromeOptions': {
-      args: ['--headless', '--disable-gpu', '--no-sandbox']
+      args: [
+        '--headless', 
+        '--disable-gpu', 
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+        `--user-data-dir=/tmp/chrome-user-data-${Math.random().toString(36).substring(2, 15)}`
+      ]
     }
   }],
   logLevel: 'info',
