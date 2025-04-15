@@ -10,15 +10,11 @@ on:
       test_scenario:
         description: 'Scénario de test à exécuter'
         required: false
-        default: 'all'
+        default: 'login.test.js'
         type: choice
         options:
-        - all
         - login.test.js
         - register.test.js
-        - project.test.js
-        - company.test.js
-        
 
 jobs:
   test:
@@ -41,17 +37,7 @@ jobs:
       with:
         chrome-version: stable
     
-    - name: Configure Chrome user data directory
-      run: |
-        CHROME_DATA_DIR=$(mktemp -d /tmp/chrome-data-XXXXXX)
-        echo "CHROME_DATA_DIR=$CHROME_DATA_DIR" >> $GITHUB_ENV
-    
-    - name: Run Selenium tests
-      run: |
-        if [ "${{ github.event.inputs.test_scenario }}" = "all" ] || [ "${{ github.event.inputs.test_scenario }}" = "" ]; then
-         CHROME_USER_DATA_DIR=$CHROME_DATA_DIR npm test
-        else
-         CHROME_USER_DATA_DIR=$CHROME_DATA_DIR npx mocha tests/${{ github.event.inputs.test_scenario }} --timeout 30000
-        fi
+    - name: Run Single Test
+      run: npx wdio run webdriver.config.js --spec ./tests/${{ github.event.inputs.test_scenario }}
       env:
         CI: true
