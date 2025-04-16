@@ -1,0 +1,48 @@
+name: Selenium Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_file:
+        description: 'Test file to run'
+        required: true
+        type: choice
+        options:
+          - all
+          - company
+          - document
+          - employee
+          - juridique
+          - login
+          - profile
+          - project
+          - projectDetails
+          - register
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@latest
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run selected test
+        run: |
+          if [ "${{ github.event.inputs.test_file }}" == "all" ]; then
+            npx wdio webdriver.config.js
+          else
+            npx wdio webdriver.config.js --spec ./tests/${{ github.event.inputs.test_file }}.test.js
+          fi
+        env:
+          BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:3000' }}
