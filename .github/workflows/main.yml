@@ -1,6 +1,8 @@
 name: Selenium Tests
 
 on:
+  push:
+    branches: [ master ]
   workflow_dispatch:
     inputs:
       test_file:
