@@ -1,45 +1,47 @@
-name: Selenium Tests
+name: Run Selenium Tests
 
 on:
-  push:
-    branches: [master]
-  pull_request:
-    branches: [master]
   workflow_dispatch:
     inputs:
-      test_scenario:
-        description: 'Scénario de test à exécuter'
+      test_file:
+        description: 'Test à exécuter (ex: login.test.js, ou laisser vide pour tous les tests)'
         required: false
-        default: 'login.test.js'
+        type: string
+      headless:
+        description: 'Mode headless?'
+        required: true
+        default: 'true'
         type: choice
         options:
-        - login.test.js
-        - register.test.js
-        - profile.test.js
-        - project.test.js
+          - 'true'
+          - 'false'
 
 jobs:
-  test:
+  run_tests:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci --legacy-peer-deps
-    
-    - name: Install Chrome
-      uses: browser-actions/setup-chrome@latest
-      with:
-        chrome-version: stable
-    
-    - name: Run Single Test
-      run: npx wdio run webdriver.config.js --spec ./tests/${{ github.event.inputs.test_scenario }}
-      env:
-        CI: true
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+        
+      - name: Run tests
+        run: npm test
+        env:
+          TEST_SPEC: ${{ github.event.inputs.test_file }}
+          HEADLESS: ${{ github.event.inputs.headless }}
+      
+      - name: Upload screenshots if tests failed
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: screenshots
+          path: screenshots/

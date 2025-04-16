@@ -1,21 +1,27 @@
 const uniqueId = Date.now().toString();
 
+const testSpec = process.env.TEST_SPEC 
+  ? `./tests/${process.env.TEST_SPEC}`
+  : './tests/**/*.test.js';
+
 exports.config = {
   runner: 'local',
-  specs: ['./tests/**/*.test.js'],
+  specs: [testSpec],
   framework: 'mocha',
   reporters: ['spec'],
   
   capabilities: [{
     browserName: 'chrome',
     'goog:chromeOptions': {
-      args: [
-        '--headless',
-        '--disable-gpu',
-        '--no-sandbox',
-        '--disable-dev-shm-usage',
-        `--user-data-dir=/tmp/chrome-data-${uniqueId}`
-      ]
+      args: process.env.HEADLESS === 'false' 
+        ? ['--no-sandbox', '--disable-dev-shm-usage', `--user-data-dir=/tmp/chrome-data-${uniqueId}`]
+        : [
+            '--headless', 
+            '--disable-gpu', 
+            '--no-sandbox', 
+            '--disable-dev-shm-usage', 
+            `--user-data-dir=/tmp/chrome-data-${uniqueId}`
+          ]
     }
   }],
   
