@@ -1,8 +1,5 @@
 name: Selenium Tests
-
 on:
-  push:
-    branches: [ master ]
   workflow_dispatch:
     inputs:
       test_file:
@@ -20,14 +17,18 @@ on:
           - project
           - projectDetails
           - register
-
+      
 jobs:
   test:
+    name: ${{ github.event.inputs.test_file }} Test
     runs-on: ubuntu-latest
+    env:
+      LANG: fr_FR.UTF-8
+      LANGUAGE: fr_FR
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+        
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -35,16 +36,41 @@ jobs:
           
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
-      
+        
+      - name: Installer les dépendances
+        run: sudo apt-get update && sudo apt-get install -y imagemagick enscript ghostscript
+        
+      - name: Préparer les fichiers de test
+        run: |
+          # Créer le dossier Downloads
+          mkdir -p /home/runner/Downloads
+          
+          # Créer une image PNG simple
+          convert -size 200x200 xc:white /home/runner/Downloads/profilephoto.png
+          
+          # Créer un PDF simple 
+          echo "Contenu test du document" > /home/runner/Downloads/test_content.txt
+          enscript -p /home/runner/Downloads/test_output.ps /home/runner/Downloads/test_content.txt
+          ps2pdf /home/runner/Downloads/test_output.ps /home/runner/Downloads/Document.pdf
+          
+          # Créer une version alternative du PDF 
+          ps2pdf /home/runner/Downloads/test_output.ps "/home/runner/Downloads/Document (1).pdf"
+          
+          echo "Autre contenu" > /home/runner/Downloads/autre_fichier.txt
+          
+          # Vérifier que les fichiers existent
+          echo "Contenu du dossier Downloads:"
+          ls -la /home/runner/Downloads/
+          echo "Détails des fichiers:"
+          file /home/runner/Downloads/*
+        
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
-      
+          
       - name: Run selected test
         run: |
           if [ "${{ github.event.inputs.test_file }}" == "all" ]; then
-           npx wdio webdriver.config.js
+            npx wdio webdriver.config.js
           else
             npx wdio webdriver.config.js --spec ./tests/${{ github.event.inputs.test_file }}.test.js
           fi
-        env:
-          BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:3000' }}

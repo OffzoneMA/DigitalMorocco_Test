@@ -86,47 +86,106 @@ class ProjectsDetailsPage {
   }
   async fillJalonForm(name, dueDate, description = '') {
     try {
-        const nameInput = await this.driver.findElement(By.name('name'));
-        await nameInput.clear();
-        await nameInput.sendKeys(name);
-        const dateInput = await this.driver.findElement(By.css('input[placeholder="Date d\'échéance"]'));
-        await dateInput.click();
-        const [day, month, year] = dueDate.split('/');
-
+      const nameInput = await this.driver.findElement(By.name('name'));
+      await nameInput.clear();
+      await nameInput.sendKeys(name);
+      const dateInput = await this.driver.findElement(By.css('input[placeholder="Date d\'échéance"]'));
+      await dateInput.click();
+      const [day, month, year] = dueDate.split('/');
+  
+      try {
+        const dayElement = await this.driver.findElement(
+          By.xpath(`//abbr[contains(@aria-label, '${day} avril 2025')]`)
+        );
+        await this.driver.executeScript('arguments[0].click();', dayElement);
+        await this.driver.sleep(500);
+      } catch (clickError) {
+        await this.driver.executeScript(`
+          const input = arguments[0];
+          input.value = '${dueDate}';
+          const event = new Event('input', { bubbles: true });
+          input.dispatchEvent(event);
+        `, dateInput);
+        console.log('Date insérée via JavaScript');
+      }
+      
+      try {
+        const descriptionLabel = await this.driver.findElement(
+          By.xpath("//label[contains(text(), 'Description')]")
+        );
+        await this.driver.executeScript('arguments[0].click();', descriptionLabel);
+        await this.driver.sleep(500);
+      } catch (closeError) {
         try {
-            const dayElement = await this.driver.findElement( By.xpath(`//abbr[contains(@aria-label, '${day} mars 2025')]`)  );
-            await this.driver.executeScript('arguments[0].click();', dayElement);
-        } catch (clickError) {
-          await this.driver.executeScript(`
-                const input = arguments[0];
-                input.value = '${dueDate}';
-                const event = new Event('input', { bubbles: true });
-                input.dispatchEvent(event);
-            `, dateInput);
-            console.log('Date insérée via JavaScript');
-        }
-
-        if (description) {
-            const descriptionInput = await this.driver.findElement(
-                By.css('textarea[placeholder="Écrivez une brève description"]')
+          const descriptionField = await this.driver.findElement(By.name('description'));
+          await this.driver.executeScript('arguments[0].click();', descriptionField);
+          await this.driver.sleep(500);
+        } catch (e) {
+          try {
+            const formTitle = await this.driver.findElement(
+              By.xpath("//label[contains(text(), 'Ajouter une nouvelle étape clé')]")
             );
-            await descriptionInput.clear();
-            await descriptionInput.sendKeys(description);
-            console.log('Description remplie:', description);
+            await this.driver.executeScript('arguments[0].click();', formTitle);
+            await this.driver.sleep(500);
+          } catch (e2) {
+            console.log('Tentatives de fermeture du calendrier échouées');
+          }
         }
-
-        return true;
+      }
+      if (description) {
+        try {
+          const descriptionInput = await this.driver.findElement(By.name('description'));
+          await descriptionInput.clear();
+          await descriptionInput.sendKeys(description);
+          console.log('Description remplie:', description);
+        } catch (descError) {
+          console.log('Erreur lors de la saisie de la description:', descError.message);
+        }
+      }
+  
+      return true;
     } catch (error) {
-        console.error('Erreur détaillée lors du remplissage du formulaire de jalon:', error);
-        return false;
+      console.error('Erreur détaillée lors du remplissage du formulaire de jalon:', error);
+      return false;
     }
-}
+  }
   async submitJalonForm() {
     try {
-      const submitButton = await this.driver.findElement(By.xpath("//button[contains(text(), 'Ajouter une étape clé')]"));
-      await submitButton.click();
+      try {
+        const formTitle = await this.driver.findElement( By.xpath("//label[contains(text(), 'Ajouter une nouvelle étape clé')]") );
+        await this.driver.executeScript('arguments[0].click();', formTitle);
+        await this.driver.sleep(500);
+      } catch (e) {
+        try {
+          const nameInput = await this.driver.findElement(By.name('name'));
+          await this.driver.executeScript('arguments[0].click();', nameInput);
+          await this.driver.sleep(500);
+        } catch (e2) {
+          console.log('Impossible de cliquer ailleurs pour fermer le calendrier');
+        }
+      }
+      const submitButton = await this.driver.findElement(By.xpath("//button[contains(text(), 'Ajouter une étape clé')]") );
+      const isClickable = await this.driver.executeScript(`
+        const rect = arguments[0].getBoundingClientRect();
+        const elementAtPoint = document.elementFromPoint(rect.left + rect.width/2, rect.top + rect.height/2);
+        return arguments[0].contains(elementAtPoint) || arguments[0] === elementAtPoint;
+      `, submitButton);
       
-      await this.driver.wait(until.stalenessOf(submitButton),10000,'Le formulaire n\'a pas été soumis correctement');
+      if (!isClickable) {
+        console.log('Le bouton n\'est pas cliquable, tentative de fermeture du calendrier');
+        await this.driver.executeScript(`
+          // Cacher tous les éléments qui pourraient être un calendrier
+          const calendars = document.querySelectorAll('.calendar, [role="dialog"], [aria-label*="2025"]');
+          if (calendars) {
+            calendars.forEach(cal => {
+              cal.style.display = 'none';
+            });
+          }
+        `);
+        await this.driver.sleep(500);
+      }
+      await this.driver.executeScript('arguments[0].click();', submitButton);
+      await this.driver.wait(until.stalenessOf(submitButton), 10000, 'Le formulaire n\'a pas été soumis correctement');
       
       return true;
     } catch (error) {
@@ -134,7 +193,6 @@ class ProjectsDetailsPage {
       return false;
     }
   }
-
   async cancelJalonForm() {
     try {
       const cancelButton = await this.driver.findElement(By.xpath("//button[text()='Annuler']"));

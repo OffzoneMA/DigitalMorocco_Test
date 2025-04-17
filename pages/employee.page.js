@@ -101,29 +101,26 @@ class EmployeePage{
 
       async selectDropdownValue(placeholder, value) {    
         try {
-          const dropdownInput = await this.driver.wait(until.elementLocated( By.xpath(`//input[@placeholder="${placeholder}"]`) ), 10000,  `Input avec placeholder "${placeholder}" non trouvé`  );
+          const dropdownInput = await this.driver.wait(until.elementLocated( By.xpath(`//input[@placeholder="${placeholder}"]`) ), 10000 );
           await this.driver.executeScript("arguments[0].click();", dropdownInput);
           await this.driver.sleep(2000);
           const optionXpath = `//div[contains(@class, "flex") and contains(@class, "text-left") and contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), "${value.toLowerCase()}")][1]`;
-          const firstOption = await this.driver.wait(until.elementLocated(By.xpath(optionXpath)),5000,`Aucune option trouvée correspondant à "${value}"`);
+          const firstOption = await this.driver.wait(until.elementLocated(By.xpath(optionXpath)),5000);
           await this.driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", firstOption);
           await this.driver.sleep(500);
           await this.driver.executeScript("arguments[0].click();", firstOption);
           await this.driver.sleep(1000);
           return true;
         } catch (error) {
-          console.error(`Erreur lors de la sélection dans le dropdown "${placeholder}":`, error.message);
           
           try {
             const fallbackOptionXpath = `//div[contains(@class, "flex") and contains(@class, "text-left")][1]`;
-            const fallbackOption = await this.driver.wait(until.elementLocated(By.xpath(fallbackOptionXpath)),5000,'Aucune option trouvée dans la liste'  );
+            const fallbackOption = await this.driver.wait(until.elementLocated(By.xpath(fallbackOptionXpath)),5000);
             await this.driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", fallbackOption);
             await this.driver.sleep(500);
             await this.driver.executeScript("arguments[0].click();", fallbackOption);
-            console.warn(`Sélection par défaut de la première option pour "${placeholder}"`);
             return true;
           } catch (fallbackError) {
-            console.error('Erreur de secours:', fallbackError.message);
             throw error;
           }
         }
@@ -256,10 +253,8 @@ class EmployeePage{
                 await this.driver.wait(until.elementLocated(By.name('name')), 5000);
                 return true;
               } catch (formErr) {
-                console.log("Formulaire d'édition non trouvé après clic direct");
               }
             } catch (directClickErr) {
-              console.log("Échec du clic direct sur le bouton d'édition:", directClickErr);
             }
             const actions = this.driver.actions({async: true});
             try {
@@ -303,7 +298,6 @@ class EmployeePage{
                 
                 return true;
               } catch (finalErr) {
-                console.log("Toutes les tentatives ont échoué");
                 return false;
               }
             }
