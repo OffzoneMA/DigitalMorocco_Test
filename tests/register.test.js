@@ -182,24 +182,20 @@ describe('Tests d\'inscription', function () {
     }
   });
 
-  /*it('Test du bouton de renvoi d\'email avec vérification de confirmation', async function() {
+  it('Test du bouton de renvoi d\'email avec vérification de confirmation', async function() {
     try {
-      // Étape 1: Créer un utilisateur via l'inscription normale
       const timestamp = Date.now();
       const testName = config.name;
       const testEmail = `test.user${timestamp}@votredomaine.com`;
       const testPassword = config.validPassword;
       
-      // Effectuer l'inscription
       await driver.get(`${config.baseUrl}/SignUp`);
       await registerPage.register(testName, testEmail, testPassword);
       logResult('Test OK: Inscription validée');
       
-      // Attendre que la redirection vers la page de vérification d'email se fasse
       await driver.wait(until.urlContains('VerificationEmail'), 15000);
       logResult('Test OK: Redirection vers la page de vérification d\'email');
       
-      // Étape 3: Cliquer sur le bouton "Renvoyer l'e-mail"
       const resendButton = await driver.wait(until.elementLocated(By.css("button.bg-\\[\\#EDF7FF\\].text-\\[\\#00CDAE\\]")), 5000);
       await driver.wait(until.elementIsVisible(resendButton), 5000);
       await driver.wait(until.elementIsEnabled(resendButton), 5000);
@@ -207,18 +203,9 @@ describe('Tests d\'inscription', function () {
       await resendButton.click();
       logResult('Test OK: Bouton de renvoi d\'email cliqué');
       
-      // Étape 4: Vérifier l'apparition de la div de confirmation
       try {
-        // Attendre que la div de confirmation apparaisse (max 5 secondes)
-        const confirmationDiv = await driver.wait(
-          until.elementLocated(By.xpath("//div[contains(@class, 'bg-white-A700') and contains(@class, 'border-solid') and .//label[contains(text(), 'Un e-mail a été envoyé avec succès')]]")), 
-          5000
-        );
-        
-        // Vérifier la présence du message de succès
+        const confirmationDiv = await driver.wait(until.elementLocated(By.xpath("//div[contains(@class, 'bg-white-A700') and contains(@class, 'border-solid') and .//label[contains(text(), 'Un e-mail a été envoyé avec succès')]]")), 5000);
         const successMessage = await confirmationDiv.findElement(By.xpath(".//label[contains(text(), 'Un e-mail a été envoyé avec succès')]"));
-        
-        // Vérifier que l'image de confirmation est affichée
         const checkIcon = await confirmationDiv.findElement(By.xpath(".//img[contains(@src, 'check-verified')]"));
         
         logResult('Test OK: une confirmation affichée correctement avec le message de succès');
@@ -228,8 +215,7 @@ describe('Tests d\'inscription', function () {
         throw error;
       }
       
-      // Vérification optionnelle de l'envoi d'email effectif
-      await new Promise(resolve => setTimeout(resolve, 5000)); // Attente pour l'envoi d'email
+      await new Promise(resolve => setTimeout(resolve, 5000)); 
       
       const emails = await getMailtrapEmails();
       const targetEmails = emails.filter(email => 
@@ -247,7 +233,7 @@ describe('Tests d\'inscription', function () {
       logResult(`Test KO: ${error.message}`);
       throw error;
     }
-  });*/
+  });
   
   it('Vérifier que l\'inscription avec un email déjà existant est échoué', async function () {
     try {

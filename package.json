@@ -3,7 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "npx wdio run webdriver.config.js"
+    "test:login": "docker-compose run --name test-login test npx wdio run wdio.conf.js --spec ./tests/login.test.js",
+    "test:profile": "docker-compose run --name test-profile test npx wdio run wdio.conf.js --spec ./tests/profile.test.js",
+    "test:company": "docker-compose run --name test-company test npx wdio run wdio.conf.js --spec ./tests/company.test.js",
+    "test:document": "docker-compose run --name test-document test npx wdio run wdio.conf.js --spec ./tests/document.test.js",
+    "test:employee": "docker-compose run --name test-employee test npx wdio run wdio.conf.js --spec ./tests/employee.test.js",
+    "test:register": "docker-compose run --name test-register test npx wdio run wdio.conf.js --spec ./tests/register.test.js",
+    "test:project": "docker-compose run --name test-project test npx wdio run wdio.conf.js --spec ./tests/project.test.js",
+    "test:projectdetails": "docker-compose run --name test-projectdetails test npx wdio run wdio.conf.js --spec ./tests/projectDetails.test.js",
+    "test:juridique": "docker-compose run --name test-juridique test npx wdio run wdio.conf.js --spec ./tests/juridique.test.js"
+
   },
   "keywords": [],
   "author": "",
@@ -22,11 +31,12 @@
     "selenium-webdriver": "^4.29.0"
   },
   "devDependencies": {
+    "@reportportal/agent-js-mocha": "^5.1.0",
+    "@reportportal/agent-js-webdriverio": "^5.2.0",
     "@wdio/cli": "^9.11.0",
     "@wdio/local-runner": "^9.11.0",
     "@wdio/mocha-framework": "^9.11.0",
     "@wdio/spec-reporter": "^9.11.0",
-    "allure-mocha": "^3.2.1",
     "chromedriver": "^134.0.0",
     "mailtrap": "^4.0.0",
     "nock": "^14.0.1",

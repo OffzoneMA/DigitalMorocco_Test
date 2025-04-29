@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  test:
+    build: .
+    volumes:
+      - ./screenshots:/app/screenshots
+      - ./logs:/app/logs
+      - /dev/shm:/dev/shm  
+    environment:
+      - CI=true
+      - CHROME_ARGS=--disable-gpu,--no-sandbox,--disable-dev-shm-usage,--window-size=1920,1080
+      - RP_ENDPOINT=http://host.docker.internal:8080/api/v1
+      - RP_API_KEY=DigitalMoroccoAPI_pfXFk7MqSYu-nxGRc310hZezITUgSRq4-I4Z0U5ZGrMzomT7KbyWMk6rl82ErRhI
+      - RP_PROJECT=DIGITALMOROCCO
+      - launch=DIGITALTEST
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: '1G'  
+        reservations:
+          cpus: '1.0'   
+          memory: '1G'  
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Container is healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

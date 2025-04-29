@@ -19,7 +19,10 @@ module.exports = {
   website:process.env.WEBSITE || 'https://www.example.com',
   funding:process.env.FUNDING || '5000',
   raised:process.env.RAISED || '1000',
-  member:process.env.MEMBER || 'Ikram Imzi'
+  member:process.env.MEMBER || 'Ikram Imzi',
+  reportApi:process.env.reportApi || 'DigitalMoroccoAPI_pfXFk7MqSYu-nxGRc310hZezITUgSRq4-I4Z0U5ZGrMzomT7KbyWMk6rl82ErRhI',
+  endpoint:process.env.endpoint || 'http://localhost:8080/api/v1',
+  projectReport:process.env.projectReport || 'DIGITALMOROCCO'
 
 };
 

@@ -9,11 +9,6 @@ const testInfo = require('../utils/testInfo');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
 
 
-
-
-
-
-
 describe('Tests de création de projet', function () {
   let driver;
   let loginPage;

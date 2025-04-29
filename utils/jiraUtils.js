@@ -12,6 +12,101 @@ const jira = new JiraApi({
   strictSSL: true
 });
 
+async function getAvailableTransitions(issueKey) {
+  try {
+    const transitions = await jira.listTransitions(issueKey);
+    return transitions.transitions;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des transitions:", error);
+    return [];
+  }
+}
+
+async function findExistingTicket(testName) {
+  try {
+    const jql = `project = SCRUM AND summary ~ "Test échoué: ${testName}" AND type = Bug`;
+    const searchResults = await jira.searchJira(jql);
+    
+    if (searchResults.issues && searchResults.issues.length > 0) {
+      console.log(`Ticket existant trouvé pour le test "${testName}": ${searchResults.issues[0].key}`);
+      return searchResults.issues[0].key;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Erreur lors de la recherche d'un ticket existant:", error);
+    return null;
+  }
+}
+
+async function updateExistingTicket(issueKey, testName, errorMessage, stepsInfo) {
+  try {
+    const issue = await jira.findIssue(issueKey);
+    const updateData = {
+      fields: {},
+      update: {
+        comment: [{
+          add: {
+            body: {
+              version: 1,
+              type: "doc",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: `Test échoué à nouveau le ${new Date().toLocaleString()}`
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }]
+      }
+    };
+    
+    if (issue.fields.status.name === "Resolved" || issue.fields.status.name === "Done" || 
+        issue.fields.status.name === "Closed") {
+      try {
+        const availableTransitions = await getAvailableTransitions(issueKey);
+        console.log(`Transitions disponibles pour ${issueKey}:`, availableTransitions.map(t => `${t.id} - ${t.name}`));
+        
+        const toDoTransition = availableTransitions.find(t => 
+          t.name === "To Do" || t.name === "TO DO" || t.name === "A faire" || t.name === "À faire");
+        
+        if (toDoTransition) {
+          await jira.transitionIssue(issueKey, {
+            transition: {
+              id: toDoTransition.id
+            }
+          });
+          console.log(`Statut du ticket ${issueKey} mis à jour vers "${toDoTransition.name}"`);
+        } else {
+          console.log("Transition TO DO non trouvée, utilisation de l'ID par défaut");
+          await jira.transitionIssue(issueKey, {
+            transition: {
+              id: "11"
+            }
+          });
+          console.log(`Statut du ticket ${issueKey} mis à jour vers "TO DO" `);
+        }
+      } catch (transitionError) {
+        console.error("Erreur lors de la transition du ticket:", transitionError);
+      }
+    }
+    
+    await jira.updateIssue(issueKey, updateData);
+    console.log(`Ticket ${issueKey} mis à jour avec succès`);
+    
+    return issueKey;
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du ticket:", error);
+    return null;
+  }
+}
+
 async function takeScreenshot(driver, testName) {
   try {
     const screenshotDir = path.join(__dirname, '../screenshots');
@@ -53,12 +148,17 @@ async function attachScreenshotToIssue(issueKey, screenshotPath) {
 
 async function createBugTicket(testName, errorMessage, stepsInfo, driver = null) {
   try {
-    console.log(`Création d'un ticket bug pour le test échoué: ${testName}`);
-    
+    console.log(`Gestion du ticket pour le test échoué: ${testName}`);
+    const existingTicket = await findExistingTicket(testName);
+    if (existingTicket) {
+      await updateExistingTicket(existingTicket, testName, errorMessage, stepsInfo);
+      return existingTicket;
+    }
     let screenshotPath = null;
     if (driver) {
       screenshotPath = await takeScreenshot(driver, testName);
     }
+    console.log(`Création d'un nouveau ticket bug pour le test échoué: ${testName}`);
     
     const stepsPerformed = stepsInfo?.stepsPerformed || "Non spécifiées";
     const actualResult = stepsInfo?.actualResult || errorMessage || "Non spécifié";
@@ -225,8 +325,32 @@ Je vous transmets ci-dessous la stack trace complète ainsi que des informations
     
     return issue.key;
   } catch (error) {
-    console.error('Erreur lors de la création du ticket Jira:', error);
+    console.error('Erreur lors de la gestion du ticket Jira:', error);
     return null;
+  }
+}
+
+async function changeTicketStatus(issueKey, targetStatus) {
+  try {
+    const availableTransitions = await getAvailableTransitions(issueKey);
+    const targetTransition = availableTransitions.find(t => 
+      t.name.toLowerCase() === targetStatus.toLowerCase() || 
+      t.to.name.toLowerCase() === targetStatus.toLowerCase());
+    
+    if (targetTransition) {
+      await jira.transitionIssue(issueKey, {
+        transition: {
+          id: targetTransition.id
+        }
+      });
+      return true;
+    } else {
+      console.warn(`Aucune transition trouvée pour le statut "${targetStatus}"`);
+      return false;
+    }
+  } catch (error) {
+    console.error(`Erreur lors du changement de statut du ticket ${issueKey}:`, error);
+    return false;
   }
 }
 
@@ -234,5 +358,9 @@ module.exports = {
   jira,
   createBugTicket,
   takeScreenshot,
-  attachScreenshotToIssue
+  attachScreenshotToIssue,
+  findExistingTicket,
+  updateExistingTicket,
+  getAvailableTransitions,
+  changeTicketStatus
 };

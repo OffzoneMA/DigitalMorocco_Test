@@ -70,7 +70,7 @@ jobs:
       - name: Run selected test
         run: |
           if [ "${{ github.event.inputs.test_file }}" == "all" ]; then
-            npx wdio webdriver.config.js
+            npx wdio run wdio.conf.js
           else
-            npx wdio webdriver.config.js --spec ./tests/${{ github.event.inputs.test_file }}.test.js
+            npx wdio run wdio.conf.js --spec ./tests/${{ github.event.inputs.test_file }}.test.js
           fi

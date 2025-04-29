@@ -1,4 +1,3 @@
-// helpers/browser.helper.js
 const { Builder } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 
@@ -10,9 +9,9 @@ async function createUniqueBrowser() {
   options.addArguments('--disable-dev-shm-usage');
   options.addArguments(`--user-data-dir=/tmp/chrome-unique-${uniqueId}`);
   
-  if (process.env.CI === 'true') {
-    options.addArguments('--headless');
-  }
+  options.addArguments('--headless');
+  options.addArguments('--disable-gpu');
+  options.addArguments('--window-size=1920,1080');
   
   return await new Builder()
     .forBrowser('chrome')
