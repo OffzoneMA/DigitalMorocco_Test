@@ -12,7 +12,6 @@
     "test:project": "docker-compose run --name test-project test npx wdio run wdio.conf.js --spec ./tests/project.test.js",
     "test:projectdetails": "docker-compose run --name test-projectdetails test npx wdio run wdio.conf.js --spec ./tests/projectDetails.test.js",
     "test:juridique": "docker-compose run --name test-juridique test npx wdio run wdio.conf.js --spec ./tests/juridique.test.js"
-
   },
   "keywords": [],
   "author": "",
@@ -37,7 +36,7 @@
     "@wdio/local-runner": "^9.11.0",
     "@wdio/mocha-framework": "^9.11.0",
     "@wdio/spec-reporter": "^9.11.0",
-    "chromedriver": "^134.0.0",
+    "chromedriver": "^135.0.4",
     "mailtrap": "^4.0.0",
     "nock": "^14.0.1",
     "sinon": "^19.0.2",

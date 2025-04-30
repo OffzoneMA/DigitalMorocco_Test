@@ -7,6 +7,8 @@ const path = require('path');
 const assert = require('assert');
 const { createBugTicket } = require('../utils/jiraUtils');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
+const testInfo = require('../utils/testInfo');
+
 
 
 
@@ -23,11 +25,50 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
     documentPage = new DocumentPage(driver);
 });
 
-  afterEach(async function() {
-      if (driver) {
-        await driver.quit();
+afterEach(async function() {
+  if (this.currentTest && this.currentTest.state === 'failed') {
+    console.log(`Le test "${this.currentTest.title}" a échoué!`);
+    
+    if (!global.ticketCreatedForTest) {
+      global.ticketCreatedForTest = {};
+    }
+    if (global.ticketCreatedForTest[this.currentTest.title]) {
+      console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+    } else {
+      let errorMessage = 'Erreur inconnue';
+      
+      if (this.currentTest.err) {
+        errorMessage = this.currentTest.err.message;
+        console.log("Message d'erreur détecté:", errorMessage);
       }
-    });
+      if (global.lastTestError) {
+        errorMessage = global.lastTestError;
+        console.log("Utilisation du message d'erreur global:", errorMessage);
+      }
+      const testSpecificInfo = testInfo[this.currentTest.title] || {};
+      const stepsInfo = {
+        stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+        actualResult: errorMessage,
+        expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+      };
+      
+      const ticketKey = await createBugTicket(
+        this.currentTest.title,
+        errorMessage,
+        stepsInfo,
+        driver
+      );
+      
+      if (ticketKey) {
+        global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+      }
+    }
+  }
+  
+  if (driver) {
+    await driver.quit();
+  }
+});
 
  it('Création d\'un document avec vérification dans le tableau', async function() {
     try {
@@ -427,7 +468,9 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
                   if (afterSubmitErrors.length > 0) {
                     logResult('Test OK : Le système a correctement rejeté le fichier non autorisé après tentative de soumission');
                   } else {
-                    logResult('Test KO : Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé');
+                    const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
+                    logResult('Test KO :' + errorMessage);
+                    global.lastTestError = errorMessage;
                     throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
                   }
                 }
@@ -486,7 +529,9 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
                     if (afterSubmitErrors.length > 0) {
                       logResult('Test OK : Le système a correctement rejeté le fichier volumineux');
                     } else {
-                      logResult('Test KO : Aucun message d\'erreur ne s\'affiche pour un fichier volumineux');
+                      const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
+                      logResult('Test KO : ' + errorMessage);
+                      global.lastTestError = errorMessage;
                       throw new Error('Le système n\'a pas détecté le fichier volumineux');
                     }
                   }

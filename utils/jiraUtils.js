@@ -12,6 +12,8 @@ const jira = new JiraApi({
   strictSSL: true
 });
 
+const MAX_TICKET_AGE_DAYS = 30; 
+
 async function getAvailableTransitions(issueKey) {
   try {
     const transitions = await jira.listTransitions(issueKey);
@@ -22,14 +24,40 @@ async function getAvailableTransitions(issueKey) {
   }
 }
 
+async function isTicketTooOld(issueKey) {
+  try {
+    const issue = await jira.findIssue(issueKey);
+    const createdDate = new Date(issue.fields.created);
+    const currentDate = new Date();
+    
+    const diffTime = Math.abs(currentDate - createdDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    console.log(`Le ticket ${issueKey} a été créé il y a ${diffDays} jours`);
+    
+    return diffDays > MAX_TICKET_AGE_DAYS;
+  } catch (error) {
+    console.error("Erreur lors de la vérification de l'âge du ticket:", error);
+    return false; 
+  }
+}
+
 async function findExistingTicket(testName) {
   try {
     const jql = `project = SCRUM AND summary ~ "Test échoué: ${testName}" AND type = Bug`;
     const searchResults = await jira.searchJira(jql);
     
     if (searchResults.issues && searchResults.issues.length > 0) {
-      console.log(`Ticket existant trouvé pour le test "${testName}": ${searchResults.issues[0].key}`);
-      return searchResults.issues[0].key;
+      const existingTicket = searchResults.issues[0].key;
+      console.log(`Ticket existant trouvé pour le test "${testName}": ${existingTicket}`);
+      
+      const tooOld = await isTicketTooOld(existingTicket);
+      if (tooOld) {
+        console.log(`Le ticket ${existingTicket} est trop ancien. Un nouveau ticket sera créé.`);
+        return null; 
+      }
+      
+      return existingTicket;
     }
     
     return null;
@@ -154,6 +182,7 @@ async function createBugTicket(testName, errorMessage, stepsInfo, driver = null)
       await updateExistingTicket(existingTicket, testName, errorMessage, stepsInfo);
       return existingTicket;
     }
+    
     let screenshotPath = null;
     if (driver) {
       screenshotPath = await takeScreenshot(driver, testName);
@@ -362,5 +391,7 @@ module.exports = {
   findExistingTicket,
   updateExistingTicket,
   getAvailableTransitions,
-  changeTicketStatus
+  changeTicketStatus,
+  isTicketTooOld, 
+  MAX_TICKET_AGE_DAYS 
 };

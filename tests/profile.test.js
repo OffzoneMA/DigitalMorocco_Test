@@ -15,7 +15,7 @@ describe('Test Profile', function () {
   let profilePage;
 
   beforeEach(async function() {
-    driver = await createUniqueBrowser();
+    driver = await new Builder().forBrowser('chrome').build(); // <== navigateur précisé ici
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     profilePage = new ProfilePage(driver);
@@ -70,4 +70,73 @@ describe('Test Profile', function () {
         throw error;
     }
 })
+
+it('Modification des informations personnelles dans le profil', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 20000);
+    await driver.getCurrentUrl();
+    await profilePage.navigateToProfile();
+    await driver.sleep(2000);
+    
+    const oldProfileInfo = await profilePage.getProfileInfo();
+    console.log("Informations actuelles:", oldProfileInfo);
+    
+    const updates = {
+      firstName: "IKRAM",
+      lastName: "ELHAJII",
+      phoneNumber: "+212658974585"
+    };
+    
+    console.log("Mise à jour des informations avec:", updates);
+    await profilePage.updateProfileInfo(updates);
+    
+    const paysRecherche = "France"; 
+    await profilePage.selectCountry(paysRecherche);
+    await driver.sleep(1000);
+    await profilePage.saveProfileInfo();
+    await driver.sleep(2000);
+    await driver.navigate().refresh();
+    await driver.sleep(3000);
+    
+    const currentInfo = await profilePage.getProfileInfo();
+    console.log("Informations après modification:", currentInfo);
+    if (currentInfo.firstName === updates.firstName && 
+        currentInfo.lastName === updates.lastName &&
+        currentInfo.country === paysRecherche) {
+      logResult('Étape 6 OK : Les modifications du profil ont été correctement enregistrées');
+      console.log(`Prénom modifié: ${oldProfileInfo.firstName} -> ${currentInfo.firstName}`);
+      console.log(`Nom modifié: ${oldProfileInfo.lastName} -> ${currentInfo.lastName}`);
+      console.log(`Pays modifié: ${oldProfileInfo.country || 'Non défini'} -> ${currentInfo.country}`);
+    } else {
+      logResult('Étape 6 KO : Les modifications du profil n\'ont pas été correctement enregistrées');
+      console.log(`Échec pour prénom: Attendu "${updates.firstName}", Obtenu "${currentInfo.firstName}"`);
+      console.log(`Échec pour nom: Attendu "${updates.lastName}", Obtenu "${currentInfo.lastName}"`);
+      console.log(`Échec pour pays: Attendu "${paysRecherche}", Obtenu "${currentInfo.country}"`);
+      throw new Error('Les modifications du profil n\'ont pas été correctement enregistrées');
+    }
+    logResult('Test OK : Modification du profil réussie');
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    throw error;
+  }
+});
+
+it('Modification du mot de passe dans le profil', async function() {
+  try {
+    const currentPassword = config.validPassword;
+    const newPassword = `${config.validPassword}_new`;
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, currentPassword);
+    await driver.wait(until.urlContains('Dashboard'), 20000);
+    await profilePage.navigateToProfile();
+    await profilePage.changePassword(currentPassword, newPassword, newPassword);
+    await profilePage.savePasswordChanges();
+    logResult('Test OK : Modification du mot de passe réussie et restauration effectuée');
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    throw error;
+  }
+});
 });
