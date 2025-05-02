@@ -1,4 +1,6 @@
 const {By, until} = require("selenium-webdriver");
+const os = require('os');
+
 
 class ProfilePage {
      constructor(driver) {
@@ -171,18 +173,29 @@ class ProfilePage {
             throw error;
         }
     }
-
-    async togglePasswordVisibility(fieldName) {
-        try {
-            const fieldContainer = await this.driver.findElement(By.css(`input[name="${fieldName}"]`)).findElement(By.xpath('..'));
-            const toggleButton = await fieldContainer.findElement(By.css('button'));
-            await toggleButton.click();
-            await this.driver.sleep(500);
-            console.log(`Visibilité du champ ${fieldName} basculée`);
+    
+    async logout() {
+        try {            
+            let userProfileButton;
+            try {
+                userProfileButton = await this.driver.wait(until.elementLocated(By.xpath("//div[contains(text(), 'IKRAM ELHAJI')]")), 5000 );
+            } catch (e) {
+                try {
+                    userProfileButton = await this.driver.wait(until.elementLocated(By.xpath("//*[contains(text(), 'IKRAM') and contains(text(), 'ELHAJII')]")),5000);
+                } catch (e2) {
+                    userProfileButton = await this.driver.wait(until.elementLocated(By.css("[class*='rounded-full']")),5000,'Bouton de profil non trouvé');
+                }
+            }
+            await userProfileButton.click();
+            await this.driver.sleep(1000);
+            const logoutLink = await this.driver.wait(until.elementLocated(By.xpath("//span[contains(text(), 'Déconnexion')]")), 5000,'Lien de déconnexion non trouvé');
+            await logoutLink.click();
+            await this.driver.wait(until.urlContains('SignIn'), 10000, 'La déconnexion n\'a pas redirigé vers la page de connexion');
+            await this.waitForPageLoad();
             return true;
         } catch (error) {
-            console.error(`Erreur lors de la bascule de visibilité du mot de passe pour ${fieldName}:`, error);
-            return false;
+            console.error('Erreur lors de la déconnexion:', error);
+            throw error;
         }
     }
     
@@ -212,27 +225,41 @@ class ProfilePage {
     
     async savePasswordChanges() {
         try {
-            const saveButton = await this.driver.findElement(By.xpath("//button[contains(text(), 'Enregistrer')]"));
+            let saveButton;
+            try {
+                const passwordSection = await this.driver.findElement(By.xpath("//h2[contains(text(), 'Paramètres du mot de passe') or contains(text(), 'mot de passe')]/ancestor::div[contains(@class, 'section') or position() <= 3]"));
+                saveButton = await passwordSection.findElement(By.xpath(".//button[contains(text(), 'Enregistrer')]")  );
+            } catch (e) {
+                try {
+                    const confirmPasswordField = await this.driver.findElement(By.name("confirmNewPassword"));
+                    const parentElement = await confirmPasswordField.findElement(By.xpath("./ancestor::form"));
+                    saveButton = await parentElement.findElement(By.xpath(".//button[contains(text(), 'Enregistrer')]"));
+                } catch (e2) {
+                    const allSaveButtons = await this.driver.findElements(By.xpath("//button[contains(text(), 'Enregistrer')]"));
+                    if (allSaveButtons.length >= 2) {
+                        saveButton = allSaveButtons[1]; 
+                    } else {
+                        throw new Error("Impossible de trouver le bouton d'enregistrement pour le mot de passe");
+                    }
+                }
+            }
             await saveButton.click();
             await this.driver.sleep(2000);
             
             try {
-                const successMessage = await this.driver.wait(until.elementLocated( By.xpath("//*[contains(text(), 'enregistré') or contains(text(), 'mis à jour') or contains(text(), 'succès') or contains(text(), 'Mot de passe')]")), 5000);
-                console.log("Message après sauvegarde:", await successMessage.getText());
+                const successMessage = await this.driver.wait(until.elementLocated( By.xpath("//*[contains(text(), 'enregistré') or contains(text(), 'mis à jour') or contains(text(), 'succès') or contains(text(), 'Mot de passe')]")  ), 5000);
                 return {
                     success: true,
                     message: await successMessage.getText()
                 };
             } catch (e) {
                 try {
-                    const errorMessage = await this.driver.findElement( By.xpath("//*[contains(text(), 'erreur') or contains(text(), 'incorrect') or contains(text(), 'échec')]"));
-                    console.error("Message d'erreur:", await errorMessage.getText());
+                    const errorMessage = await this.driver.findElement(By.xpath("//*[contains(text(), 'erreur') or contains(text(), 'incorrect') or contains(text(), 'échec')]"));
                     return {
                         success: false,
                         message: await errorMessage.getText()
                     };
                 } catch (e2) {
-                    console.log("Aucun message de confirmation trouvé, présumé réussi");
                     return {
                         success: true,
                         message: "Changement effectué (aucun message explicite)"
@@ -244,9 +271,85 @@ class ProfilePage {
             throw error;
         }
     }
+
+    async checkFieldHasError(fieldName) {
+        try {
+          const field = await this.driver.findElement(By.name(fieldName));
+          const hasErrorClass = await this.driver.executeScript(`
+            const el = arguments[0];
+            if (el.classList.contains('shadow-inputBsError')) return true;
+            const parent = el.parentElement;
+            if (parent && parent.classList.contains('shadow-inputBsError')) return true;
+            const style = window.getComputedStyle(el);
+            if (style.boxShadow && style.boxShadow.includes('rgba(232, 85, 85, 0.13)')) return true;
+            if (el.getAttribute('aria-invalid') === 'true') return true;
+            
+            return false;
+          `, field);
+          
+          return hasErrorClass;
+        } catch (error) {
+          console.error(`Erreur lors de la vérification de l'erreur pour le champ ${fieldName}:`, error);
+          return false;
+        }
+      }
+      
+      async getFieldErrorMessage(fieldName) {
+        try {
+          const hasError = await this.checkFieldHasError(fieldName);
+          if (!hasError) {
+            return null;
+          }
+          const locators = [
+            By.xpath(`//input[@name='${fieldName}']/following-sibling::div[contains(@class, 'text-red') or contains(@class, 'error')]`),
+            By.xpath(`//input[@name='${fieldName}']/parent::div/following-sibling::div[contains(@class, 'text-red') or contains(@class, 'error')]`),
+            By.xpath(`//input[@name='${fieldName}']/ancestor::div[position()=1 or position()=2]/following-sibling::div[contains(@class, 'text-red') or contains(@class, 'error')]`),
+            By.xpath(`//input[@name='${fieldName}']/following-sibling::span[contains(@class, 'text-red') or contains(@class, 'error')]`)
+          ];
+          for (const locator of locators) {
+            try {
+              const errorElements = await this.driver.findElements(locator);
+              if (errorElements.length > 0) {
+                for (const element of errorElements) {
+                  const text = await element.getText();
+                  if (text && text.trim().length > 0) {
+                    return text;
+                  }
+                }
+              }
+            } catch (e) {
+            }
+          }
+          return "Erreur de validation détectée (bordure rouge)";
+        } catch (error) {
+          console.log(`Erreur lors de la recherche de message d'erreur pour ${fieldName}:`, error);
+          return null;
+        }
+      }
+
+      async uploadProfilePhoto(imageName) {
+        try {
+          const os = require('os');
+          const path = require('path');
+          const downloadsFolder = path.join(os.homedir(), 'Downloads');
+          const absoluteImagePath = path.join(downloadsFolder, imageName);
+          const fileInput = await this.driver.findElement(By.css('input[type="file"]'));
+          await fileInput.sendKeys(absoluteImagePath);
+          await this.driver.sleep(3000);
+          await this.saveProfileInfo();
+          return true;
+        } catch (error) {
+          console.error(`Erreur lors du téléchargement de la photo: ${error.message}`);
+          throw new Error(`Impossible de télécharger la photo: ${error.message}`);
+        }
+      }
+
+   
+      
+  
     
-  
-  
 }
+
+
 
 module.exports = ProfilePage;

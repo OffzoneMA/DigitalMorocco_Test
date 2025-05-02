@@ -1,0 +1,9 @@
+2025-05-02T17:56:31.221Z - Étape 1 OK : Connexion réussie
+2025-05-02T17:56:40.410Z - Étape 2 OK : Navigation vers la page profile réussie
+2025-05-02T17:56:42.529Z - Étape 3 OK : Informations du profil récupérées avec succès
+2025-05-02T17:56:42.529Z - Test OK : Affichage des informations du profil 
+2025-05-02T17:57:18.494Z - Test OK : Modification du profil réussie
+2025-05-02T17:58:13.086Z - Test OK : Modification du mot de passe réussie
+2025-05-02T17:58:52.221Z - Test OK : Validation des champs obligatoires réussie
+2025-05-02T17:59:47.627Z - Test OK : Validation du format email réussie
+2025-05-02T18:00:21.530Z - Test OK : Téléchargement de photo de profil réussie

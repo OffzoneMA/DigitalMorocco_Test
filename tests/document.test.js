@@ -494,16 +494,16 @@ afterEach(async function() {
                 await driver.get(config.baseUrl);
                 await loginPage.login(config.validEmail, config.validPassword);
                 await driver.wait(until.urlContains('Dashboard'), 20000);
-                await juridiquePage.navigateToJuridique();
+                await documentPage.navigateToDocuments();
                 
-                const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Ajouter un nouveau document')]]")), 10000);
+                const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Télécharger un nouveau document')]]")), 10000);
                 await driver.executeScript("arguments[0].click();", createDocumentButton);
                 
-                const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Ajouter un nouveau document')]]]")), 5000);
+                const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Télécharger un nouveau document')]]]")), 5000);
                 
                 const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
                 await titleInput.clear();
-                await titleInput.sendKeys("Test fichier  ");
+                await titleInput.sendKeys("Test fichier ");
                 
                 const homeDir = require('os').homedir();
                 const filePath = path.join(homeDir, 'Downloads', 'car_prices.csv');
