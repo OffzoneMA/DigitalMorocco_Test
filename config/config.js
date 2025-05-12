@@ -22,7 +22,8 @@ module.exports = {
   member:process.env.MEMBER || 'Ikram Imzi',
   reportApi:process.env.reportApi || 'DigitalMoroccoAPI_pfXFk7MqSYu-nxGRc310hZezITUgSRq4-I4Z0U5ZGrMzomT7KbyWMk6rl82ErRhI',
   endpoint:process.env.endpoint || 'http://localhost:8080/api/v1',
-  projectReport:process.env.projectReport || 'DIGITALMOROCCO'
+  projectReport:process.env.projectReport || 'DIGITALMOROCCO',
+  emailInvestor:process.env.emailInvestor || 'ikramelhaji4@gmail.com'
 
 };
 

@@ -1,0 +1,19 @@
+2025-05-12T14:44:56.957Z - Étape 1 OK : Connexion réussie
+2025-05-12T14:45:06.492Z - Étape 2 OK : Navigation vers la page profile réussie
+2025-05-12T14:45:08.750Z - Étape 3 OK : Informations du profil récupérées avec succès
+2025-05-12T14:45:08.751Z - Test OK : Affichage des informations du profil 
+2025-05-12T14:45:52.327Z - Test OK : Modification du profil réussie
+2025-05-12T14:46:42.748Z - Test OK : Modification du mot de passe réussie
+2025-05-12T14:47:16.731Z - Test OK : Détection réussie du mot de passe non conforme aux critères
+2025-05-12T14:47:51.269Z - Test OK : Détection de la non-concordance entre les mots de passe réussie
+2025-05-12T14:48:37.285Z - Test OK : Validation des champs obligatoires réussie
+2025-05-12T14:49:33.830Z - Test OK : Validation du format email réussie
+2025-05-12T14:50:16.145Z - Test OK : Téléchargement de photo de profil réussie
+2025-05-12T14:51:07.017Z - Test OK : Changement de photo de profil réussi
+2025-05-12T14:51:59.206Z - Test OK : Suppression de photo de profil réussi
+2025-05-12T14:52:37.098Z - Test KO : Le système a accepté un format non autorisé
+
+false !== true
+
+2025-05-12T14:53:11.338Z - Test OK : Affichage initial des sélections de langue vérifié avec succès
+2025-05-12T14:54:11.192Z - Test OK : Changement de langue et de région effectué avec succès et vérifié

@@ -435,13 +435,13 @@ class ProfilePage {
             const languageSection = await this.driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Paramètres de langue et de région') or contains(text(), 'Language & Region Settings')]")),5000,'Section des paramètres de langue non trouvée');
             await this.driver.executeScript("arguments[0].scrollIntoView(true);", languageSection);
             await this.driver.sleep(1000); 
-            const languageField = await this.driver.wait(until.elementLocated(By.xpath("//input[@placeholder='Sélectionnez la langue']")),5000,'Champ de sélection de langue non trouvé'   );
+            const languageField = await this.driver.wait(until.elementLocated(By.xpath("//input[@placeholder='Sélectionnez la langue' or @placeholder='Select Language']") ), 5000, 'Champ de sélection de langue non trouvé');           
             await this.driver.executeScript("arguments[0].scrollIntoView(true);", languageField);
             await this.driver.sleep(500);
             const parentDiv = await languageField.findElement(By.xpath("./.."));
             await parentDiv.click();
             await this.driver.sleep(1000);
-            const searchInput = await this.driver.wait(until.elementLocated(By.xpath("//input[@placeholder='Rechercher une language']")),5000,'Champ de recherche de langue non trouvé' );
+            const searchInput = await this.driver.wait(until.elementLocated( By.xpath("//input[@placeholder='Rechercher une language' or @placeholder='Search Language']")   ),  5000,  'Champ de recherche de langue non trouvé'  );            
             await searchInput.clear();
             await searchInput.sendKeys(language);
             await this.driver.sleep(1000);
@@ -478,19 +478,25 @@ class ProfilePage {
         }
     }
 
-    async saveLanguageAndRegionSettings() {
-        try {
-            const saveButton = await this.driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Paramètres de langue et de région')]/following::button[contains(text(), 'Enregistrer') or contains(text(), 'Save')][1]"  )), 5000, 'Bouton Enregistrer pour les paramètres de langue et région non trouvé'  );
-            await this.driver.executeScript("arguments[0].scrollIntoView(true);", saveButton);
-            await this.driver.sleep(500);
-            await saveButton.click();
-            await this.driver.sleep(2000); 
-            return true;
-        } catch (error) {
-            console.error('Erreur lors de l\'enregistrement des paramètres de langue et région:', error);
-            throw error;
-        }
+   async saveLanguageAndRegionSettings() {
+    try {
+        const saveButton = await this.driver.wait(
+            until.elementLocated(
+                By.xpath("//label[contains(text(), 'Paramètres de langue et de région') or contains(text(), 'Language & Region Settings')]/following::button[contains(text(), 'Enregistrer') or contains(text(), 'Save')][1]"
+            ), 
+            5000, 
+            'Bouton Enregistrer pour les paramètres de langue et de région non trouvé'
+        ));
+        await this.driver.executeScript("arguments[0].scrollIntoView(true);", saveButton);
+        await this.driver.sleep(500);
+        await saveButton.click();
+        await this.driver.sleep(2000); 
+        return true;
+    } catch (error) {
+        console.error('Erreur lors de l\'enregistrement des paramètres de langue et région:', error);
+        throw error;
     }
+}
 
     async verifyEnglishInterface() {
         try {
