@@ -1,0 +1,19 @@
+2025-05-14T17:41:12.538Z - Étape 1 OK : Connexion réussie
+2025-05-14T17:41:21.796Z - Étape 2 OK : Navigation vers la page profile réussie
+2025-05-14T17:41:24.012Z - Étape 3 OK : Informations du profil récupérées avec succès
+2025-05-14T17:41:24.013Z - Test OK : Affichage des informations du profil investisseur 
+2025-05-14T17:42:00.424Z - Test OK : Modification du profil investisseur réussie
+2025-05-14T17:42:44.445Z - Test OK : Modification du mot de passe réussie
+2025-05-14T17:43:13.151Z - Test OK : Détection réussie du mot de passe non conforme aux critères
+2025-05-14T17:43:41.860Z - Test OK : Détection de la non-concordance entre les mots de passe réussie
+2025-05-14T17:44:21.392Z - Test OK : Validation des champs obligatoires investisseur réussie
+2025-05-14T17:45:06.644Z - Test OK : Validation du format email investisseur réussie
+2025-05-14T17:45:43.576Z - Test OK : Téléchargement de photo de profil investisseur réussie
+2025-05-14T17:46:26.803Z - Test OK : Changement de photo de profil investisseur réussi
+2025-05-14T17:47:08.845Z - Test OK : Suppression de photo de profil investisseur  réussi
+2025-05-14T17:47:40.388Z - Test KO : Le système a accepté un format non autorisé
+
+false !== true
+
+2025-05-14T17:48:04.730Z - Test OK : Affichage initial des sélections de langue vérifié avec succès
+2025-05-14T17:48:56.638Z - Test OK : Changement de langue et de région effectué avec succès et vérifié

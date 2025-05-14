@@ -1,0 +1,11 @@
+2025-05-14T18:35:51.268Z - Test OK : Formulaire investisseur soumis avec succès
+2025-05-14T18:36:24.296Z - Test OK : Validation des champs obligatoires
+2025-05-14T18:36:55.374Z - Test OK : Validation du format email réussie
+2025-05-14T18:37:39.378Z - Test KO : Format URL invalide est accepté
+2025-05-14T18:38:23.845Z - Test OK : Validation du format numéro de téléphone réussie - Tous les numéros invalides ont été correctement rejetés
+2025-05-14T18:38:44.371Z - Test OK : Modification et soumission du formulaire investisseur réussies
+2025-05-14T18:39:04.084Z - Test OK : Validation du champ capacité d'investissement réussie - Le champ accepte uniquement des nombres
+2025-05-14T18:39:24.153Z - Test OK : Validation du champ nombre d'investissements réussie - Le champ accepte uniquement des nombres entiers
+2025-05-14T18:39:43.878Z - Test OK : Validation du champ nombre de sorties réussie - Le champ accepte uniquement des nombres entiers
+2025-05-14T18:40:03.741Z - Test OK : Validation du champ nombre de fonds réussie - Le champ accepte uniquement des nombres entiers
+2025-05-14T18:40:23.714Z - Test OK : Validation du champ nombre d'acquisitions réussie - Le champ accepte uniquement des nombres entiers

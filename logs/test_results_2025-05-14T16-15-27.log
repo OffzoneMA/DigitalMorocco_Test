@@ -1,0 +1,10 @@
+2025-05-14T16:16:01.798Z - Test OK : Création du profil entreprise investisseur réussie
+2025-05-14T16:16:23.596Z - Test OK : Tous les champs obligatoires affichent bien une erreur de validation
+2025-05-14T16:16:35.268Z - Test OK : Validation du champ numéro d'identification fiscale - Seuls les nombres sont acceptés
+2025-05-14T16:16:47.761Z - Test OK : Validation du champ numéro d'identification de l'entreprise - Seuls les nombres sont acceptés
+2025-05-14T16:17:16.743Z - Test OK : Le logo de l'entreprise a été téléchargé avec succès
+2025-05-14T16:17:42.859Z - Test OK : Le logo de l'entreprise a été changé avec succès
+2025-05-14T16:18:07.105Z - Test OK : Le logo de l'entreprise a été supprimé avec succès
+2025-05-14T16:18:47.530Z - Test KO : Le système accepte un format de fichier qui devrait être rejeté
+2025-05-14T16:19:23.470Z - Test OK : Validation du format email réussie
+2025-05-14T16:20:10.660Z - Test KO : Format URL invalide est accepté

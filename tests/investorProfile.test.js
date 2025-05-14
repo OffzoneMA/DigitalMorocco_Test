@@ -12,7 +12,7 @@ describe('Tests du profil investisseur', function () {
   let investorPage;
 
   beforeEach(async function() {
-    driver = await new Builder().forBrowser('chrome').build();
+    driver = await createUniqueBrowser();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     investorPage = new InvestorPage(driver);
@@ -351,6 +351,311 @@ it('Modification des champs du profil investisseur', async function() {
     throw error;
   }
 });
+
+it('Validation du champ capacité d\'investissement - accepte uniquement des nombres', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.emailInvestor, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
+    await investorPage.navigateToInvestor();
+    await driver.sleep(2000);
+    const investmentField = await driver.wait(until.elementLocated(By.css("input[name='investmentCapacity']")), 10000, "Champ capacité d'investissement non trouvé");
+    await investmentField.clear();
+    const testValues = [
+      { input: "abc", expected: "" },
+      { input: "123abc", expected: "123" },
+      { input: "-500", expected: "500" }, 
+      { input: "5000", expected: "5 000" }
+    ];
+    
+    let allValidationsSuccessful = true;
+    let failedValidations = [];
+    
+    for (const test of testValues) {
+      await investmentField.clear();
+      await investmentField.sendKeys(test.input);
+      const actualValue = await investmentField.getAttribute('value');
+      
+      if (actualValue !== test.expected) {
+        allValidationsSuccessful = false;
+        failedValidations.push(`Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+        console.log(`ÉCHEC: Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+      } else {
+        console.log(`OK: Pour l'entrée "${test.input}", valeur correctement filtrée à "${actualValue}"`);
+      }
+    }
+    await investmentField.clear();
+    await investmentField.sendKeys("20000000");
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const errorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'capacité') or contains(text(), 'investissement'))]"));
+    if (errorMessages.length > 0) {
+      allValidationsSuccessful = false;
+      const errorText = await errorMessages[0].getText();
+      failedValidations.push(`Une valeur valide "20000000" a généré une erreur: ${errorText}`);
+    }
+    await investmentField.clear();
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const emptyErrorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'capacité') or contains(text(), 'investissement') or contains(text(), 'requis') or contains(text(), 'obligatoire'))]"));
+    const isFieldRequired = emptyErrorMessages.length > 0;    
+    if (allValidationsSuccessful) {
+      logResult('Test OK : Validation du champ capacité d\'investissement réussie - Le champ accepte uniquement des nombres');
+    } else {
+      const errorMessage = `Test KO : Problèmes avec la validation du champ capacité d'investissement: ${failedValidations.join(', ')}`;
+      logResult(errorMessage);
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    throw error;
+  }
+});
+
+it('Validation du champ nombre d\'investissements - accepte uniquement des nombres entiers', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.emailInvestor, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
+    await investorPage.navigateToInvestor();
+    await driver.sleep(2000);
+    const investmentsField = await driver.wait(until.elementLocated(By.css("input[name='numberOfInvestments']")), 10000, "Champ nombre d'investissements non trouvé");
+    await investmentsField.clear();
+    const testValues = [
+      { input: "abc", expected: "" },
+      { input: "123abc", expected: "123" },
+      { input: "-10", expected: "10" }, 
+      { input: "10.5", expected: "105" }, 
+      { input: "42", expected: "42" }
+    ];
+    
+    let allValidationsSuccessful = true;
+    let failedValidations = [];
+    
+    for (const test of testValues) {
+      await investmentsField.clear();
+      await investmentsField.sendKeys(test.input);
+      const actualValue = await investmentsField.getAttribute('value');
+      
+      if (actualValue !== test.expected) {
+        allValidationsSuccessful = false;
+        failedValidations.push(`Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+        console.log(`ÉCHEC: Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+      } else {
+        console.log(`OK: Pour l'entrée "${test.input}", valeur correctement filtrée à "${actualValue}"`);
+      }
+    }
+    await investmentsField.clear();
+    await investmentsField.sendKeys("15");
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const errorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'investissements') or contains(text(), 'nombre'))]"));
+    if (errorMessages.length > 0) {
+      allValidationsSuccessful = false;
+      const errorText = await errorMessages[0].getText();
+      failedValidations.push(`Une valeur valide "15" a généré une erreur: ${errorText}`);
+    }
+    await investmentsField.clear();
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const emptyErrorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'investissements') or contains(text(), 'nombre') or contains(text(), 'requis') or contains(text(), 'obligatoire'))]"));
+    const isFieldRequired = emptyErrorMessages.length > 0;    
+    if (allValidationsSuccessful) {
+      logResult('Test OK : Validation du champ nombre d\'investissements réussie - Le champ accepte uniquement des nombres entiers');
+    } else {
+      const errorMessage = `Test KO : Problèmes avec la validation du champ nombre d'investissements: ${failedValidations.join(', ')}`;
+      logResult(errorMessage);
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    throw error;
+  }
+});
+
+it('Validation du champ nombre de sorties - accepte uniquement des nombres entiers', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.emailInvestor, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
+    await investorPage.navigateToInvestor();
+    await driver.sleep(2000);
+    const exitsField = await driver.wait(until.elementLocated(By.css("input[name='numberOfExits']")), 10000, "Champ nombre de sorties non trouvé");
+    await exitsField.clear();
+    const testValues = [
+      { input: "abc", expected: "" },
+      { input: "123abc", expected: "123" },
+      { input: "-5", expected: "5" }, 
+      { input: "3.7", expected: "37" }, 
+      { input: "8", expected: "8" }
+    ];
+    
+    let allValidationsSuccessful = true;
+    let failedValidations = [];
+    
+    for (const test of testValues) {
+      await exitsField.clear();
+      await exitsField.sendKeys(test.input);
+      const actualValue = await exitsField.getAttribute('value');
+      
+      if (actualValue !== test.expected) {
+        allValidationsSuccessful = false;
+        failedValidations.push(`Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+        console.log(`ÉCHEC: Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+      } else {
+        console.log(`OK: Pour l'entrée "${test.input}", valeur correctement filtrée à "${actualValue}"`);
+      }
+    }
+    await exitsField.clear();
+    await exitsField.sendKeys("5");
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const errorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'sorties') or contains(text(), 'nombre'))]"));
+    if (errorMessages.length > 0) {
+      allValidationsSuccessful = false;
+      const errorText = await errorMessages[0].getText();
+      failedValidations.push(`Une valeur valide "5" a généré une erreur: ${errorText}`);
+    }
+    await exitsField.clear();
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const emptyErrorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'sorties') or contains(text(), 'nombre') or contains(text(), 'requis') or contains(text(), 'obligatoire'))]"));
+    const isFieldRequired = emptyErrorMessages.length > 0;   
+    if (allValidationsSuccessful) {
+      logResult('Test OK : Validation du champ nombre de sorties réussie - Le champ accepte uniquement des nombres entiers');
+    } else {
+      const errorMessage = `Test KO : Problèmes avec la validation du champ nombre de sorties: ${failedValidations.join(', ')}`;
+      logResult(errorMessage);
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    throw error;
+  }
+});
+
+it('Validation du champ nombre de fonds - accepte uniquement des nombres entiers', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.emailInvestor, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
+    await investorPage.navigateToInvestor();
+    await driver.sleep(2000);
+    const fundsField = await driver.wait(until.elementLocated(By.css("input[name='fund']")), 10000, "Champ nombre de fonds non trouvé");
+    await fundsField.clear();
+    const testValues = [
+      { input: "abc", expected: "" },
+      { input: "123abc", expected: "123" },
+      { input: "-7", expected: "7" }, 
+      { input: "2.5", expected: "25" }, 
+      { input: "12", expected: "12" }
+    ];
+    
+    let allValidationsSuccessful = true;
+    let failedValidations = [];
+    
+    for (const test of testValues) {
+      await fundsField.clear();
+      await fundsField.sendKeys(test.input);
+      const actualValue = await fundsField.getAttribute('value');
+      
+      if (actualValue !== test.expected) {
+        allValidationsSuccessful = false;
+        failedValidations.push(`Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+        console.log(`ÉCHEC: Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+      } else {
+        console.log(`OK: Pour l'entrée "${test.input}", valeur correctement filtrée à "${actualValue}"`);
+      }
+    }
+    await fundsField.clear();
+    await fundsField.sendKeys("3");
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const errorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'fonds') or contains(text(), 'nombre'))]"));
+    if (errorMessages.length > 0) {
+      allValidationsSuccessful = false;
+      const errorText = await errorMessages[0].getText();
+      failedValidations.push(`Une valeur valide "3" a généré une erreur: ${errorText}`);
+    }
+    await fundsField.clear();
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const emptyErrorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'fonds') or contains(text(), 'nombre') or contains(text(), 'requis') or contains(text(), 'obligatoire'))]"));
+    const isFieldRequired = emptyErrorMessages.length > 0;    
+    if (allValidationsSuccessful) {
+      logResult('Test OK : Validation du champ nombre de fonds réussie - Le champ accepte uniquement des nombres entiers');
+    } else {
+      const errorMessage = `Test KO : Problèmes avec la validation du champ nombre de fonds: ${failedValidations.join(', ')}`;
+      logResult(errorMessage);
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    throw error;
+  }
+});
+
+it('Validation du champ nombre d\'acquisitions - accepte uniquement des nombres entiers', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.emailInvestor, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
+    await investorPage.navigateToInvestor();
+    await driver.sleep(2000);
+    const acquisitionsField = await driver.wait(until.elementLocated(By.css("input[name='acquisitions']")), 10000, "Champ nombre d'acquisitions non trouvé");
+    await acquisitionsField.clear();
+    const testValues = [
+      { input: "abc", expected: "" },
+      { input: "123abc", expected: "123" },
+      { input: "-4", expected: "4" }, 
+      { input: "6.3", expected: "63" }, 
+      { input: "9", expected: "9" }
+    ];
+    
+    let allValidationsSuccessful = true;
+    let failedValidations = [];
+    
+    for (const test of testValues) {
+      await acquisitionsField.clear();
+      await acquisitionsField.sendKeys(test.input);
+      const actualValue = await acquisitionsField.getAttribute('value');
+      
+      if (actualValue !== test.expected) {
+        allValidationsSuccessful = false;
+        failedValidations.push(`Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+        console.log(`ÉCHEC: Pour l'entrée "${test.input}", valeur attendue: "${test.expected}", valeur obtenue: "${actualValue}"`);
+      } else {
+        console.log(`OK: Pour l'entrée "${test.input}", valeur correctement filtrée à "${actualValue}"`);
+      }
+    }
+    await acquisitionsField.clear();
+    await acquisitionsField.sendKeys("7");
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const errorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'acquisitions') or contains(text(), 'nombre'))]"));
+    if (errorMessages.length > 0) {
+      allValidationsSuccessful = false;
+      const errorText = await errorMessages[0].getText();
+      failedValidations.push(`Une valeur valide "7" a généré une erreur: ${errorText}`);
+    }
+    await acquisitionsField.clear();
+    await investorPage.submitInvestorForm();
+    await driver.sleep(1000);
+    const emptyErrorMessages = await driver.findElements(By.xpath("//div[contains(@class, 'text-red-500') and (contains(text(), 'acquisitions') or contains(text(), 'nombre') or contains(text(), 'requis') or contains(text(), 'obligatoire'))]"));
+    const isFieldRequired = emptyErrorMessages.length > 0;
+    if (allValidationsSuccessful) {
+      logResult('Test OK : Validation du champ nombre d\'acquisitions réussie - Le champ accepte uniquement des nombres entiers');
+    } else {
+      const errorMessage = `Test KO : Problèmes avec la validation du champ nombre d'acquisitions: ${failedValidations.join(', ')}`;
+      logResult(errorMessage);
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    throw error;
+  }
+});
+
 
 
 

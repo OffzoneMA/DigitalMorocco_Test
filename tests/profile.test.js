@@ -13,7 +13,7 @@ describe('Test Profile', function () {
   let profilePage;
 
   beforeEach(async function() {
-    driver = await new Builder().forBrowser('chrome').build();
+    driver = await createUniqueBrowser();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     profilePage = new ProfilePage(driver);

@@ -1,6 +1,0 @@
-2025-05-13T18:11:07.507Z - Test OK : Formulaire investisseur soumis avec succès
-2025-05-13T18:11:39.850Z - Test OK : Validation des champs obligatoires
-2025-05-13T18:12:11.635Z - Test OK : Validation du format email réussie
-2025-05-13T18:12:55.910Z - Test KO : Format URL invalide est accepté
-2025-05-13T18:13:40.474Z - Test OK : Validation du format numéro de téléphone réussie - Tous les numéros invalides ont été correctement rejetés
-2025-05-13T18:14:00.491Z - Test OK : Modification et soumission du formulaire investisseur réussies
