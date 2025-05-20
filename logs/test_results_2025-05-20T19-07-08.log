@@ -1,0 +1,19 @@
+2025-05-20T19:08:04.551Z - Test OK : Paiement correctement rejeté avec CVV invalide
+2025-05-20T19:08:59.371Z - Test OK : Paiement correctement rejeté avec carte restreinte
+2025-05-20T19:09:57.936Z - Test OK : Paiement correctement rejeté avec carte bloquée.
+2025-05-20T19:11:03.947Z - Test OK : Paiement correctement rejeté avec fonds insuffisants.
+2025-05-20T19:11:51.688Z - Test OK : Paiement correctement rejeté avec une date d'expiration invalide.
+2025-05-20T19:12:54.347Z - Test OK : Paiement correctement rejeté avec un plafond dépassé.
+2025-05-20T19:13:29.476Z - Test OK : Annulation du paiement réussie avec redirection vers ChoosePlan
+2025-05-20T19:14:08.547Z - Test OK : Message d'erreur correct pour numéro de carte trop court
+2025-05-20T19:14:16.709Z - Test OK : Message d'erreur correct pour CVV trop court
+2025-05-20T19:14:56.044Z - Test OK : Message d'erreur correct pour numéro de carte vide
+2025-05-20T19:14:56.084Z - Test OK : Message d'erreur correct pour CVV vide
+2025-05-20T19:14:56.175Z - Test OK : Message d'erreur correct pour date d'expiration vide (mois et année)
+2025-05-20T19:15:33.766Z - Test KO : Le champ numéro de carte accepte plus de 16 chiffres: 23 chiffres saisis
+2025-05-20T19:15:33.981Z - Test OK : Le champ CVV limite bien la saisie à 4 chiffres
+2025-05-20T19:15:33.981Z - Test KO : Au moins une validation de limitation des champs a échoué
+2025-05-20T19:16:11.922Z - Test KO : Le champ numéro de carte accepte les lettres
+2025-05-20T19:16:12.079Z - Test KO : Le champ numéro de carte accepte les caractères spéciaux
+2025-05-20T19:16:12.261Z - Test OK : Le champ CVV rejette bien les lettres
+2025-05-20T19:16:12.402Z - Test OK : Le champ CVV rejette bien les caractères spéciaux
