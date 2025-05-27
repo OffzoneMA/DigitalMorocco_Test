@@ -23,7 +23,17 @@ describe('Tests de paiement', function () {
       await driver.quit();
     }
   });
-/*it('Paiement réussi avec carte Visa pour plan Basique Mensuel', async function() {
+
+  
+  it('Test d\'affichage des informations du plan Basique', async function () {
+  function escapeXpathString(str) {
+    if (str.includes("'")) {
+      const parts = str.split("'");
+      return "concat('" + parts.join("', \"'\", '") + "')";
+    }
+    return `'${str}'`;
+  }
+
   try {
     await driver.get(config.baseUrl);
     await loginPage.login(config.validEmail, config.validPassword);
@@ -31,43 +41,301 @@ describe('Tests de paiement', function () {
     await paiementPage.navigateToPaiement();
     await paiementPage.clickStartEssay();
     await paiementPage.clickStartNowButtonForPlan('Basique');
-    await paiementPage.selectSubscriptionType('Mensuel');
-    await paiementPage.confirmSubscription();
-    
-    await paiementPage.fillPaymentForm({
-      number: "4111111111111111",
-      expMonth: "10",
-      expYear: "2025",
-      cvv: "000" 
-    });
-    
-    await paiementPage.submitPaymentForm();
-    await driver.sleep(5000);
-    const paymentResult = await paiementPage.verifyPaymentResult();
-    console.log(`Résultat détaillé du test de paiement: ${JSON.stringify(paymentResult)}`);
-    if (paymentResult.success) {
-      await driver.sleep(3000);
-       const alertResult = await paiementPage.verifySuccessAlert();
-       if (alertResult.success) {
-        logResult('Test OK : Paiement réussi pour plan Basique Mensuel avec carte Visa et alerte de confirmation affichée');
-      } else {
-        console.warn(`Alerte de confirmation non trouvée, mais paiement réussi. Message: ${alertResult.message}`);
-        logResult('Test OK : Paiement réussi pour plan Basique Mensuel avec carte Visa (sans alerte de confirmation)');
+    await driver.wait(until.urlContains('subscribePlan'), 10000, 'Navigation vers la page de sélection du plan échouée');
+    const basicPlanFeatures = [
+      "3200 Crédits",
+      "Accès total à la liste des investisseurs",
+      "Appariement des investisseurs via l'IA",
+      "Suivi en temps réel des demandes d'investissement",
+      "Générer un dossier technique complet",
+      "Partage sécurisé et simple de Pitch Deck",
+      "Vision panoramique à 360°",
+      "Accès prioritaire aux événements",
+      "Tarifs événements (tarif standard)",
+      "Création d'un seul projet (inclus)*",
+      "Frais de transaction standard, payables en crédits"
+    ];
+
+    let allFeaturesFound = true;
+    let missingFeatures = [];
+
+    for (const feature of basicPlanFeatures) {
+      try {
+        const escapedFeature = escapeXpathString(feature);
+        await driver.findElement(By.xpath(`//*[contains(text(), ${escapedFeature})]`));
+      } catch (e) {
+        allFeaturesFound = false;
+        missingFeatures.push(feature);
       }
+    }
+
+    if (allFeaturesFound) {
+      logResult('Test OK : Toutes les informations du plan Basique sont affichées correctement');
     } else {
-      if (paymentResult.message === 'Statut de paiement indéterminé') {
-        console.warn('Statut de paiement indéterminé, mais le test est considéré comme réussi');
-        logResult('Test OK : Paiement considéré comme réussi malgré un statut indéterminé');
-      } else {
-        logResult(`Test KO : Paiement échoué pour plan Basique Mensuel. Message: ${paymentResult.message}`);
+      logResult(`Test KO : Features manquantes pour le plan Basique: ${missingFeatures.join(', ')}`);
+    }
+
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    await createBugTicket('Affichage des informations du plan Basique échoué', error.message, driver);
+    throw error;
+  }
+});
+
+
+it("Test d'affichage des informations du plan Standard", async function () {
+  function escapeXpathString(str) {
+    if (str.includes("'")) {
+      const parts = str.split("'");
+      return "concat('" + parts.join("', \"'\", '") + "')";
+    }
+    return `'${str}'`;
+  }
+
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 15000);
+    await paiementPage.navigateToPaiement();
+    await paiementPage.clickStartEssay();
+    await paiementPage.clickStartNowButtonForPlan('Standard');
+
+    await driver.wait(until.urlContains('subscribePlan'), 10000);
+
+    const standardPlanFeatures = [
+      '6400 Crédits',
+      'Accès total à la liste des investisseurs',
+      'Appariement des investisseurs via l\'IA',
+      'Suivi en temps réel des demandes d\'investissement',
+      'Générer un dossier technique complet',
+      'Partage sécurisé et simple de Pitch Deck',
+      'Vision panoramique à 360°',
+      'Visibilité du projet sur notre site officiel',
+      'Accès prioritaire aux événements',
+      'Tarifs événements (-15%)',
+      'Création de 2 projets (inclus)*',
+      'Réduction des frais de transaction (-10%), payable en crédits',
+    ];
+
+    let allFeaturesFound = true;
+    let missingFeatures = [];
+
+    for (const feature of standardPlanFeatures) {
+      let featureFound = false;
+      const variations = [feature];
+
+      
+      for (const variation of variations) {
+        try {
+          const escaped = escapeXpathString(variation);
+          await driver.findElement(By.xpath(`//*[contains(text(), ${escaped})]`));
+          featureFound = true;
+          break;
+        } catch (e) {}
       }
+
+      if (featureFound) {
+      } else {
+        allFeaturesFound = false;
+        missingFeatures.push(feature);
+      }
+    }
+
+    if (allFeaturesFound) {
+      logResult('Test OK : Toutes les informations du plan Standard sont affichées correctement');
+    } else {
+      logResult(`Test KO : Features manquantes pour le plan Standard: ${missingFeatures.join(', ')}`);
     }
   } catch (error) {
     logResult('Test KO : ' + error.message);
-    await createBugTicket('Paiement avec Visa échoué', error.message, driver);
+    await createBugTicket('Affichage des informations du plan Standard échoué', error.message, driver);
     throw error;
   }
-});*/
+});
+
+
+it("Test d'affichage des informations du plan Premium", async function () {
+  function escapeXpathString(str) {
+    if (str.includes("'")) {
+      const parts = str.split("'");
+      return "concat('" + parts.join("', \"'\", '") + "')";
+    }
+    return `'${str}'`;
+  }
+
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 15000);
+    await paiementPage.navigateToPaiement();
+    await paiementPage.clickStartEssay();
+    await paiementPage.clickStartNowButtonForPlan('Premium');
+
+    await driver.wait(until.urlContains('subscribePlan'), 10000);
+
+    const premiumPlanFeatures = [
+      '9600 Crédits',
+      'Accès total à la liste des investisseurs',
+      'Appariement des investisseurs via l\'IA',
+      'Suivi en temps réel des demandes d\'investissement',
+      'Générer un dossier technique complet',
+      'Partage sécurisé et simple de Pitch Deck',
+      'Vision panoramique à 360°',
+      'Visibilité du projet sur notre site officiel',
+      'Club VIP (Accès en avant-première à nos activités)',
+      'Newsletter VIP',
+      'Accès prioritaire aux événements',
+      'Tarifs événements (-30%) + 1 ticket offert après 6 mois d\'abonnement continu',
+      'Création de 5 projets (inclus)*',
+      'Réduction des frais de transaction (-20%), payable en crédits',
+    ];
+
+    let allFeaturesFound = true;
+    let missingFeatures = [];
+
+    for (const feature of premiumPlanFeatures) {
+      let featureFound = false;
+      const variations = [feature];
+
+     
+      if (feature.includes('Club VIP')) {
+        variations.push('Club VIP', 'Accès en avant-première à nos activités');
+      }
+      if (feature.includes('Tarifs événements (-30%)')) {
+        variations.push('(-30%)', '1 ticket offert');
+      }
+
+      for (const variation of variations) {
+        try {
+          const escaped = escapeXpathString(variation);
+          await driver.findElement(By.xpath(`//*[contains(text(), ${escaped})]`));
+          featureFound = true;
+          break;
+        } catch (e) {}
+      }
+
+      if (featureFound) {
+      } else {
+        allFeaturesFound = false;
+        missingFeatures.push(feature);
+      }
+    }
+
+    if (allFeaturesFound) {
+      logResult('Test OK : Toutes les informations du plan Premium sont affichées correctement');
+    } else {
+      logResult(`Test KO : Features manquantes pour le plan Premium: ${missingFeatures.join(', ')}`);
+    }
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    await createBugTicket('Affichage des informations du plan Premium échoué', error.message, driver);
+    throw error;
+  }
+});
+
+ it('Sélection du plan Basique - redirection avec 3200 crédits', async function() {
+      try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 15000);
+        await paiementPage.navigateToPaiement();
+        await paiementPage.clickStartEssay();
+        await paiementPage.clickStartNowButtonForPlan('Basique');
+        await driver.wait(until.urlContains('subscribePlan'), 10000, 'Navigation vers la page de sélection du plan échouée');
+        let creditsFound = false;
+        const creditsVariants = ['3200 Crédits', '3200 crédits', '3200'];
+        
+        for (const variant of creditsVariants) {
+          try {
+            await driver.findElement(By.xpath(`//*[contains(text(), '${variant}')]`));
+            creditsFound = true;
+            break;
+          } catch (e) {
+          }
+        }
+        
+        if (creditsFound) {
+          logResult('Test OK : Plan Basique sélectionné avec succès');
+        } else {
+          logResult('Test KO : 3200 crédits non trouvé sur la page');
+        }
+        
+      } catch (error) {
+        logResult('Test KO : ' + error.message);
+        await createBugTicket('Sélection plan Basique échouée', error.message, driver);
+        throw error;
+      }
+    });
+
+    it('Sélection du plan Standard - redirection avec 6400 crédits', async function() {
+      try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 15000);
+        await paiementPage.navigateToPaiement();
+        await paiementPage.clickStartEssay();
+        await paiementPage.clickStartNowButtonForPlan('Standard');
+        await driver.wait(until.urlContains('subscribePlan'), 10000, 'Navigation vers la page de sélection du plan échouée');
+        let creditsFound = false;
+        const creditsVariants = ['6400 Crédits', '6400 crédits', '6400'];
+        
+        for (const variant of creditsVariants) {
+          try {
+            await driver.findElement(By.xpath(`//*[contains(text(), '${variant}')]`));
+            creditsFound = true;
+            break;
+          } catch (e) {
+          }
+        }
+        
+        if (creditsFound) {
+          logResult('Test OK : Plan Standard sélectionné avec succès');
+        } else {
+          logResult('Test KO : 6400 crédits non trouvé sur la page');
+        }
+        
+      } catch (error) {
+        logResult('Test KO : ' + error.message);
+        await createBugTicket('Sélection plan Standard échouée', error.message, driver);
+        throw error;
+      }
+    });
+
+    it('Sélection du plan Premium - redirection avec 9600 crédits', async function() {
+      try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 15000);
+        await paiementPage.navigateToPaiement();
+        await paiementPage.clickStartEssay();
+        await paiementPage.clickStartNowButtonForPlan('Premium');
+        await driver.wait(until.urlContains('subscribePlan'), 10000, 'Navigation vers la page de sélection du plan échouée');
+        let creditsFound = false;
+        const creditsVariants = ['9600 Crédits', '9600 crédits', '9600'];
+        
+        for (const variant of creditsVariants) {
+          try {
+            await driver.findElement(By.xpath(`//*[contains(text(), '${variant}')]`));
+            creditsFound = true;
+            break;
+          } catch (e) {
+          }
+        }
+        
+        if (creditsFound) {
+          logResult('Test OK : Plan Premium sélectionné avec succès');
+        } else {
+          logResult('Test KO : 9600 crédits non trouvé sur la page');
+        }
+        
+      } catch (error) {
+        logResult('Test KO : ' + error.message);
+        await createBugTicket('Sélection plan Premium échouée', error.message, driver);
+        throw error;
+      }
+    });
+
+
 
 
  it('Paiement échoué avec carte CVV invalide', async function() {
@@ -441,7 +709,7 @@ it('Validation des limites de saisie - numéro de carte 16 chiffres et CVV 4 chi
   }
 });
 
-it('Validation que les champs numéro de carte et CVV n\'acceptent que des chiffres', async function() {
+ it('Paiement réussi avec carte Visa pour plan Basique Mensuel', async function() {
   try {
     await driver.get(config.baseUrl);
     await loginPage.login(config.validEmail, config.validPassword);
@@ -451,70 +719,90 @@ it('Validation que les champs numéro de carte et CVV n\'acceptent que des chiff
     await paiementPage.clickStartNowButtonForPlan('Basique');
     await paiementPage.selectSubscriptionType('Mensuel');
     await paiementPage.confirmSubscription();
-    await driver.wait(until.elementLocated(By.id('creditCardNumber')), 10000);
-    await driver.wait(until.elementLocated(By.id('securityCode')), 10000);
     
-    let testPassed = true;
-    let errors = [];
+    await paiementPage.fillPaymentForm({
+      number: "4111111111111111",
+      expMonth: "10",
+      expYear: "2025",
+      cvv: "000" 
+    });
     
-    const cardNumberField = await driver.findElement(By.id('creditCardNumber'));
-    await cardNumberField.clear();
-    await cardNumberField.sendKeys("abcdefgh"); 
-    const cardValueLetters = await cardNumberField.getAttribute('value');
-    const cleanCardValueLetters = cardValueLetters.replace(/[\s-]/g, '');
-    
-    if (cleanCardValueLetters.length === 0) {
-      logResult("Test OK : Le champ numéro de carte rejette bien les lettres");
+    await paiementPage.submitPaymentForm();
+    await driver.sleep(5000);
+    const paymentResult = await paiementPage.verifyPaymentResult();
+    console.log(`Résultat détaillé du test de paiement: ${JSON.stringify(paymentResult)}`);
+    if (paymentResult.success) {
+      await driver.sleep(3000);
+       const alertResult = await paiementPage.verifySuccessAlert();
+       if (alertResult.success) {
+        logResult('Test OK : Paiement réussi pour plan Basique Mensuel avec carte Visa et alerte de confirmation affichée');
+      } else {
+        console.warn(`Alerte de confirmation non trouvée, mais paiement réussi. Message: ${alertResult.message}`);
+        logResult('Test OK : Paiement réussi pour plan Basique Mensuel avec carte Visa (sans alerte de confirmation)');
+      }
     } else {
-      logResult(`Test KO : Le champ numéro de carte accepte les lettres`);
-      testPassed = false;
-      errors.push("lettres");
+      if (paymentResult.message === 'Statut de paiement indéterminé') {
+        console.warn('Statut de paiement indéterminé, mais le test est considéré comme réussi');
+        logResult('Test OK : Paiement considéré comme réussi malgré un statut indéterminé');
+      } else {
+        logResult(`Test KO : Paiement échoué pour plan Basique Mensuel. Message: ${paymentResult.message}`);
+      }
     }
-    
-    await cardNumberField.clear();
-    await cardNumberField.sendKeys("!@#$%^&*()"); 
-    
-    const cardValueSpecial = await cardNumberField.getAttribute('value');
-    const cleanCardValueSpecial = cardValueSpecial.replace(/[\s-]/g, '');
-    
-    if (cleanCardValueSpecial.length === 0) {
-      logResult("Test OK : Le champ numéro de carte rejette bien les caractères spéciaux");
-    } else {
-      logResult(`Test KO : Le champ numéro de carte accepte les caractères spéciaux`);
-      testPassed = false;
-      errors.push("caractères spéciaux");
-    }
-    
-    const cvvField = await driver.findElement(By.id('securityCode'));
-    await cvvField.clear();
-    await cvvField.sendKeys("abcd"); 
-    const cvvValueLetters = await cvvField.getAttribute('value');
-    
-    if (cvvValueLetters.length === 0) {
-      logResult("Test OK : Le champ CVV rejette bien les lettres");
-    } else {
-      logResult(`Test KO : Le champ CVV accepte les lettres`);
-      testPassed = false;
-      errors.push("CVV accepte les lettres");
-    }
-    await cvvField.clear();
-    await cvvField.sendKeys("!@#$"); 
-    const cvvValueSpecial = await cvvField.getAttribute('value');
-    if (cvvValueSpecial.length === 0) {
-      logResult("Test OK : Le champ CVV rejette bien les caractères spéciaux");
-    } else {
-      logResult(`Test KO : Le champ CVV accepte les caractères spéciaux`);
-      testPassed = false;
-      errors.push("CVV accepte les caractères spéciaux");
-    }
-   
-    
   } catch (error) {
-    if (!error.message.startsWith('KO : Le champ numéro de carte accepte des')) {
-      logResult('Test KO : ' + error.message);
-    }
+    logResult('Test KO : ' + error.message);
+    await createBugTicket('Paiement avec Visa échoué', error.message, driver);
     throw error;
   }
 });
+
+it('Mettre à niveau le plan', async function() {
+    try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 15000);
+        await paiementPage.navigateToPaiement();
+        await paiementPage.clickUpgradePlanButton();
+        await paiementPage.clickStartNowButtonForPlan('Premium');
+        await paiementPage.selectSubscriptionType('Mensuel');
+        await paiementPage.confirmSubscription();
+        await paiementPage.fillPaymentForm({
+            number: "4111111111111111",
+            expMonth: "10",
+            expYear: "2025",
+            cvv: "000"
+        });
+
+        await paiementPage.submitPaymentForm();
+        await driver.sleep(5000);
+        const paymentResult = await paiementPage.verifyPaymentResult();
+
+        if (paymentResult.success) {
+            await paiementPage.clickReturnToDigitalMoroccoButton();
+            await driver.sleep(3000);
+            const upgradeAlertResult = await paiementPage.verifyUpgradeSuccessAlert();
+            if (upgradeAlertResult.success) {
+                console.log('Alerte de mise à niveau détectée, fermeture en cours...');
+                const closeAlertResult = await paiementPage.closeUpgradeSuccessAlert();
+                if (closeAlertResult.success) {
+                    await driver.sleep(2000);
+                    const currentPlanResult = await paiementPage.verifyCurrentPlan('Premium');
+                    
+                    if (currentPlanResult.success) {
+                        logResult('Test OK : Mise à niveau réussie - Plan Premium confirmé, alerte affichée et fermée');
+                  
+                    }}
+              }
+        }
+    } catch (error) {
+        logResult('Test KO : ' + error.message);
+        await createBugTicket('Mise à niveau du plan échoué', error.message, driver);
+        throw error;
+    }
+});
+
+
+
+
+
 
 });

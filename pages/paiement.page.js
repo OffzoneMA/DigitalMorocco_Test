@@ -91,58 +91,76 @@ class PaiementPage {
         }
     }
 
-    async getPlanByName(planName) {
+  async getPlanByName(planName) {
+    try {        
+        await this.driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Basique') or contains(text(), 'Standard') or contains(text(), 'Premium')]")), 10000, 'Aucun plan trouvé sur la page');
+        let planElement;
+        // Recherche précise par label 
         try {
             const labelXPath = `//label[contains(text(), '${planName}')]`;
-            const divXPath = `//div[contains(text(), '${planName}')]`;
-            const generalXPath = `//*[contains(text(), '${planName}')]`;
-            let planElement;
-            
-            try {
-                const label = await this.driver.wait(until.elementLocated(By.xpath(labelXPath)), 5000);
-                planElement = await label.findElement(By.xpath("./ancestor::div[3]"));
-            } catch (e) {
-                try {
-                    planElement = await this.driver.wait(until.elementLocated(By.xpath(`//div[./div[contains(text(), '${planName}')]]`)), 5000);
-                } catch (e2) {
-                    const element = await this.driver.wait(until.elementLocated(By.xpath(generalXPath)), 5000, `Plan "${planName}" non trouvé`);
-                    planElement = await element.findElement(By.xpath("./ancestor::div[contains(@class, 'border') or contains(@class, 'rounded')]"));
+            const labels = await this.driver.findElements(By.xpath(labelXPath));
+            if (labels.length > 0) {
+                for (let i = 0; i < labels.length; i++) {
+                    const labelText = await labels[i].getText();                    
+                    if (labelText.trim() === planName || labelText.includes(planName)) {
+                        try {
+                            for (let level = 1; level <= 5; level++) {
+                                try {
+                                    planElement = await labels[i].findElement(By.xpath(`./ancestor::div[contains(@class, 'border') or contains(@class, 'rounded')][${level}]`));
+                                    return planElement;
+                                } catch (e) {
+                                }
+                            }
+                            planElement = await labels[i].findElement(By.xpath("./ancestor::div[3]"));
+                            return planElement;
+                            
+                        } catch (e) {
+                            console.log(` Impossible de trouver l'ancestor pour le label ${i}:`, e.message);
+                        }
+                    }
                 }
             }
-            
-            return planElement;
-        } catch (error) {
-            console.error(`Erreur lors de la récupération du plan "${planName}":`, error);
-            throw error;
+        } catch (e) {
+            console.log(` échouée:`, e.message);
         }
+        
+       
+    } catch (error) {
+        console.error(`Erreur lors de la récupération du plan "${planName}":`, error);
+        throw error;
     }
+}
 
-    async clickStartNowButtonForPlan(planName) {
-        try {
-            const planElement = await this.getPlanByName(planName);
-            let startButton;
+async clickStartNowButtonForPlan(planName) {
+    try {        
+        const planElement = await this.getPlanByName(planName);        
+        let startButton;
+        let buttonFound = false;
+        
+        if (!buttonFound) {
             try {
                 startButton = await planElement.findElement(By.xpath(".//button[contains(text(), 'Commencez maintenant')]"));
+                const buttonText = await startButton.getText();
+                buttonFound = true;
             } catch (e) {
-                try {
-                    startButton = await planElement.findElement(By.xpath(".//button[contains(@class, 'bg-blue') and contains(text(), 'Commencez')]"));
-                } catch (e2) {
-                    startButton = await planElement.findElement(By.xpath(".//button[contains(@class, 'bg-blue')]"));
-                }
+                console.log(` Pas de bouton "Commencez maintenant":`, e.message);
             }
-            await this.driver.executeScript("arguments[0].scrollIntoView(true);", startButton);
-            await this.driver.sleep(500);
-            await startButton.click();
-            await this.driver.sleep(2000); 
-            await this.driver.wait(until.urlContains('subscribePlan'), 10000, 'Navigation vers la page de sélection du plan échouée');
-            await this.waitForPageLoad();
-            
-            return true;
-        } catch (error) {
-            console.error(`Erreur lors du clic sur le bouton "Commencez maintenant" pour le plan "${planName}":`, error);
-            throw error;
         }
+        
+        await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", startButton);
+        await this.driver.sleep(1000);
+        await this.driver.wait(until.elementIsEnabled(startButton), 5000, 'Le bouton n\'est pas cliquable');
+        await startButton.click();        
+        await this.driver.sleep(2000); 
+        await this.driver.wait(until.urlContains('subscribePlan'), 10000, 'Navigation vers la page de sélection du plan échouée');
+        await this.waitForPageLoad();
+        return true;
+        
+    } catch (error) {
+        console.error(`ERREUR clickStartNowButtonForPlan pour "${planName}":`, error);
+        throw error;
     }
+}
 
     async selectSubscriptionType(type) {
         try {
@@ -289,7 +307,7 @@ class PaiementPage {
                        updatedSource.includes('failed') ||
                        updatedSource.includes('rejeté') ||
                        updatedSource.includes('refusé');
-            }, 15000).catch(() => {}); // Ignorer l'erreur si le timeout est atteint
+            }, 15000).catch(() => {}); 
             const updatedSource = await this.driver.getPageSource();
             
             if (updatedSource.includes('rejected') || 
@@ -529,6 +547,184 @@ class PaiementPage {
         throw error;
     }
 }
+
+
+
+async clickUpgradePlanButton() {
+    try {
+        const xpathSelector = '//button[.//span[contains(text(), "Mettre à niveau le plan")]]';
+        
+        await this.driver.wait(until.elementLocated(By.xpath(xpathSelector)), 10000);
+        const upgradeButton = await this.driver.findElement(By.xpath(xpathSelector));
+        
+        await this.driver.wait(until.elementIsVisible(upgradeButton), 5000);
+        await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", upgradeButton);
+        await this.driver.sleep(1000);
+        
+        await upgradeButton.click();
+        console.log('Clic sur le bouton "Mettre à niveau le plan" effectué');
+        
+        await this.driver.sleep(2000);
+        
+    } catch (error) {
+        console.error('Erreur lors du clic sur le bouton "Mettre à niveau le plan":', error);
+        throw error;
+    }
+}
+
+async clickReturnToDigitalMoroccoButton() {
+    try {
+        const linkSelector = 'a.btn.btn-success[href*="statuspaid=success"]';
+        const xpathSelector = '//a[contains(@class, "btn-success") and contains(@href, "statuspaid=success")]';
+        
+        await this.driver.wait(until.elementLocated(By.xpath(xpathSelector)), 10000);
+        const returnButton = await this.driver.findElement(By.xpath(xpathSelector));
+        
+        await this.driver.wait(until.elementIsVisible(returnButton), 5000);
+        await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", returnButton);
+        await this.driver.sleep(1000);
+        
+        await returnButton.click();
+        console.log('Clic sur le bouton "revenir à digitalmorocco.net" effectué');
+        
+        await this.driver.sleep(3000);
+        
+    } catch (error) {
+        console.error('Erreur lors du clic sur le bouton de retour:', error);
+        throw error;
+    }
+}
+
+async verifyUpgradeSuccessAlert() {
+    try {
+        const alertSelectors = [
+            '//label[contains(text(), "Votre abonnement a bien été mis à niveau !")]',
+            '//div[contains(@class, "bg-white-A700")]//label[contains(text(), "Votre abonnement")]',
+            '//img[@alt="successtick"]'
+        ];
+        
+        let alertFound = false;
+        let alertMessage = '';
+        
+        for (const selector of alertSelectors) {
+            try {
+                await this.driver.wait(until.elementLocated(By.xpath(selector)), 8000);
+                const alertElement = await this.driver.findElement(By.xpath(selector));
+                
+                if (await alertElement.isDisplayed()) {
+                    alertFound = true;
+                    alertMessage = 'Alerte de mise à niveau trouvée et visible';
+                    console.log('Alerte de mise à niveau réussie détectée');
+                    break;
+                }
+            } catch (e) {
+            }
+        }
+        
+        return {
+            success: alertFound,
+            message: alertFound ? alertMessage : 'Alerte de mise à niveau non trouvée'
+        };
+        
+    } catch (error) {
+        return {
+            success: false,
+            message: `Erreur lors de la vérification de l'alerte: ${error.message}`
+        };
+    }
+}
+
+async verifyCurrentPlan(expectedPlan) {
+    try {
+        const planLabelSelector = '//label[contains(@class, "text-blue-501") and contains(text(), "Standard")]';
+        const dynamicPlanSelector = `//label[contains(@class, "text-blue-501") and contains(text(), "${expectedPlan}")]`;
+        await this.driver.wait(until.elementLocated(By.xpath(dynamicPlanSelector)), 10000);
+        const planElement = await this.driver.findElement(By.xpath(dynamicPlanSelector));
+        
+        if (await planElement.isDisplayed()) {
+            const planText = await planElement.getText();
+            console.log(`Plan actuel détecté: ${planText}`);
+            
+            return {
+                success: true,
+                message: `Plan actuel confirmé: ${planText}`,
+                currentPlan: planText
+            };
+        }
+        
+        return {
+            success: false,
+            message: `Plan ${expectedPlan} non trouvé dans la page actuelle`
+        };
+        
+    } catch (error) {
+        return {
+            success: false,
+            message: `Erreur lors de la vérification du plan actuel: ${error.message}`
+        };
+    }
+}
+
+
+async closeUpgradeSuccessAlert() {
+    try {
+        const closeButtonSelectors = [
+            '//div[contains(@class, "hover:bg-gray-201") and contains(@class, "rounded-full") and contains(@class, "p-1")]',
+            '//div[contains(@class, "hover:bg-gray-201")]//svg[@width="12" and @height="11"]',
+            '//svg[@width="12" and @height="11" and @viewBox="0 0 12 11"]',
+            '//path[@stroke="#A9ACB0" and contains(@d, "M10.5 1L1.5 10M1.5 1L10.5 10")]/..',
+            '//div[contains(@class, "rounded-full") and contains(@class, "p-1")]'
+        ];
+        
+        let closeButtonFound = false;
+        
+        for (const selector of closeButtonSelectors) {
+            try {
+                console.log(`Tentative de localisation du bouton de fermeture avec le sélecteur: ${selector}`);
+                await this.driver.wait(until.elementLocated(By.xpath(selector)), 8000);
+                const closeButton = await this.driver.findElement(By.xpath(selector));
+                
+                if (await closeButton.isDisplayed()) {
+                    console.log('Bouton de fermeture trouvé et visible');
+                    await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", closeButton);
+                    await this.driver.sleep(1000);
+                    
+                    try {
+                        await closeButton.click();
+                    } catch (clickError) {
+                        console.log('Clic normal échoué, tentative avec JavaScript...');
+                        await this.driver.executeScript("arguments[0].click();", closeButton);
+                    }
+                    
+                    console.log('Alerte de mise à niveau fermée avec succès');
+                    closeButtonFound = true;
+                    await this.driver.sleep(2000);
+                    break;
+                }
+            } catch (e) {
+                console.log(`Sélecteur ${selector} n'a pas fonctionné: ${e.message}`);
+            }
+        }
+        
+        if (!closeButtonFound) {
+            console.warn('Bouton de fermeture de l\'alerte non trouvé avec tous les sélecteurs');
+        }
+        
+        return {
+            success: closeButtonFound,
+            message: closeButtonFound ? 'Alerte fermée avec succès' : 'Bouton de fermeture non trouvé'
+        };
+        
+    } catch (error) {
+        console.error('Erreur lors de la fermeture de l\'alerte:', error);
+        return {
+            success: false,
+            message: `Erreur lors de la fermeture: ${error.message}`
+        };
+    }
+}
+
+
 }
 
 module.exports = PaiementPage;
