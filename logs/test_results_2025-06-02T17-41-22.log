@@ -1,0 +1,5 @@
+2025-06-02T17:41:37.247Z - Test OK : Affichage du total des crédits validé avec succès
+2025-06-02T17:42:05.638Z - Test OK : Test complet du menu déroulant réussi avec succès
+2025-06-02T17:42:20.346Z -  Test OK : Validation des conditions d'utilisation fonctionne correctement
+2025-06-02T17:42:34.810Z -  Test OK : Finaliser une commande sans sélection de crédits
+2025-06-02T17:43:33.260Z - Test OK : Le résumé de commande se met à jour correctement lors des changements de sélection

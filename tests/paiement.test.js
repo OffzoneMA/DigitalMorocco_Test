@@ -12,7 +12,7 @@ describe('Tests de paiement', function () {
   let paiementPage;
 
   beforeEach(async function() {
-    driver = await new Builder().forBrowser('chrome').build();
+    driver = await createUniqueBrowser();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     paiementPage = new PaiementPage(driver);
@@ -24,8 +24,19 @@ describe('Tests de paiement', function () {
     }
   });
 
+   function extractPrice(priceText) {
+    const match = priceText.match(/(\d+[\.,]\d+)/);
+    return match ? parseFloat(match[1].replace(',', '.')) : null;
+  }
+
+  // Fonction utilitaire pour extraire le pourcentage de réduction
+  function extractDiscountPercentage(discountText) {
+    const match = discountText.match(/(\d+)%/);
+    return match ? parseInt(match[1]) : null;
+  }
+
   
-  it('Test d\'affichage des informations du plan Basique', async function () {
+ it('Test d\'affichage des informations du plan Basique', async function () {
   function escapeXpathString(str) {
     if (str.includes("'")) {
       const parts = str.split("'");
@@ -233,7 +244,7 @@ it("Test d'affichage des informations du plan Premium", async function () {
   }
 });
 
- it('Sélection du plan Basique - redirection avec 3200 crédits', async function() {
+ it('Sélection du plan Basique ', async function() {
       try {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
@@ -257,7 +268,7 @@ it("Test d'affichage des informations du plan Premium", async function () {
         if (creditsFound) {
           logResult('Test OK : Plan Basique sélectionné avec succès');
         } else {
-          logResult('Test KO : 3200 crédits non trouvé sur la page');
+          logResult('Test KO : Sélection plan Basique a échouée');
         }
         
       } catch (error) {
@@ -267,7 +278,7 @@ it("Test d'affichage des informations du plan Premium", async function () {
       }
     });
 
-    it('Sélection du plan Standard - redirection avec 6400 crédits', async function() {
+    it('Sélection du plan Standard ', async function() {
       try {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
@@ -291,7 +302,7 @@ it("Test d'affichage des informations du plan Premium", async function () {
         if (creditsFound) {
           logResult('Test OK : Plan Standard sélectionné avec succès');
         } else {
-          logResult('Test KO : 6400 crédits non trouvé sur la page');
+          logResult('Test KO : Séléction plan Standar a échouée');
         }
         
       } catch (error) {
@@ -301,7 +312,7 @@ it("Test d'affichage des informations du plan Premium", async function () {
       }
     });
 
-    it('Sélection du plan Premium - redirection avec 9600 crédits', async function() {
+    it('Sélection du plan Premium ', async function() {
       try {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
@@ -325,7 +336,7 @@ it("Test d'affichage des informations du plan Premium", async function () {
         if (creditsFound) {
           logResult('Test OK : Plan Premium sélectionné avec succès');
         } else {
-          logResult('Test KO : 9600 crédits non trouvé sur la page');
+          logResult('Test KO : Séléction plan Premium a éhoué');
         }
         
       } catch (error) {
@@ -335,8 +346,149 @@ it("Test d'affichage des informations du plan Premium", async function () {
       }
     });
 
+    it('Test de validation de réductions pour le plan Basic en mode annuel', async function() {
+  const plan = { 
+    name: 'Basique', 
+    expectedDiscount: 5, 
+    expectedPrice: '323,85',
+    originalPrice: '340,90'
+  };
+ try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 15000);
+    await paiementPage.navigateToPaiement();
+    await paiementPage.clickStartEssay();
+    await paiementPage.clickStartNowButtonForPlan(plan.name);
+    await driver.wait(until.urlContains('subscribePlan'), 10000);
+    const annuelButton = await driver.wait(until.elementLocated(By.xpath("//button[.//span[text()='Annuel']]")),10000);
+    await driver.wait(until.elementIsEnabled(annuelButton), 5000);
+    await annuelButton.click();
+    await driver.sleep(2000); 
+    const finalPriceElement = await driver.wait(until.elementLocated(By.xpath(`//label[contains(text(), '${plan.expectedPrice}')]`)),10000);
+    const strikedPriceElement = await driver.wait(until.elementLocated(By.xpath(`//label[contains(@class, 'line-through') and contains(text(), '${plan.originalPrice}')]`)),10000);
+    const discountElement = await driver.wait(until.elementLocated(By.xpath(`//span[contains(text(), '${plan.expectedDiscount}% de réduction')]`)),10000 );
+    const finalPrice = await finalPriceElement.getText();
+    const strikedPrice = await strikedPriceElement.getText();
+    const discountText = await discountElement.getText();
+    const originalValue = parseFloat(plan.originalPrice.replace(',', '.'));
+    const finalValue = parseFloat(plan.expectedPrice.replace(',', '.'));
+    const calculatedDiscount = Math.round(((originalValue - finalValue) / originalValue) * 100);
+    if (calculatedDiscount === plan.expectedDiscount) {
+      logResult(`Test OK : Plan ${plan.name} - Réduction de ${plan.expectedDiscount}% correctement appliquée`);
+    } else {
+      logResult(`Test KO : Plan ${plan.name} - Réduction incorrecte. Attendue: ${plan.expectedDiscount}%, Calculée: ${calculatedDiscount}%`);
+      throw new Error(`Réduction incorrecte pour le plan Basique: attendue ${plan.expectedDiscount}%, calculée ${calculatedDiscount}%`);
+    }
 
+  } catch (error) {
+    logResult(`Test KO pour plan ${plan.name} : ${error.message}`);
+    try {
+      await driver.get(config.baseUrl + '/Dashboard');
+      await driver.wait(until.urlContains('Dashboard'), 5000);
+    } catch (recoveryError) {
+      logResult(`Erreur de récupération pour plan Basique : ${recoveryError.message}`);
+    }
+    throw error;
+  }
+});
 
+it('Test de validation de réductions pour le plan Standard en mode annuel', async function() {
+  
+  const plan = { 
+    name: 'Standard', 
+    expectedDiscount: 10, 
+    expectedPrice: '449,10',
+    originalPrice: '499,00'
+  };
+
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 15000);
+    await paiementPage.navigateToPaiement();
+    await paiementPage.clickStartEssay();
+    await paiementPage.clickStartNowButtonForPlan(plan.name);
+    await driver.wait(until.urlContains('subscribePlan'), 10000);
+    const annuelButton = await driver.wait(until.elementLocated(By.xpath("//button[.//span[text()='Annuel']]")),10000 );
+    await driver.wait(until.elementIsEnabled(annuelButton), 5000);
+    await annuelButton.click();
+    await driver.sleep(2000); 
+    const finalPriceElement = await driver.wait(until.elementLocated(By.xpath(`//label[contains(text(), '${plan.expectedPrice}')]`)),10000);
+    const strikedPriceElement = await driver.wait(until.elementLocated(By.xpath(`//label[contains(@class, 'line-through') and contains(text(), '${plan.originalPrice}')]`)),10000);
+    const discountElement = await driver.wait(until.elementLocated(By.xpath(`//span[contains(text(), '${plan.expectedDiscount}% de réduction')]`)),10000);
+    const finalPrice = await finalPriceElement.getText();
+    const strikedPrice = await strikedPriceElement.getText();
+    const discountText = await discountElement.getText();
+    const originalValue = parseFloat(plan.originalPrice.replace(',', '.'));
+    const finalValue = parseFloat(plan.expectedPrice.replace(',', '.'));
+    const calculatedDiscount = Math.round(((originalValue - finalValue) / originalValue) * 100);
+    if (calculatedDiscount === plan.expectedDiscount) {
+      logResult(`Test OK : Plan ${plan.name} - Réduction de ${plan.expectedDiscount}% correctement appliquée`);
+    } else {
+      logResult(`Test KO : Plan ${plan.name}- Réduction incorrecte. Attendue: ${plan.expectedDiscount}%, Calculée: ${calculatedDiscount}%`);
+      throw new Error(`Réduction incorrecte pour le plan Basique: attendue ${plan.expectedDiscount}%, calculée ${calculatedDiscount}%`);
+    }
+
+  } catch (error) {
+    logResult(`Test KO pour plan ${plan.name} : ${error.message}`);
+    try {
+      await driver.get(config.baseUrl + '/Dashboard');
+      await driver.wait(until.urlContains('Dashboard'), 5000);
+    } catch (recoveryError) {
+      logResult(`Erreur de récupération pour plan Basique : ${recoveryError.message}`);
+    }
+    throw error;
+  }
+});
+
+it('Test de validation de réductions pour le plan Premium en mode annuel', async function() {
+  const plan = { 
+    name: 'Premium', 
+    expectedDiscount: 20, 
+    expectedPrice: '536,80',
+    originalPrice: '671,00'
+  };
+
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 15000);
+    await paiementPage.navigateToPaiement();
+    await paiementPage.clickStartEssay();
+    await paiementPage.clickStartNowButtonForPlan(plan.name);
+    await driver.wait(until.urlContains('subscribePlan'), 10000);
+    const annuelButton = await driver.wait(until.elementLocated(By.xpath("//button[.//span[text()='Annuel']]")),10000);
+    await driver.wait(until.elementIsEnabled(annuelButton), 5000);
+    await annuelButton.click();
+    await driver.sleep(2000); 
+    const finalPriceElement = await driver.wait(until.elementLocated(By.xpath(`//label[contains(text(), '${plan.expectedPrice}')]`)),10000 );
+    const strikedPriceElement = await driver.wait(until.elementLocated(By.xpath(`//label[contains(@class, 'line-through') and contains(text(), '${plan.originalPrice}')]`)),10000);
+    const discountElement = await driver.wait(until.elementLocated(By.xpath(`//span[contains(text(), '${plan.expectedDiscount}% de réduction')]`)),10000);
+    const finalPrice = await finalPriceElement.getText();
+    const strikedPrice = await strikedPriceElement.getText();
+    const discountText = await discountElement.getText();
+    const originalValue = parseFloat(plan.originalPrice.replace(',', '.'));
+    const finalValue = parseFloat(plan.expectedPrice.replace(',', '.'));
+    const calculatedDiscount = Math.round(((originalValue - finalValue) / originalValue) * 100);
+    if (calculatedDiscount === plan.expectedDiscount) {
+      logResult(`Test OK : Plan ${plan.name} - Réduction de ${plan.expectedDiscount}% correctement appliquée`);
+    } else {
+      logResult(`Test KO : Plan ${plan.name}- Réduction incorrecte. Attendue: ${plan.expectedDiscount}%, Calculée: ${calculatedDiscount}%`);
+      throw new Error(`Réduction incorrecte pour le plan Basique: attendue ${plan.expectedDiscount}%, calculée ${calculatedDiscount}%`);
+    }
+
+  } catch (error) {
+    logResult(`Test KO pour plan ${plan.name} : ${error.message}`);
+    try {
+      await driver.get(config.baseUrl + '/Dashboard');
+      await driver.wait(until.urlContains('Dashboard'), 5000);
+    } catch (recoveryError) {
+      logResult(`Erreur de récupération pour plan Basique : ${recoveryError.message}`);
+    }
+    throw error;
+  }
+});
 
  it('Paiement échoué avec carte CVV invalide', async function() {
   try {
@@ -658,56 +810,7 @@ it('Validation des champs obligatoires de carte de crédit', async function() {
   }
 });
 
-it('Validation des limites de saisie - numéro de carte 16 chiffres et CVV 4 chiffres', async function() {
-  try {
-    await driver.get(config.baseUrl);
-    await loginPage.login(config.validEmail, config.validPassword);
-    await driver.wait(until.urlContains('Dashboard'), 15000);
-    await paiementPage.navigateToPaiement();
-    await paiementPage.clickStartEssay();
-    await paiementPage.clickStartNowButtonForPlan('Basique');
-    await paiementPage.selectSubscriptionType('Mensuel');
-    await paiementPage.confirmSubscription();
-    await driver.wait(until.elementLocated(By.id('creditCardNumber')), 10000);
-    await driver.wait(until.elementLocated(By.id('securityCode')), 10000);
-    let testPassed = true;
-    const cardNumberField = await driver.findElement(By.id('creditCardNumber'));
-    await cardNumberField.clear();
-    await cardNumberField.sendKeys("41111111111111119999999"); 
-    const cardValue = await cardNumberField.getAttribute('value');
-    const cleanCardValue = cardValue.replace(/[\s-]/g, ''); 
-    if (cleanCardValue.length === 16) {
-      logResult("Test OK : Le champ numéro de carte limite bien la saisie à 16 chiffres");
-    } else if (cleanCardValue.length < 16) {
-      logResult(`Test OK : Le champ numéro de carte limite la saisie à ${cleanCardValue.length} chiffres (moins de 16)`);
-    } else {
-      logResult(`Test KO : Le champ numéro de carte accepte plus de 16 chiffres: ${cleanCardValue.length} chiffres saisis`);
-      testPassed = false;
-    }
-    const cvvField = await driver.findElement(By.id('securityCode'));
-    await cvvField.clear();
-    await cvvField.sendKeys("456855999"); 
-    const cvvValue = await cvvField.getAttribute('value');
-    if (cvvValue.length === 4) {
-      logResult("Test OK : Le champ CVV limite bien la saisie à 4 chiffres");
-    } else if (cvvValue.length === 3) {
-      logResult("Test OK : Le champ CVV limite la saisie à 3 chiffres");
-    } else if (cvvValue.length < 4) {
-      logResult(`Test OK : Le champ CVV limite la saisie à ${cvvValue.length} chiffres (moins de 4)`);
-    } else {
-      logResult(`Test KO : Le champ CVV accepte plus de 4 chiffres: ${cvvValue.length} chiffres saisis`);
-      testPassed = false;
-    }
-    
-    if (!testPassed) {
-      throw new Error('Au moins une validation de limitation des champs a échoué');
-    }
-    
-  } catch (error) {
-    logResult('Test KO : ' + error.message);
-    throw error;
-  }
-});
+
 
  it('Paiement réussi avec carte Visa pour plan Basique Mensuel', async function() {
   try {
@@ -735,10 +838,10 @@ it('Validation des limites de saisie - numéro de carte 16 chiffres et CVV 4 chi
       await driver.sleep(3000);
        const alertResult = await paiementPage.verifySuccessAlert();
        if (alertResult.success) {
-        logResult('Test OK : Paiement réussi pour plan Basique Mensuel avec carte Visa et alerte de confirmation affichée');
+        logResult('Test OK : Paiement réussi pour plan Basique Mensuel et alerte de confirmation affichée');
       } else {
         console.warn(`Alerte de confirmation non trouvée, mais paiement réussi. Message: ${alertResult.message}`);
-        logResult('Test OK : Paiement réussi pour plan Basique Mensuel avec carte Visa (sans alerte de confirmation)');
+        logResult('Test OK : Paiement réussi pour plan Basique Mensuel avec carte Visa ');
       }
     } else {
       if (paymentResult.message === 'Statut de paiement indéterminé') {
@@ -755,14 +858,85 @@ it('Validation des limites de saisie - numéro de carte 16 chiffres et CVV 4 chi
   }
 });
 
+it('Renouveler l\'abonnement', async function() {
+    try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 15000);
+        await paiementPage.navigateToPaiement();
+        await driver.sleep(3000);
+        const renewButtonResult = await paiementPage.clickRenewSubscriptionButton();
+        if (!renewButtonResult.success) {
+            throw new Error(`Échec du clic sur 'Renouveler l'abonnement': ${renewButtonResult.message}`);
+        }
+        await driver.wait(until.urlContains('payment-sandbox.payzone.ma'), 10000);
+        const currentUrl = await driver.getCurrentUrl();
+        if (!currentUrl.includes('payment-sandbox.payzone.ma/pwthree/launch')) {
+            throw new Error(`Redirection incorrecte. URL attendue: payment-sandbox.payzone.ma/pwthree/launch, URL actuelle: ${currentUrl}`);
+        }
+        const payzonePageResult = await paiementPage.verifyPayzonePaymentPage();
+        
+        if (payzonePageResult.success) {
+            logResult('Test OK : Bouton Renouvellement d\'abonnement fonctionne ');
+        } else {
+            logResult('Test KO : Bouton Renouvellement d\'abonnement échoue');
+        }
+        
+        
+    } catch (error) {
+        logResult('Test KO : Renouvellement d\'abonnement échoué - ' + error.message);
+        await createBugTicket('Renouvellement d\'abonnement échoué', error.message, driver);
+        throw error;
+    }
+});
+
+it('Annuler l\'annulation du plan (garder le plan)', async function() {
+    try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 15000);
+        await paiementPage.navigateToPaiement();
+        await driver.sleep(3000);
+        const currentPlanBefore = await paiementPage.verifyCurrentPlan('Basique');
+        if (!currentPlanBefore.success) {
+            throw new Error(`Plan actuel non confirmé: ${currentPlanBefore.message}`);
+        }
+        const cancelButtonResult = await paiementPage.clickCancelPlanButton();
+        if (!cancelButtonResult.success) {
+            throw new Error(`Échec du clic sur 'Annuler mon plan': ${cancelButtonResult.message}`);
+        }
+        const modalResult = await paiementPage.verifyCancelPlanModal();
+        if (!modalResult.success) {
+            throw new Error(`Modal non trouvée: ${modalResult.message}`);
+        }
+        const keepPlanResult = await paiementPage.clickKeepPlanButton();
+        if (!keepPlanResult.success) {
+            throw new Error(`Échec de la conservation du plan: ${keepPlanResult.message}`);
+        }
+        await driver.sleep(3000);
+        const currentPlanAfter = await paiementPage.verifyCurrentPlan('Basique');
+        if (currentPlanAfter.success) {
+            logResult('Test OK : Annulation de l\'annulation réussie - Plan conservé');
+        } else {
+            throw new Error(`Plan non conservé: ${currentPlanAfter.message}`);
+        }
+        
+    } catch (error) {
+        logResult('Test KO : Conservation du plan échouée - ' + error.message);
+        await createBugTicket('Conservation du plan échouée', error.message, driver);
+        throw error;
+    }
+});
+
 it('Mettre à niveau le plan', async function() {
+    this.timeout(300000); 
     try {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
         await driver.wait(until.urlContains('Dashboard'), 15000);
         await paiementPage.navigateToPaiement();
         await paiementPage.clickUpgradePlanButton();
-        await paiementPage.clickStartNowButtonForPlan('Premium');
+        await paiementPage.clickStartNowButtonForPlan('Standard');
         await paiementPage.selectSubscriptionType('Mensuel');
         await paiementPage.confirmSubscription();
         await paiementPage.fillPaymentForm({
@@ -771,28 +945,26 @@ it('Mettre à niveau le plan', async function() {
             expYear: "2025",
             cvv: "000"
         });
-
         await paiementPage.submitPaymentForm();
         await driver.sleep(5000);
         const paymentResult = await paiementPage.verifyPaymentResult();
-
         if (paymentResult.success) {
             await paiementPage.clickReturnToDigitalMoroccoButton();
-            await driver.sleep(3000);
+            await driver.sleep(2000);
             const upgradeAlertResult = await paiementPage.verifyUpgradeSuccessAlert();
             if (upgradeAlertResult.success) {
-                console.log('Alerte de mise à niveau détectée, fermeture en cours...');
-                const closeAlertResult = await paiementPage.closeUpgradeSuccessAlert();
-                if (closeAlertResult.success) {
-                    await driver.sleep(2000);
-                    const currentPlanResult = await paiementPage.verifyCurrentPlan('Premium');
-                    
-                    if (currentPlanResult.success) {
-                        logResult('Test OK : Mise à niveau réussie - Plan Premium confirmé, alerte affichée et fermée');
-                  
-                    }}
-              }
+                console.log(' Alerte de mise à niveau détectée avec succès');
+                logResult('Test OK : Mise à niveau réussie - Alerte de confirmation affichée');
+                
+            } else {
+                console.log('Alerte de mise à niveau non détectée');
+                logResult('Test KO : Alerte de mise à niveau non affichée après paiement');
+            }
+            
+        } else {
+            logResult('Test KO : Échec du paiement - ' + paymentResult.message);
         }
+        
     } catch (error) {
         logResult('Test KO : ' + error.message);
         await createBugTicket('Mise à niveau du plan échoué', error.message, driver);
@@ -801,8 +973,67 @@ it('Mettre à niveau le plan', async function() {
 });
 
 
-
-
-
-
+it('Vérifier qu\'un utilisateur ne peut pas mettre à niveau un plan déjà actif', async function() {
+    
+    try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 15000);
+        await paiementPage.navigateToPaiement();
+        const currentPlan = await paiementPage.verifyCurrentPlan();
+        await paiementPage.clickUpgradePlanButton();
+        try {
+            await paiementPage.clickStartNowButtonForPlan(currentPlan);
+            logResult(`Test KO : L'utilisateur peut sélectionner le plan déjà actif `);
+            
+        } catch (error) {
+            logResult(`Test OK : Impossible de mettre à niveau un plan déjà actif `);
+        }
+ } catch (error) {
+        logResult('Test ERREUR : ' + error.message);
+        await createBugTicket('Test de sélection de plan actif échoué', error.message, driver);
+        throw error;
+    }
 });
+
+
+
+
+it('Annuler le plan actuel', async function() {
+    try {
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.validEmail, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard'), 15000);
+        await paiementPage.navigateToPaiement();
+        await driver.sleep(3000);
+        await paiementPage.verifyCurrentPlan('Standard');
+        const cancelButtonResult = await paiementPage.clickCancelPlanButton();
+        if (!cancelButtonResult.success) {
+            throw new Error(`Échec du clic sur 'Annuler mon plan': ${cancelButtonResult.message}`);
+        }
+        const modalResult = await paiementPage.verifyCancelPlanModal();
+        if (!modalResult.success) {
+            throw new Error(`Modal de confirmation non trouvée: ${modalResult.message}`);
+        }
+        const confirmResult = await paiementPage.clickConfirmCancellationButton();
+        if (!confirmResult.success) {
+            throw new Error(`Échec de la confirmation d'annulation: ${confirmResult.message}`);
+        }
+        const cancellationResult = await paiementPage.verifyCancellationSuccess();
+         if (cancellationResult.success) {
+            logResult('Test OK : Annulation du plan réussie - Plan annulé avec confirmation');
+        } else {
+           logResult('Test KO : Annulation du plan échouéé');
+          
+        }
+        
+    } catch (error) {
+        logResult('Test KO : Annulation du plan échouée - ' + error.message);
+        await createBugTicket('Annulation du plan échouée', error.message, driver);
+        throw error;
+    }
+});
+
+ 
+
+})

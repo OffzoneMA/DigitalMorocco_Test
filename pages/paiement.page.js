@@ -3,27 +3,7 @@ const {By, until} = require("selenium-webdriver");
 class PaiementPage {
     constructor(driver) {
         this.driver = driver;
-        this.testCards = {
-            visaEnrolled: {
-                number: "4111111111111111",
-                expMonth: "10",
-                expYear: "2024",
-                cvv: "000" 
-            },
-            visaNonEnrolled: {
-                number: "4012888888881881",
-                expMonth: "10",
-                expYear: "2024",
-                cvv: "000"
-            },
-            mastercard: {
-                number: "5105105105105100",
-                expMonth: "10",
-                expYear: "2024",
-                cvv: "000"
-            }
-        };
-    }
+        }
 
     async waitForPageLoad() {
         await this.driver.wait(async () => {
@@ -633,31 +613,91 @@ async verifyUpgradeSuccessAlert() {
         };
     }
 }
-
 async verifyCurrentPlan(expectedPlan) {
     try {
-        const planLabelSelector = '//label[contains(@class, "text-blue-501") and contains(text(), "Standard")]';
-        const dynamicPlanSelector = `//label[contains(@class, "text-blue-501") and contains(text(), "${expectedPlan}")]`;
-        await this.driver.wait(until.elementLocated(By.xpath(dynamicPlanSelector)), 10000);
-        const planElement = await this.driver.findElement(By.xpath(dynamicPlanSelector));
-        
-        if (await planElement.isDisplayed()) {
+        await this.driver.sleep(3000);
+        const selectors = [
+            // Sélecteur CSS direct - le plus fiable
+            `label.text-blue-501`,
+            // Sélecteur CSS avec classes multiples
+            `label[class*="text-blue-501"]`,
+            // XPath avec normalize-space pour nettoyer les espaces
+            `//label[contains(@class, "text-blue-501") and normalize-space(text())="${expectedPlan}"]`,
+            // XPath plus flexible avec contains
+            `//label[contains(@class, "text-blue-501") and contains(normalize-space(text()), "${expectedPlan}")]`,
+            // XPath très flexible
+            `//label[contains(@class, "text-blue-501")]`
+        ];
+
+        let planElement = null;
+        let usedSelector = null;
+        let allFoundElements = [];
+
+        // Essayer chaque sélecteur
+        for (let i = 0; i < selectors.length; i++) {
+            try {
+                
+                let elements = [];
+                
+                if (selectors[i].startsWith('//')) {
+                    elements = await this.driver.findElements(By.xpath(selectors[i]));
+                } else {
+                    elements = await this.driver.findElements(By.css(selectors[i]));
+                }
+                
+                
+                if (elements.length > 0) {
+                    for (let j = 0; j < elements.length; j++) {
+                        try {
+                            const element = elements[j];
+                            const isDisplayed = await element.isDisplayed();
+                            const text = await element.getText();
+                            allFoundElements.push({ element, text, isDisplayed });
+                            if (isDisplayed && text.trim()) {
+                                const normalizedText = text.trim().toLowerCase();
+                                const normalizedExpected = expectedPlan.trim().toLowerCase();
+                                
+                                if (normalizedText === normalizedExpected || 
+                                    normalizedText.includes(normalizedExpected) ||
+                                    normalizedExpected.includes(normalizedText)) {
+                                    
+                                    planElement = element;
+                                    usedSelector = selectors[i];
+                                    break;
+                                }
+                            }
+                        } catch (elementError) {
+                            console.log(`Erreur lors de la vérification de l'élément ${j + 1}: ${elementError.message}`);
+                        }
+                    }
+                    
+                    if (planElement) break;
+                }
+                
+            } catch (selectorError) {
+                console.log(` Sélecteur ${i + 1} échoué: ${selectorError.message}`);
+                continue;
+            }
+        }
+
+        if (planElement) {
             const planText = await planElement.getText();
-            console.log(`Plan actuel détecté: ${planText}`);
             
             return {
                 success: true,
                 message: `Plan actuel confirmé: ${planText}`,
-                currentPlan: planText
+                currentPlan: planText,
+                selectorUsed: usedSelector
             };
         }
         
-        return {
-            success: false,
-            message: `Plan ${expectedPlan} non trouvé dans la page actuelle`
-        };
+        allFoundElements.forEach((item, index) => {
+            console.log(`- Élément ${index + 1}: "${item.text}" (Visible: ${item.isDisplayed})`);
+        });
+        return await this.debugPlanDetection(expectedPlan);
         
     } catch (error) {
+        console.error(` Erreur lors de la vérification du plan: ${error.message}`);
         return {
             success: false,
             message: `Erreur lors de la vérification du plan actuel: ${error.message}`
@@ -665,64 +705,614 @@ async verifyCurrentPlan(expectedPlan) {
     }
 }
 
-
-async closeUpgradeSuccessAlert() {
+async debugPlanDetection(expectedPlan) {
     try {
-        const closeButtonSelectors = [
-            '//div[contains(@class, "hover:bg-gray-201") and contains(@class, "rounded-full") and contains(@class, "p-1")]',
-            '//div[contains(@class, "hover:bg-gray-201")]//svg[@width="12" and @height="11"]',
-            '//svg[@width="12" and @height="11" and @viewBox="0 0 12 11"]',
-            '//path[@stroke="#A9ACB0" and contains(@d, "M10.5 1L1.5 10M1.5 1L10.5 10")]/..',
-            '//div[contains(@class, "rounded-full") and contains(@class, "p-1")]'
-        ];
-        
-        let closeButtonFound = false;
-        
-        for (const selector of closeButtonSelectors) {
+        const blueElements = await this.driver.findElements(By.css('[class*="text-blue-501"]'));        
+        for (let i = 0; i < blueElements.length; i++) {
             try {
-                console.log(`Tentative de localisation du bouton de fermeture avec le sélecteur: ${selector}`);
-                await this.driver.wait(until.elementLocated(By.xpath(selector)), 8000);
-                const closeButton = await this.driver.findElement(By.xpath(selector));
+                const element = blueElements[i];
+                const text = await element.getText();
+                const tagName = await element.getTagName();
+                const className = await element.getAttribute('class');
+                const isDisplayed = await element.isDisplayed();
+            } catch (e) {
+                console.log(`Erreur élément ${i + 1}: ${e.message}`);
+            }
+        }
+        const allLabels = await this.driver.findElements(By.tagName('label'));
+        
+        for (let i = 0; i < Math.min(allLabels.length, 15); i++) {
+            try {
+                const element = allLabels[i];
+                const text = await element.getText();
+                const className = await element.getAttribute('class');
+                const isDisplayed = await element.isDisplayed();
                 
-                if (await closeButton.isDisplayed()) {
-                    console.log('Bouton de fermeture trouvé et visible');
-                    await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", closeButton);
-                    await this.driver.sleep(1000);
-                    
-                    try {
-                        await closeButton.click();
-                    } catch (clickError) {
-                        console.log('Clic normal échoué, tentative avec JavaScript...');
-                        await this.driver.executeScript("arguments[0].click();", closeButton);
+                if (text.trim()) {
+                    const normalizedText = text.trim().toLowerCase();
+                    const normalizedExpected = expectedPlan.trim().toLowerCase();
+                    if (normalizedText.includes(normalizedExpected) || normalizedExpected.includes(normalizedText)) {
+                        console.log(` CORRESPONDANCE POTENTIELLE!`);
                     }
-                    
-                    console.log('Alerte de mise à niveau fermée avec succès');
-                    closeButtonFound = true;
-                    await this.driver.sleep(2000);
-                    break;
+                    console.log(`   ---`);
                 }
             } catch (e) {
-                console.log(`Sélecteur ${selector} n'a pas fonctionné: ${e.message}`);
+                console.log(` Erreur label ${i + 1}: ${e.message}`);
             }
         }
         
-        if (!closeButtonFound) {
-            console.warn('Bouton de fermeture de l\'alerte non trouvé avec tous les sélecteurs');
+        try {
+            const textElements = await this.driver.findElements(By.xpath(`//*[contains(text(), "${expectedPlan}")]`));
+            
+            for (let i = 0; i < textElements.length; i++) {
+                try {
+                    const element = textElements[i];
+                    const text = await element.getText();
+                    const tagName = await element.getTagName();
+                    const className = await element.getAttribute('class');
+                    const isDisplayed = await element.isDisplayed();
+                } catch (e) {
+                    console.log(` Erreur élément texte ${i + 1}: ${e.message}`);
+                }
+            }
+        } catch (xpathError) {
+            console.log(` Erreur recherche XPath: ${xpathError.message}`);
+        }
+        try {
+            const pageSource = await this.driver.getPageSource();
+            const planMatches = pageSource.match(new RegExp(expectedPlan, 'gi'));
+            
+            // Extraire les sections pertinentes du HTML
+            const labelRegex = /<label[^>]*>[\s\S]*?<\/label>/gi;
+            const labels = pageSource.match(labelRegex);
+            if (labels) {
+                labels.forEach((label, index) => {
+                    if (label.toLowerCase().includes(expectedPlan.toLowerCase()) || 
+                        label.includes('text-blue-501')) {
+                    }
+                });
+            }
+        } catch (htmlError) {
+            console.log(`Erreur analyse HTML: ${htmlError.message}`);
         }
         
         return {
-            success: closeButtonFound,
-            message: closeButtonFound ? 'Alerte fermée avec succès' : 'Bouton de fermeture non trouvé'
+            success: false,
+            message: `Plan "${expectedPlan}" non trouvé. Consultez les logs de débogage détaillés ci-dessus.`,
+            debugInfo: {
+                blueElementsCount: blueElements.length,
+                totalLabels: allLabels.length
+            }
         };
         
+    } catch (debugError) {
+        console.error(`Erreur lors du débogage: ${debugError.message}`);
+        return {
+            success: false,
+            message: `Erreur lors du débogage: ${debugError.message}`
+        };
+    }
+}
+
+async closeUpgradeSuccessAlert() {
+    try {
+        try {
+            await this.driver.getCurrentUrl();
+        } catch (driverError) {
+            return { success: false, message: 'Driver non accessible avant fermeture alerte' };
+        }
+        await this.driver.sleep(2000);
+        let alertPresent = false;
+        try {
+            const alertElements = await this.driver.findElements(By.xpath('//label[contains(text(), "Votre abonnement a bien été mis à niveau !")]') );
+            alertPresent = alertElements.length > 0;
+        } catch (alertCheckError) {
+            console.log(' Erreur lors de la vérification de présence de l\'alerte:', alertCheckError.message);
+        }
+        
+        if (!alertPresent) {
+            console.log('Aucune alerte à fermer');
+            return { success: true, message: 'Aucune alerte présente à fermer' };
+        }
+        const closeButtonSelectors = [
+            '//div[contains(@class, "hover:bg-gray-201") and contains(@class, "rounded-full") and contains(@class, "p-1")]',
+            '//svg[@width="12" and @height="11" and @viewBox="0 0 12 11"]',
+            '//svg[@width="12" and @height="11" and @viewBox="0 0 12 11"]/parent::div'
+        ];
+        
+        let clickSuccess = false;
+        
+        for (let i = 0; i < closeButtonSelectors.length && !clickSuccess; i++) {
+            const selector = closeButtonSelectors[i];
+            console.log(`Tentative ${i + 1}/${closeButtonSelectors.length} avec sélecteur: ${selector}`);
+            
+            try {
+                const closeButton = await this.driver.wait(until.elementLocated(By.xpath(selector)), 3000 );
+                await this.driver.getCurrentUrl();
+                 if (await closeButton.isDisplayed()) {
+                    try {
+                        await closeButton.click();
+                        clickSuccess = true;
+                    } catch (clickError) {
+                        try {
+                            await this.driver.executeScript("arguments[0].click();", closeButton);
+                            clickSuccess = true;
+                        } catch (jsClickError) {
+                            console.log(' Clic JavaScript échoué:', jsClickError.message);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log(` Sélecteur ${i + 1} échoué: ${e.message}`);
+                try {
+                    await this.driver.getCurrentUrl();
+                } catch (driverCheckError) {
+                    console.error('❌ Driver fermé pendant la recherche du bouton');
+                    return { success: false, message: 'Driver fermé pendant la recherche du bouton' };
+                }
+                continue;
+            }
+        }
+        
+        if (!clickSuccess) {
+            console.log('Bouton spécifique non trouvé, tentative de clic général prudent...');
+            try {
+                await this.driver.getCurrentUrl();
+                await this.driver.executeScript(`
+                    try {
+                        const centerElement = document.elementFromPoint(window.innerWidth/2, window.innerHeight/2);
+                        if (centerElement) {
+                            centerElement.click();
+                            console.log('Clic général effectué');
+                        }
+                    } catch (e) {
+                        console.log('Erreur clic général:', e.message);
+                    }
+                `);
+                console.log('Script de clic général exécuté');
+                clickSuccess = true;
+            } catch (generalClickError) {
+                console.log(' Clic général échoué:', generalClickError.message);
+            }
+        }
+        await this.driver.sleep(2000);
+        try {
+            await this.driver.getCurrentUrl();
+        } catch (driverError) {
+            console.error('Driver fermé après tentative de fermeture');
+            return { success: false, message: 'Driver fermé après tentative de fermeture' };
+        }
+        try {
+            const alertStillVisible = await this.driver.findElements(By.xpath('//label[contains(text(), "Votre abonnement a bien été mis à niveau !")]'));
+            if (alertStillVisible.length === 0) {
+                return { success: true, message: 'Alerte fermée avec succès' };
+            } else {
+                return { success: false, message: 'L\'alerte est toujours visible après les tentatives de clic' };
+            }
+        } catch (e) {
+            try {
+                await this.driver.getCurrentUrl();
+                return { success: true, message: 'Alerte fermée avec succès' };
+            } catch (driverError) {
+                return { success: false, message: 'Driver fermé pendant la vérification finale' };
+            }
+        }
+        
     } catch (error) {
-        console.error('Erreur lors de la fermeture de l\'alerte:', error);
+        console.error(' Erreur lors de la fermeture de l\'alerte:', error);
+        try {
+            await this.driver.getCurrentUrl();
+            console.log('Driver toujours actif malgré l\'erreur');
+        } catch (driverError) {
+            console.error(' Driver fermé à cause de l\'erreur:', driverError.message);
+            return { success: false, message: 'Driver fermé à cause de l\'erreur de fermeture' };
+        }
+        
         return {
             success: false,
             message: `Erreur lors de la fermeture: ${error.message}`
         };
     }
 }
+async clickCancelPlanButton() {
+    try {
+        await this.driver.sleep(2000);
+        const selectors = [
+            // Sélecteur par texte exact
+            `//button[contains(text(), "Annuler mon plan")]`,
+            // Sélecteur par texte avec normalize-space
+            `//button[normalize-space(text())="Annuler mon plan"]`,
+            // Sélecteur par classe et texte
+            `//button[contains(@class, "bg-[#E4E7EC]") and contains(text(), "Annuler")]`,
+            // Sélecteur CSS avec classes spécifiques
+            `button[class*="bg-[#E4E7EC]"][class*="text-[#98A2B3]"]:has-text("Annuler mon plan")`,
+            // Sélecteur alternatif par structure
+            `//button[contains(@class, "bg-[#E4E7EC]") and .//svg and contains(text(), "Annuler")]`
+        ];
+
+        let cancelButton = null;
+        let usedSelector = null;
+
+        // Essayer chaque sélecteur
+        for (let i = 0; i < selectors.length; i++) {
+            try {
+                console.log(`Tentative ${i + 1}: ${selectors[i]}`);
+                
+                if (selectors[i].includes('has-text')) {
+                    // Sélecteur CSS spécial - utiliser findElements pour vérifier
+                    const buttons = await this.driver.findElements(By.css(`button[class*="bg-[#E4E7EC]"]`));
+                    for (let button of buttons) {
+                        const text = await button.getText();
+                        if (text.includes("Annuler mon plan")) {
+                            cancelButton = button;
+                            usedSelector = "CSS avec vérification de texte";
+                            break;
+                        }
+                    }
+                } else {
+                    // XPath selector
+                    await this.driver.wait(until.elementLocated(By.xpath(selectors[i])), 5000);
+                    cancelButton = await this.driver.findElement(By.xpath(selectors[i]));
+                    usedSelector = selectors[i];
+                }
+                
+                if (cancelButton && await cancelButton.isDisplayed()) {
+                    console.log(`Bouton 'Annuler mon plan' trouvé avec: ${usedSelector}`);
+                    break;
+                }
+                
+            } catch (selectorError) {
+                console.log(` Sélecteur ${i + 1} échoué: ${selectorError.message}`);
+                continue;
+            }
+        }
+
+        if (cancelButton && await cancelButton.isDisplayed()) {
+            await this.driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", cancelButton);
+            await this.driver.sleep(1000);
+            await cancelButton.click();
+            await this.driver.sleep(2000);
+             return {
+                success: true,
+                message: "Bouton 'Annuler mon plan' cliqué avec succès",
+                selectorUsed: usedSelector
+            };
+        } else {
+            return {
+                success: false,
+                message: "Bouton 'Annuler mon plan' non trouvé ou non visible"
+            };
+        }
+        
+    } catch (error) {
+        console.error(` Erreur lors du clic sur 'Annuler mon plan': ${error.message}`);
+        return {
+            success: false,
+            message: `Erreur lors du clic sur le bouton d'annulation: ${error.message}`
+        };
+    }
+}
+
+async verifyCancelPlanModal() {
+    try {
+        await this.driver.sleep(2000);
+        const modalSelectors = [
+            // Texte de confirmation principal
+            `//label[contains(text(), "Êtes-vous sûr de vouloir annuler")]`,
+            // Texte explicatif
+            `//label[contains(text(), "L'annulation entraînera la perte")]`,
+            // Container de la modal
+            `//div[contains(@class, "bg-white-A700") and contains(@class, "border")]`,
+            // Plan "Basique" dans la modal
+            `//label[contains(@class, "text-[#2575F0]") and contains(text(), "Basique")]`
+        ];
+
+        let modalFound = false;
+        let modalDetails = {};
+
+        for (let selector of modalSelectors) {
+            try {
+                const element = await this.driver.findElement(By.xpath(selector));
+                if (await element.isDisplayed()) {
+                    modalFound = true;
+                    const text = await element.getText();
+                    modalDetails[selector] = text;
+                }
+            } catch (e) {
+                console.log(`Élément non trouvé: ${selector}`);
+            }
+        }
+
+        if (modalFound) {
+            return {
+                success: true,
+                message: "Modal de confirmation d'annulation affichée",
+                details: modalDetails
+            };
+        } else {
+            return {
+                success: false,
+                message: "Modal de confirmation d'annulation non trouvée"
+            };
+        }
+        
+    } catch (error) {
+        console.error(` Erreur lors de la vérification de la modal: ${error.message}`);
+        return {
+            success: false,
+            message: `Erreur lors de la vérification de la modal: ${error.message}`
+        };
+    }
+}
+
+async clickConfirmCancellationButton() {
+    try {
+        await this.driver.sleep(1000);
+        const selectors = [
+            // Sélecteur par texte exact
+            `//button[contains(text(), "Poursuivre l'annulation")]`,
+            // Sélecteur par texte avec normalize-space
+            `//button[normalize-space(text())="Poursuivre l'annulation"]`,
+            // Sélecteur par classe CSS spécifique (rouge)
+            `//button[contains(@class, "bg-[#EF4352]") and contains(text(), "Poursuivre")]`,
+            // Sélecteur CSS direct
+            `button[class*="bg-[#EF4352]"]`,
+            // Sélecteur alternatif par couleur et texte
+            `//button[contains(@class, "bg-[#EF4352]") and contains(@class, "text-white")]`
+        ];
+
+        let confirmButton = null;
+        let usedSelector = null;
+
+        // Essayer chaque sélecteur
+        for (let i = 0; i < selectors.length; i++) {
+            try {
+                console.log(`Tentative ${i + 1}: ${selectors[i]}`);
+                
+                if (selectors[i].startsWith('//')) {
+                    // XPath selector
+                    await this.driver.wait(until.elementLocated(By.xpath(selectors[i])), 5000);
+                    confirmButton = await this.driver.findElement(By.xpath(selectors[i]));
+                } else {
+                    // CSS selector
+                    await this.driver.wait(until.elementLocated(By.css(selectors[i])), 5000);
+                    const buttons = await this.driver.findElements(By.css(selectors[i]));
+                    
+                    // Vérifier chaque bouton pour trouver celui avec le bon texte
+                    for (let button of buttons) {
+                        const text = await button.getText();
+                        if (text.includes("Poursuivre l'annulation") || text.includes("Poursuivre")) {
+                            confirmButton = button;
+                            break;
+                        }
+                    }
+                }
+                
+                usedSelector = selectors[i];
+                
+                if (confirmButton && await confirmButton.isDisplayed()) {
+                    console.log(` Bouton 'Poursuivre l'annulation' trouvé avec: ${usedSelector}`);
+                    break;
+                }
+                
+            } catch (selectorError) {
+                console.log(`Sélecteur ${i + 1} échoué: ${selectorError.message}`);
+                continue;
+            }
+        }
+
+        if (confirmButton && await confirmButton.isDisplayed()) {
+            const buttonText = await confirmButton.getText();
+            await this.driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", confirmButton);
+            await this.driver.sleep(500);
+            await confirmButton.click();
+            await this.driver.sleep(3000);
+            return {
+                success: true,
+                message: "Bouton 'Poursuivre l'annulation' cliqué avec succès",
+                buttonText: buttonText,
+                selectorUsed: usedSelector
+            };
+        } else {
+            return {
+                success: false,
+                message: "Bouton 'Poursuivre l'annulation' non trouvé ou non visible"
+            };
+        }
+        
+    } catch (error) {
+        console.error(`Erreur lors du clic sur 'Poursuivre l'annulation': ${error.message}`);
+        return {
+            success: false,
+            message: `Erreur lors du clic sur le bouton de confirmation: ${error.message}`
+        };
+    }
+}
+
+async clickKeepPlanButton() {
+    try {        
+        const selectors = [
+            `//button[contains(text(), "Conserver le plan Basique")]`,
+            `//button[normalize-space(text())="Conserver le plan Basique"]`,
+            `//button[contains(@class, "bg-[#E4E7EC]") and contains(text(), "Conserver")]`
+        ];
+
+        for (let selector of selectors) {
+            try {
+                const keepButton = await this.driver.findElement(By.xpath(selector));
+                if (await keepButton.isDisplayed()) {
+                    await keepButton.click();
+                    return {
+                        success: true,
+                        message: "Plan conservé avec succès"
+                    };
+                }
+            } catch (e) {
+                continue;
+            }
+        }
+        
+        return {
+            success: false,
+            message: "Bouton 'Conserver le plan' non trouvé"
+        };
+        
+    } catch (error) {
+        return {
+            success: false,
+            message: `Erreur: ${error.message}`
+        };
+    }
+}
+
+async verifyCancellationSuccess() {
+    try {
+        await this.driver.sleep(3000);
+        const modalSelectors = [
+            // Modal avec le message de confirmation spécifique
+            `//label[contains(text(), "Votre abonnement a bien été annulé")]`,
+            `//div[contains(@class, "bg-white-A700")]//label[contains(text(), "abonnement a bien été annulé")]`,
+            // Image de succès dans la modal
+            `//img[contains(@alt, "successtick") or contains(@src, "check-verified")]`,
+            // Texte de confirmation email
+            `//label[contains(text(), "e-mail de confirmation vous a été envoyé")]`,
+            // Container de la modal complète
+            `//div[contains(@class, "bg-white-A700") and contains(@class, "border") and .//label[contains(text(), "annulé")]]`
+        ];
+
+        let successFound = false;
+        let successDetails = {};
+        const currentUrl = await this.driver.getCurrentUrl();
+        successDetails.currentUrl = currentUrl;
+        for (let selector of modalSelectors) {
+            try {
+                const element = await this.driver.wait(until.elementLocated(By.xpath(selector)), 10000 );
+                if (await element.isDisplayed()) {
+                    const text = await element.getText();
+                    successFound = true;
+                    successDetails.confirmationText = text;
+                    successDetails.foundSelector = selector;
+                    break; 
+                }
+            } catch (e) {
+                console.log(` Élément non trouvé avec le sélecteur: ${selector}`);
+            }
+        }
+
+        if (!successFound) {
+            try {
+                const generalSuccess = await this.driver.findElements(By.xpath(`//*[contains(text(), "annulé") or contains(text(), "confirmé") or contains(text(), "succès")]`) );
+                if (generalSuccess.length > 0) {
+                    for (let element of generalSuccess) {
+                        if (await element.isDisplayed()) {
+                            const text = await element.getText();
+                            successFound = true;
+                            successDetails.generalConfirmation = text;
+                            break;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log(" Aucun texte de confirmation générale trouvé");
+            }
+        }
+
+
+        return {
+            success: successFound,
+            message: successFound ? 
+                "Annulation confirmée avec succès - Modal de confirmation détectée" : 
+                "Modal de confirmation d'annulation non trouvée",
+            details: successDetails
+        };
+        
+    } catch (error) {
+        console.error(` Erreur lors de la vérification: ${error.message}`);
+        return {
+            success: false,
+            message: `Erreur lors de la vérification: ${error.message}`,
+            error: error.message
+        };
+    }
+}
+
+async clickRenewSubscriptionButton() {
+    try {
+        let renewButton;
+        try {
+            renewButton = await this.driver.findElement(By.xpath('//button[text()="Renouveler l\'abonnement"]'));
+        } catch (e1) {
+            // Méthode 2: Par le texte contenu (au cas où il y aurait des espaces)
+            try {
+                renewButton = await this.driver.findElement(By.xpath('//button[contains(text(), "Renouveler l\'abonnement")]'));
+            } catch (e2) {
+                // Méthode 3: Par les classes CSS principales
+                try {
+                    renewButton = await this.driver.findElement(By.css('button.bg-blue-A400.text-white-A700[type="button"]'));
+                } catch (e3) {
+                    // Méthode 4: Par la classe bg-blue-A400 uniquement
+                    try {
+                        renewButton = await this.driver.findElement(By.css('button.bg-blue-A400[type="button"]'));
+                    } catch (e4) {
+                        // Méthode 5: Par le SVG avec viewBox spécifique
+                        try {
+                            renewButton = await this.driver.findElement(By.xpath('//button[.//svg[@viewBox="0 0 24 24" and @height="23" and @width="23"]]'));
+                        } catch (e5) {
+                            // Méthode 6: Par le path du SVG (signature unique)
+                            renewButton = await this.driver.findElement(By.xpath('//button[.//path[starts-with(@d, "M14.5 4h.005m-.005 0l-2.5 6")]]'));
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (!renewButton) {
+            throw new Error('Bouton Renouveler l\'abonnement non trouvé');
+        }
+        await this.driver.wait(until.elementIsVisible(renewButton), 10000);
+        await this.driver.wait(until.elementIsEnabled(renewButton), 5000);
+        await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", renewButton);
+        await this.driver.sleep(1000);
+        await renewButton.click();
+        
+        return { success: true, message: "Bouton 'Renouveler l'abonnement' cliqué avec succès" };
+        
+    } catch (error) {
+        try {
+            const allButtons = await this.driver.findElements(By.css('button'));
+            
+            for (let i = 0; i < Math.min(allButtons.length, 3); i++) {
+                const buttonText = await allButtons[i].getText().catch(() => 'Texte non lisible');
+                const buttonClasses = await allButtons[i].getAttribute('class').catch(() => 'Classes non lisibles');
+            }
+        } catch (debugError) {
+            console.log('Debug impossible:', debugError.message);
+        }
+        
+        return { success: false, message: `Erreur lors du clic sur 'Renouveler l'abonnement': ${error.message}` };
+    }
+}
+
+
+async verifyPayzonePaymentPage() {
+    try {
+        await this.driver.wait(until.urlContains('payzone.ma'), 10000);
+        const pageTitle = await this.driver.getTitle();
+        const pageLoaded = await this.driver.wait(until.elementLocated(By.css('body')), 5000);
+         return { 
+            success: true, 
+            message: `Page Payzone chargée avec succès. Titre: ${pageTitle}` 
+        };
+        
+    } catch (error) {
+        return { 
+            success: false, 
+            message: `Erreur lors de la vérification de la page Payzone: ${error.message}` 
+        };
+    }
+}
+
+
 
 
 }
