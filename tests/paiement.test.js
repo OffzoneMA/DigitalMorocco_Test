@@ -696,6 +696,111 @@ it('Paiement échoué : plafond dépassé', async function() {
     throw error;
   }
 });
+
+
+it(' Paiement sans cocher la case d\'acceptation', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 15000);
+    await paiementPage.navigateToPaiement();
+    await paiementPage.clickStartEssay();
+    await paiementPage.clickStartNowButtonForPlan('Basique');
+    await paiementPage.selectSubscriptionType('Mensuel');
+    await paiementPage.confirmSubscription();
+    await paiementPage.fillPaymentForm({
+      number: "4111111111111111",
+      expMonth: "10",
+      expYear: "2025",
+      cvv: "000" 
+    });
+    await driver.sleep(3000);
+    const checkbox = await driver.wait(until.elementLocated(By.css('input[name="vpsDataProtection"]')), 10000 );
+    const isChecked = await checkbox.isSelected();
+    if (isChecked) {
+      await checkbox.click();
+      await driver.sleep(1000);
+    }
+    const finalCheckState = await checkbox.isSelected();
+    await paiementPage.submitPaymentForm();
+    await driver.sleep(3000);
+    let validationError = null;
+    let isExpectedError = false;
+    try {
+      const errorElement = await driver.wait(until.elementLocated(By.css('p.text-danger span')), 5000);
+      if (await errorElement.isDisplayed()) {
+        validationError = await errorElement.getText();
+        if (validationError.includes('conditions de service de paiement est requis') || 
+            validationError.includes('Le champ conditions de service')) {
+          isExpectedError = true;
+        }
+      }
+    } catch (e) {
+      console.log('Message d\'erreur spécifique non trouvé, recherche d\'autres messages...');
+      const fallbackSelectors = ['.text-danger', '.alert-danger', '.error'];
+      for (const selector of fallbackSelectors) {
+        try {
+          const errorEl = await driver.findElement(By.css(selector));
+          if (await errorEl.isDisplayed()) {
+            validationError = await errorEl.getText();
+            break;
+          }
+        } catch (err) {
+        }
+      }
+    }
+    const currentUrl = await driver.getCurrentUrl();
+    const isStillOnPaymentPage = currentUrl.includes('payment') || currentUrl.includes('paiement');
+    if (isExpectedError) {
+      logResult(`Test OK : Paiement échoué sans coher la case d\'acceptation`);
+    } else if (validationError) {
+      logResult(`Test Partiel : Paiement bloqué mais message d'erreur différent de celui attendu. Message reçu: "${validationError}"`);
+    } else if (isStillOnPaymentPage) {
+      logResult('Test Partiel : Paiement semble bloqué (pas de redirection) mais aucun message d\'erreur visible');
+    } else {
+      logResult(`Test KO : Le paiement semble avoir été accepté sans cocher la case. URL actuelle: ${currentUrl}`);
+    }
+    
+  } catch (error) {
+    logResult('Test KO : Erreur lors du test de validation de la checkbox - ' + error.message);
+    await createBugTicket('Validation checkbox conditions générales défaillante', error.message, driver);
+    throw error;
+  }
+});
+
+it('Bouton retour au marchand', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 15000);
+    await paiementPage.navigateToPaiement();
+    await paiementPage.clickStartEssay();
+    await paiementPage.clickStartNowButtonForPlan('Basique');
+    await paiementPage.selectSubscriptionType('Mensuel');
+    await paiementPage.confirmSubscription();
+    await driver.sleep(3000);
+    const retourButton = await driver.wait(until.elementLocated(By.css('a.btn.btn-block.btn-cancel')), 10000);
+    const isDisplayed = await retourButton.isDisplayed();
+    const isEnabled = await retourButton.isEnabled();
+    if (!isDisplayed || !isEnabled) {
+      throw new Error('Le bouton retour au marchand n\'est pas accessible');
+    }
+    await retourButton.click();
+    await driver.sleep(3000);
+    const currentUrl = await driver.getCurrentUrl();    
+    if (currentUrl.includes('Subscription')) {
+      logResult('Test OK : Le bouton retour au marchand fonctionne correctement - redirection vers page Subscription');
+    } else {
+      logResult(`Test KO : Redirection incorrecte. URL actuelle: ${currentUrl}`);
+    }
+    
+  } catch (error) {
+    logResult('Test KO : Erreur lors du test du bouton retour au marchand - ' + error.message);
+    await createBugTicket('Bouton retour au marchand dysfonctionnel', error.message, driver);
+    throw error;
+  }
+});
+
   
  it('Annulation de l\'abonnement avec bouton Annuler', async function() {
     try {
@@ -809,8 +914,6 @@ it('Validation des champs obligatoires de carte de crédit', async function() {
     throw error;
   }
 });
-
-
 
  it('Paiement réussi avec carte Visa pour plan Basique Mensuel', async function() {
   try {
@@ -929,7 +1032,7 @@ it('Annuler l\'annulation du plan (garder le plan)', async function() {
 });
 
 it('Mettre à niveau le plan', async function() {
-    this.timeout(300000); 
+    this.timeout(180000); 
     try {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
@@ -971,7 +1074,6 @@ it('Mettre à niveau le plan', async function() {
         throw error;
     }
 });
-
 
 it('Vérifier qu\'un utilisateur ne peut pas mettre à niveau un plan déjà actif', async function() {
     
@@ -1033,6 +1135,11 @@ it('Annuler le plan actuel', async function() {
         throw error;
     }
 });
+
+
+
+
+
 
  
 

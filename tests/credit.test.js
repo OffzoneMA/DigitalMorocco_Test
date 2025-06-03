@@ -230,4 +230,25 @@ it(' Le résumé de commande se met à jour correctement lors du changement de c
         throw error;
     }
 });
+/*it('Test d\'achat de crédits', async function(){
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 20000);
+    await creditPage.navigateToCredit();
+    const searchTerm = '35';
+    const optionToSelect = '3 000 crédits : 28,35 $ (Tarif initial : 31,50 $)';
+    await creditPage.testCreditDropdownWithSearchRobuste(searchTerm, optionToSelect);
+    const isInitiallyChecked = await creditPage.isTermsCheckboxChecked();
+     if (isInitiallyChecked) {
+                await creditPage.toggleTermsCheckbox(false);
+            } else {
+                console.log('Conditions d\'utilisation déjà décochées');
+     }
+
+   
+
+
+
+
+})*/
 });

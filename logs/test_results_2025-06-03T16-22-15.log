@@ -1,0 +1,29 @@
+2025-06-03T16:22:43.441Z - Test OK : Toutes les informations du plan Basique sont affichées correctement
+2025-06-03T16:23:09.843Z - Test OK : Toutes les informations du plan Standard sont affichées correctement
+2025-06-03T16:23:35.881Z - Test OK : Toutes les informations du plan Premium sont affichées correctement
+2025-06-03T16:23:59.642Z - Test OK : Plan Basique sélectionné avec succès
+2025-06-03T16:24:26.958Z - Test OK : Plan Standard sélectionné avec succès
+2025-06-03T16:24:57.755Z - Test OK : Plan Premium sélectionné avec succès
+2025-06-03T16:25:26.735Z - Test OK : Plan Basique - Réduction de 5% correctement appliquée
+2025-06-03T16:25:56.044Z - Test OK : Plan Standard - Réduction de 10% correctement appliquée
+2025-06-03T16:26:24.465Z - Test OK : Plan Premium - Réduction de 20% correctement appliquée
+2025-06-03T16:27:20.393Z - Test OK : Paiement correctement rejeté avec CVV invalide
+2025-06-03T16:28:16.180Z - Test OK : Paiement correctement rejeté avec carte restreinte
+2025-06-03T16:29:09.244Z - Test OK : Paiement correctement rejeté avec carte bloquée.
+2025-06-03T16:30:01.910Z - Test OK : Paiement correctement rejeté avec fonds insuffisants.
+2025-06-03T16:31:15.112Z - Test OK : Paiement correctement rejeté avec une date d'expiration invalide.
+2025-06-03T16:32:11.655Z - Test OK : Paiement correctement rejeté avec un plafond dépassé.
+2025-06-03T16:33:01.478Z - Test OK : Paiement échoué sans coher la case d'acceptation
+2025-06-03T16:33:42.206Z - Test OK : Le bouton retour au marchand fonctionne correctement - redirection vers page Subscription
+2025-06-03T16:34:13.907Z - Test OK : Annulation du paiement réussie avec redirection vers ChoosePlan
+2025-06-03T16:34:52.958Z - Test OK : Message d'erreur correct pour numéro de carte trop court
+2025-06-03T16:35:02.022Z - Test OK : Message d'erreur correct pour CVV trop court
+2025-06-03T16:35:43.506Z - Test OK : Message d'erreur correct pour numéro de carte vide
+2025-06-03T16:35:43.535Z - Test OK : Message d'erreur correct pour CVV vide
+2025-06-03T16:35:43.610Z - Test OK : Message d'erreur correct pour date d'expiration vide (mois et année)
+2025-06-03T16:36:53.343Z - Test OK : Paiement réussi pour plan Basique Mensuel avec carte Visa 
+2025-06-03T16:37:20.293Z - Test OK : Bouton Renouvellement d'abonnement fonctionne 
+2025-06-03T16:37:58.264Z - Test OK : Annulation de l'annulation réussie - Plan conservé
+2025-06-03T16:39:04.963Z - Test OK : Mise à niveau réussie - Alerte de confirmation affichée
+2025-06-03T16:39:32.025Z - Test OK : Impossible de mettre à niveau un plan déjà actif 
+2025-06-03T16:40:14.836Z - Test OK : Annulation du plan réussie - Plan annulé avec confirmation

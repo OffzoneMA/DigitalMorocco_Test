@@ -4,6 +4,8 @@ const LoginPage = require('../pages/login.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
+const { createBugTicket} = require('../utils/jiraUtils');
+const testInfo = require('../utils/testInfo');
 
 
 describe('Tests de connexion', function () {
@@ -17,6 +19,44 @@ describe('Tests de connexion', function () {
   });
 
   afterEach(async function() {
+     if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
     if (driver) {
       await driver.quit();
     }
@@ -32,7 +72,10 @@ describe('Tests de connexion', function () {
       if (currentUrl.includes('Dashboard')) {
         logResult('Test OK : Connexion réussie');
       } else {
-        logResult(`Test KO : Redirection inattendue vers ${currentUrl}`);
+        const errorMessage =`Redirection inattendue vers ${currentUrl}`;
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+
       }
     } catch (error) {
       logResult('Test KO : ' + error.message);
@@ -54,7 +97,10 @@ describe('Tests de connexion', function () {
         if (!currentUrl.includes('Dashboard')) {
           logResult('Test OK : Connexion échouée avec un email incorrect');
         } else {
-          logResult('Test KO : La connexion a réussi malgré un email incorrect');
+          const errorMessage ='Test KO : La connexion a réussi malgré un email incorrect';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+
         }
       }
     } catch (error) {
@@ -77,7 +123,10 @@ describe('Tests de connexion', function () {
         if (!currentUrl.includes('Dashboard_Investor')) {
           logResult('Test OK : Connexion échouée avec un mot de passe incorrect');
         } else {
-          logResult('Test KO : La connexion a réussi malgré un mot de passe incorrect');
+          const errorMessage ='Test KO : La connexion a réussi malgré un mot de passe incorrect';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+
         }
       }
     } catch (error) {
