@@ -1,0 +1,6 @@
+2025-06-04T15:27:52.990Z - Étape 1 OK : Connexion réussie
+2025-06-04T15:27:54.069Z - Étape 2 OK : Navigation vers la page Historique réussie
+2025-06-04T15:27:54.074Z - Étape 3 OK : Page Historique correctement affichée
+2025-06-04T15:27:54.079Z - Test OK : Affichage de la page Historique réussi
+2025-06-04T15:28:18.003Z - Test OK : Toutes les entrées contiennent les informations requises
+2025-06-04T15:28:45.763Z - Test OK : L'ordre chronologique est respecté (plus récent en premier)

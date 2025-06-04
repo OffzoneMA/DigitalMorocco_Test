@@ -17,6 +17,9 @@ on:
           - project
           - projectDetails
           - register
+          - paiement
+          - credit
+          - notification
       
 jobs:
   test:
