@@ -5,9 +5,9 @@ const testInfo = require('./testInfo');
 
 const jira = new JiraApi({
   protocol: 'https',
-  host: 'elhajiikram35.atlassian.net',
-  username: 'elhajiikram35@gmail.com',
-  password: 'ATATT3xFfGF0KTXWsEDKVyMFaN6HtODw3vUcqzRst_Io67Avn91WsFtMjmhvIO7xqXgwo_KYhGpjqWMAAIN-wlKejO353WZWCP18g3e9FcWL7mm_vzXiFBwFyoD9g4Mn3m6qJ7LihlvoqNpZIwfioM0__tCbzqwjgl7jeeSlAXw0Wc5KObeNKJQ=65A1A6B2',
+  host: '',
+  username: '',
+  password: '',
   apiVersion: '3',
   strictSSL: true
 });
