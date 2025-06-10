@@ -4,6 +4,9 @@ const CreditPage = require('../pages/credit.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
+const { createUniqueBrowser } = require('../helpers/browser.helper');
+const { createBugTicket} = require('../utils/jiraUtils');
+const testInfo = require('../utils/testInfo');
 
 describe('Tests fonctionnels de la page des crédits', function () {
     let driver;
@@ -18,6 +21,44 @@ describe('Tests fonctionnels de la page des crédits', function () {
     });
 
     afterEach(async function() {
+        if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
         if (driver) {
             await driver.quit();
         }
@@ -35,9 +76,12 @@ describe('Tests fonctionnels de la page des crédits', function () {
             await creditPage. getTotalCreditsValue();
             logResult('Test OK : Affichage du total des crédits validé avec succès');
         } catch (error) {
-            logResult('Test KO : ' + error.message);
-            throw error;
-        }
+        const errorMessage =  'L\'affichage du total des crédits a échoué';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw error;
+       }
+        
     });
 
    it('Test complet du menu déroulant avec recherche et sélection', async function() {
@@ -70,7 +114,11 @@ describe('Tests fonctionnels de la page des crédits', function () {
             logResult('Test OK : Test complet du menu déroulant réussi avec succès');
         }
         else {
-            logResult('Test KO : Test complet du menu déroulant a échoué');
+            const errorMessage =  ' Test complet du menu déroulant a échoué';
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;
+           throw error;
+    
 
 
         }
@@ -109,8 +157,10 @@ it(' Finaliser commande sans accepter les conditions d\'utilisation', async func
             logResult(' Test OK : Validation des conditions d\'utilisation fonctionne correctement');
 
         } catch (error) {
-            logResult('Test KO : ' + error.message);
-            throw error;
+            const errorMessage =  'La commande est finalisé sans accepter les conditions';
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;
+           throw error;
         }
     });
 
@@ -129,7 +179,9 @@ it('Finaliser commande sans sélection de crédits', async function() {
         logResult(' Test OK : Finaliser une commande sans sélection de crédits');
 
     } catch (error) {
-        logResult('Test KO : ' + error.message);
+       const errorMessage =  'La commande est finalisé sans séléction de crédits';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
     }
 });

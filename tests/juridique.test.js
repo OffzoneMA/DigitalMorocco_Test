@@ -122,8 +122,10 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
   
       logResult('Test OK : Ajout et vérification d\'un nouveau document juridique réussis');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
-      throw error;
+     const errorMessage ='Ajout d\'un nouveau document juridique a échoué';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;      
+    throw error;
     }
   });
 
@@ -150,8 +152,10 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
            if (errorElements.length > 0 || errorMessages.length > 0) {
                 logResult('Test OK : Echec de création d\'un document juridique - champs obligatoires vides.');
             } else {
-                logResult('Test KO : Aucune erreur de validation n\'est affichée.');
-                throw new Error('Échec de la validation des champs obligatoires.');
+              const errorMessage ='Aucune erreur de validation n\'est affichée.';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
+              throw error;
             }
         } catch (error) {
             logResult('Test KO : ' + error.message);
@@ -185,8 +189,11 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           if (updatedDocumentName.toLowerCase().includes(newDocumentName.toLowerCase())) {
             logResult(`Test OK : Modification du nom du document juridique réussie `);
           } else {
-            logResult(`Test KO : Le nom affiché dans le tableau "${updatedDocumentName}" ne contient pas le nouveau nom "${newDocumentName}"`);
-            throw new Error('La modification du nom du document juridique a échoué');
+              const errorMessage ='Modification du nom du document juridique a échoué';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
+              throw error;
+           
           }
         } catch (error) {
           logResult(`Test KO : Erreur lors de la vérification du nom modifié - ${error.message}`);
@@ -232,8 +239,11 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           if (displayedFileName.includes(newFileName)) {
             logResult('Test OK :Modification réussie - Mise à jour du document ');
           } else {
-            logResult(`Test KO : Le nom du fichier affiché "${displayedFileName}" ne correspond pas au fichier mis à jour "${newFileName}"`);
-            throw new Error('La vérification du nom du fichier a échoué');
+             const errorMessage ='Modification échoué - Mis à jour du fichier a échoué';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
+              throw error;
+           
           }
         } catch (error) {
           logResult('Test KO : Impossible de trouver l\'élément affichant le nom du fichier: ' + error.message);
@@ -262,8 +272,11 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           await driver.executeScript("arguments[0].click();", cancelButton);
           logResult('Test OK : bouton Annuler lors de la modification du document juridique');
         } catch (error) {
-          logResult('Test KO : Le bouton Annuler ne fonctionne pas correctement');
-          throw new Error('Échec du test du bouton Annuler: ' + error.message);
+           const errorMessage ='Le bouton Annuler ne fonctionne pas correctement';
+           logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;      
+            throw error;
+         
         }
       } catch (error) {
         logResult('Test KO : ' + error.message);
@@ -290,6 +303,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
                 console.log(`Vérification réussie: le fichier existe bien à ${downloadResult.filePath}`);
                 logResult('Test OK : téléchargement et vérification du document juridique réussis');
               } else {
+                
                 console.error(`Fichier non trouvé à l'emplacement: ${downloadResult.filePath}`);
                 logResult('Test KO : le fichier téléchargé n\'a pas été trouvé à l\'emplacement attendu');
               }
@@ -300,8 +314,11 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
             logResult(`Test KO : ${downloadResult.message || 'le téléchargement n\'a pas pu être initié'}`);
           }
         } catch (error) {
-          logResult('Test KO : téléchargement d\'un document juridique a échoué');
-          throw error;
+           const errorMessage =' téléchargement d\'un document juridique a échoué';
+           logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;      
+            throw error;
+         
         }
       } catch (error) {
         logResult('Test KO : ' + error.message);
@@ -320,7 +337,10 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           await juridiquePage.clickDeleteFirstJuridiqueThenCancel();
           logResult('Test OK : Bouton annuler lors de la suppression d\'un document juridique réussie');
       }catch{
-        logResult('Test KO : Bouton annuler lors de la suppression d\'un document juridique a échoué'); }
+        const errorMessage =' Bouton annuler lors de la suppression d\'un document juridique a échoué';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;      
+        throw error; }
       } catch (error) {
         logResult('Test KO : ' + error.message);
         throw error;
@@ -339,7 +359,11 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           await juridiquePage.clickDeleteFirstJuridique();
           logResult('Test OK : suppression d\'un document juridique réussie');
       }catch{
-        logResult('Test KO : suppression d\'un document juridique a échoué'); }
+        const errorMessage ='suppression d\'un document juridique a échoué';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;      
+        throw error;
+       }
       } catch (error) {
         logResult('Test KO : ' + error.message);
         throw error;

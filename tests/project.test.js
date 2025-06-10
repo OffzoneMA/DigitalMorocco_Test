@@ -65,6 +65,7 @@ describe('Tests de création de projet', function () {
       await driver.quit();
     }
   });
+
  it('Création d\'un nouveau projet', async function() {
     try {
       const projectData = {
@@ -74,8 +75,6 @@ describe('Tests de création de projet', function () {
         contactEmail: config.mail,
         funding: config.funding,
         totalRaised: config.raised,
-       
-        
       };
 
       await driver.get(config.baseUrl);
@@ -86,42 +85,57 @@ describe('Tests de création de projet', function () {
       if (dashboardUrl.includes('Dashboard')) {
         logResult('Étape 1 OK : Connexion réussie');
       } else {
-        logResult(`Étape 1 KO : Redirection inattendue vers ${dashboardUrl}`);
+        const errorMessage = `Redirection inattendue vers ${dashboardUrl}`;
+        logResult('Étape 1 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw new Error('Échec de connexion');
       }
+
       const navigateSuccess = await projectsPage.navigateToProjects();
       if (navigateSuccess) {
         logResult('Étape 2 OK : Navigation vers la page des projets réussie');
       } else {
-        logResult('Étape 2 KO : Échec de navigation vers la page des projets');
-        throw new Error('Échec de navigation vers la page des projets');
+        const errorMessage = 'Échec de navigation vers la page des projets';
+        logResult('Étape 2 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
+
       const createProjectSuccess = await projectsPage.clickCreateProject();
       if (createProjectSuccess) {
         logResult('Étape 3 OK : Navigation vers la page de création de projet réussie');
       } else {
-        logResult('Étape 3 KO : Échec de navigation vers la page de création de projet');
-        throw new Error('Échec de navigation vers la page de création de projet');
+        const errorMessage = 'Échec de navigation vers la page de création de projet';
+        logResult('Étape 3 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
 
       const formFillSuccess = await projectsPage.fillProjectForm(projectData);
       if (formFillSuccess) {
         logResult('Étape 4 OK : Formulaire de projet rempli avec succès');
       } else {
-        logResult('Étape 4 KO : Échec du remplissage du formulaire de projet');
-        throw new Error('Échec du remplissage du formulaire de projet');
+        const errorMessage = 'Échec du remplissage du formulaire de projet';
+        logResult('Étape 4 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
 
-    const submitSuccess = await projectsPage.submitProjectForm();
-    if (submitSuccess) {
-      logResult('Étape 5 OK : Soumission du formulaire réussie');
-    } else {
-      logResult('Étape 5 KO : Échec de soumission du formulaire ');
-      throw new Error('Échec de soumission du formulaire ');
-    }
-          logResult('Test OK : Création de projet réussie ');
+      const submitSuccess = await projectsPage.submitProjectForm();
+      if (submitSuccess) {
+        logResult('Étape 5 OK : Soumission du formulaire réussie');
+      } else {
+        const errorMessage = 'Échec de soumission du formulaire';
+        logResult('Étape 5 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
+      }
+
+      logResult('Test OK : Création de projet réussie');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = error.message || 'Erreur inconnue lors de la création de projet';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   })
@@ -134,6 +148,7 @@ describe('Tests de création de projet', function () {
         await projectsPage.navigateToProjects();
         await projectsPage.clickCreateProject();
         await projectsPage.submitProjectForm();
+        
         const nameInput = await driver.findElement(By.name('name'));
         const detailsInput = await driver.findElement(By.name('details'));
         const nameHasError = await nameInput.getAttribute('class');
@@ -142,11 +157,15 @@ describe('Tests de création de projet', function () {
         if (nameHasError.includes('shadow-inputBsError') && detailsHasError.includes('shadow-inputBsError')) {
           logResult('Test OK : Echec de la création - Champs obligatoires non remplis.');
         } else {
-          logResult('Test KO : Les champs obligatoires ne sont pas correctement mis en évidence.');
-          throw new Error('Échec de la mise en évidence des champs obligatoires.');
+          const errorMessage = 'Les champs obligatoires ne sont pas correctement mis en évidence';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
         }
       } catch (error) {
-        logResult('Test KO : ' + error.message);
+        const errorMessage = error.message || 'Erreur inconnue lors de la validation des champs obligatoires';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
       }
     });
@@ -158,23 +177,30 @@ describe('Tests de création de projet', function () {
         await driver.wait(until.urlContains('Dashboard'), 20000);
         await projectsPage.navigateToProjects();
         await projectsPage.clickCreateProject();
+        
         const fundingField = await driver.findElement(By.name('funding'));
         await fundingField.clear();
         await fundingField.sendKeys('-500');
         const fundingValue = await fundingField.getAttribute('value');
+        
         const totalRaisedField = await driver.findElement(By.name('totalRaised'));
         await totalRaisedField.clear();
         await totalRaisedField.sendKeys('-1000');
         const totalRaisedValue = await totalRaisedField.getAttribute('value');        
+        
         if (!fundingValue.includes('-') && !totalRaisedValue.includes('-')) {
-          logResult('Test OK :Echec de la création - Champs numériques doivent être positifs');
+          logResult('Test OK : Echec de la création - Champs numériques doivent être positifs');
         } else {
-          logResult('Test KO : Au moins un des champs accepte des valeurs négatives');
-          throw new Error('Échec de la validation - valeurs négatives acceptées');
+          const errorMessage = 'Au moins un des champs accepte des valeurs négatives';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
         }
         
       } catch (error) {
-        logResult('Test KO : ' + error.message);
+        const errorMessage = error.message || 'Erreur inconnue lors de la validation des champs numériques';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
       }
     });
@@ -186,46 +212,82 @@ describe('Tests de création de projet', function () {
         await driver.wait(until.urlContains('Dashboard'), 20000);
         await projectsPage.navigateToProjects();
         await projectsPage.clickCreateProject();
+        
         const emailField = await driver.findElement(By.name('contactEmail'));
         await emailField.clear();
         await emailField.sendKeys('test');
+        
         const submitButton = await driver.findElement(By.css('button[type="submit"]'));
         await submitButton.click();
         await driver.sleep(1000);
+        
         const emailClass = await emailField.getAttribute('class');
         if (emailClass.includes('shadow-inputBsError')) {
           logResult('Test OK : Echec de la création - Format email invalide');
         } else {
-          logResult('Test KO : Le champ email invalide n\'est pas signalé ');
-          throw new Error('Pas de classe shadow-inputBsError pour l\'email invalide');
+          const errorMessage = 'Le champ email invalide n\'est pas signalé - Pas de classe shadow-inputBsError';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
         }
         
       } catch (error) {
-        logResult('Test KO : ' + error.message);
+        const errorMessage = error.message || 'Erreur inconnue lors de la validation de l\'email';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
       }
     });
+
     it('Modification d\'un projet existant', async function() {
       try {
         const updatedName = 'Projet Test Modifié';
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
         await driver.wait(until.urlContains('Dashboard'), 20000);
+        
         const dashboardUrl = await driver.getCurrentUrl();
         const navigateSuccess = await projectsPage.navigateToProjects();
+        if (!navigateSuccess) {
+          const errorMessage = 'Échec de navigation vers la page des projets';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
         const editProjectSuccess = await projectsPage.clickEditFirstProject();
+        if (!editProjectSuccess) {
+          const errorMessage = 'Échec d\'accès au formulaire de modification';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
         try {
           await driver.wait(until.elementLocated(By.name('name')), 10000);
           const nameField = await driver.findElement(By.name('name'));
           await nameField.clear(); 
           await nameField.sendKeys(updatedName); 
-          } catch (error) {
-          throw error;
+        } catch (error) {
+          const errorMessage = 'Impossible de modifier le champ nom du projet';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
         }
+        
         const submitUpdateSuccess = await projectsPage.submitProjectForm();
+        if (!submitUpdateSuccess) {
+          const errorMessage = 'Échec de soumission du formulaire de modification';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
         logResult('Test OK : Modification du nom de projet réussie');
       } catch (error) {
-        logResult('Test KO : ' + error.message);
+        const errorMessage = error.message || 'Erreur inconnue lors de la modification du projet';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
       }
     });
@@ -235,48 +297,112 @@ describe('Tests de création de projet', function () {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
         await driver.wait(until.urlContains('Dashboard'), 20000);
+        
         const dashboardUrl = await driver.getCurrentUrl();
         const navigateSuccess = await projectsPage.navigateToProjects();
+        if (!navigateSuccess) {
+          const errorMessage = 'Échec de navigation vers la page des projets';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
         const editProjectSuccess = await projectsPage.clickEditFirstProject();
+        if (!editProjectSuccess) {
+          const errorMessage = 'Échec d\'accès au formulaire de modification';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
       
         try {
           await driver.wait(until.elementLocated(By.name('name')), 10000);
           const nameField = await driver.findElement(By.name('name'));
           await nameField.clear(); 
         } catch (error) {
-          throw error;
+          const errorMessage = 'Impossible d\'accéder au champ nom pour le vider';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
         }
+        
         const submitUpdateSuccess = await projectsPage.submitProjectForm();
-       logResult('Test OK :Echec de modification - Champ obligatoire vide');
+          const nameField = await driver.findElement(By.name('name'));
+        const nameHasError = await nameField.getAttribute('class');
+        
+        if (nameHasError.includes('shadow-inputBsError')) {
+          logResult('Test OK : Echec de modification - Champ obligatoire vide');
+        } else {
+          const errorMessage = 'La validation du champ obligatoire vide n\'a pas fonctionné';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
       } catch (error) {
-        logResult('Test KO : ' + error.message);
+        const errorMessage = error.message || 'Erreur inconnue lors de la validation du champ obligatoire vide';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
       }
     });
 
     it('Modification d\'un projet avec des données invalides', async function() {
       try {
-
         const updatedEmail = 'Test';
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
         await driver.wait(until.urlContains('Dashboard'), 20000);
+        
         const dashboardUrl = await driver.getCurrentUrl();
         const navigateSuccess = await projectsPage.navigateToProjects();
+        if (!navigateSuccess) {
+          const errorMessage = 'Échec de navigation vers la page des projets';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
         const editProjectSuccess = await projectsPage.clickEditFirstProject();
+        if (!editProjectSuccess) {
+          const errorMessage = 'Échec d\'accès au formulaire de modification';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
         try {
           await driver.wait(until.elementLocated(By.name('contactEmail')), 10000);
           const emailField = await driver.findElement(By.name('contactEmail'));
           await emailField.clear(); 
           await emailField.sendKeys(updatedEmail); 
-
         } catch (error) {
-          throw error;
+          const errorMessage = 'Impossible de modifier le champ email';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
         }
+        
         const submitUpdateSuccess = await projectsPage.submitProjectForm();
-        logResult('Test OK :Echec de modification - Email invalide');
+        await driver.sleep(1000);
+        
+        // Vérifier que la validation de l'email a échoué
+        const emailField = await driver.findElement(By.name('contactEmail'));
+        const emailClass = await emailField.getAttribute('class');
+        
+        if (emailClass.includes('shadow-inputBsError')) {
+          logResult('Test OK : Echec de modification - Email invalide');
+        } else {
+          const errorMessage = 'La validation de l\'email invalide n\'a pas fonctionné';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
       } catch (error) {
-        logResult('Test KO : ' + error.message);
+        const errorMessage = error.message || 'Erreur inconnue lors de la validation de l\'email invalide';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
       }
     });
@@ -286,65 +412,90 @@ describe('Tests de création de projet', function () {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
         await driver.wait(until.urlContains('Dashboard'), 20000);
+        
         const navigateSuccess = await projectsPage.navigateToProjects();
+        if (!navigateSuccess) {
+          const errorMessage = 'Échec de navigation vers la page des projets';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
         await driver.wait(until.elementLocated(By.xpath("//tbody")), 10000, "Le tableau des projets n'a pas été chargé après 10 secondes");
         const projects = await driver.findElements(By.xpath("//tbody/tr"));
+        
         if (projects.length === 0) {
           console.log("Aucun projet à supprimer");
           logResult('Test ignoré : Aucun projet disponible');
           return;
         }
+        
         const tableElement = await driver.findElement(By.xpath("//tbody"));
         await driver.executeScript("arguments[0].scrollIntoView(true);", tableElement);
+        
         const firstProjectNameXPath = "//tbody/tr[1]/td[1]";
         await driver.wait(until.elementLocated(By.xpath(firstProjectNameXPath)), 5000, "L'élément contenant le nom du projet n'a pas été trouvé");
         const firstProjectElement = await driver.findElement(By.xpath(firstProjectNameXPath));
         const projectNameToDelete = await firstProjectElement.getText();
         console.log(`Projet à supprimer: ${projectNameToDelete}`);
+        
         const deleteProjectSuccess = await projectsPage.clickDeleteFirstProject();
+        if (!deleteProjectSuccess) {
+          const errorMessage = 'Échec de l\'action de suppression du projet';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error(errorMessage);
+        }
+        
         try {
           await driver.wait(until.elementLocated(By.xpath("//div[contains(@class, 'bg-white-A700')]//label[contains(text(), 'supprimé avec succès')]")), 5000);
           console.log("Message de confirmation trouvé");
+          
           const closeButton = await driver.findElement(By.xpath("//div[contains(@class, 'hover:bg-gray-201') and contains(@class, 'rounded-full')]"));
           await closeButton.click();
           console.log("Modal de confirmation fermé");
           await driver.sleep(1000);
         } catch (error) {
-          console.log("Erreur lors de la gestion de la confirmation:", error.message);
           console.log("Tentative de continuer le test malgré l'erreur...");
         }
+        
         await driver.sleep(2000);
+        
         try {
           const allProjectElements = await driver.findElements(By.xpath("//tbody/tr/td[1]"));
           let projectsAfterDeletion = [];
+          
           for (let element of allProjectElements) {
             const projectName = await element.getText();
             projectsAfterDeletion.push(projectName);
           }
-          console.log("Projets actuels dans le tableau:", projectsAfterDeletion);
-            const isProjectStillPresent = projectsAfterDeletion.some(name => 
+                    
+          const isProjectStillPresent = projectsAfterDeletion.some(name => 
             name.trim().toLowerCase() === projectNameToDelete.trim().toLowerCase()
           );
           
           if (isProjectStillPresent) {
-            const errorMessage = `Le projet est toujours présent dans le tableau après suppression`;
+            const errorMessage = `Le projet "${projectNameToDelete}" est toujours présent dans le tableau après suppression`;
             console.log(errorMessage);
             logResult('Test KO : ' + errorMessage);
             global.lastTestError = errorMessage;
-
             throw new Error(errorMessage);
           } else {
             console.log(`Vérification réussie: Le projet "${projectNameToDelete}" a été supprimé avec succès`);
             logResult('Test OK : Suppression de projet vérifiée');
           }
         } catch (error) {
-          console.error("Erreur lors de la vérification:", error.message);
-          logResult('Test KO : ' + error.message);
+          const errorMessage = error.message || 'Erreur lors de la vérification de la suppression';
+          console.error("Erreur lors de la vérification:", errorMessage);
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
           throw error;
         }
       } catch (error) {
+        const errorMessage = error.message || 'Erreur inconnue lors du test de suppression';
         console.error("Erreur lors du test de suppression:", error);
-        logResult('Test KO : ' + error.message);
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
       }
     });

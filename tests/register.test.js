@@ -20,7 +20,7 @@ describe('Tests d\'inscription', function () {
   let driver;
   let registerPage;
   let originalPost;
-  const transporter = nodemailer.createTransport({
+  const transporter = nodemailer.createTransporter({
     host: 'sandbox.smtp.mailtrap.io',
     port: 2525,
     auth: {
@@ -219,7 +219,10 @@ describe('Tests d\'inscription', function () {
       logResult('Test OK: Processus d\'inscription simulé avec succès');
       
     } catch (error) {
-      logResult(`Test KO: ${error.message}`);
+      const errorMessage = error.message || 'Erreur inconnue lors du test d\'inscription et validation d\'email';
+      console.error("Erreur lors du test d'inscription et validation d'email:", error);
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -272,7 +275,10 @@ describe('Tests d\'inscription', function () {
       }
       
     } catch (error) {
-      logResult(`Test KO: ${error.message}`);
+      const errorMessage = error.message || 'Erreur inconnue lors du test du bouton de renvoi d\'email';
+      console.error("Erreur lors du test du bouton de renvoi d'email:", error);
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -292,7 +298,10 @@ describe('Tests d\'inscription', function () {
         
         logResult('Test OK : Message d\'erreur affiché pour un email déjà existant ');
     } catch (error) {
-        logResult(`Test KO : Erreur lors du test avec un email déjà existant - ${error.message}`);
+        const errorMessage = error.message || 'Erreur inconnue lors du test avec un email déjà existant';
+        console.error("Erreur lors du test avec un email déjà existant:", error);
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
     }
 });
@@ -321,7 +330,10 @@ it('Vérifier que l\'inscription échoue si le mot de passe ne respecte pas tous
         
         logResult('Test OK : L\'inscription a échoué car le mot de passe ne respecte pas tous les critères');
     } catch (error) {
-        logResult(`Test KO : Erreur lors du test avec un mot de passe invalide - ${error.message}`);
+        const errorMessage = error.message || 'Erreur inconnue lors du test avec un mot de passe invalide';
+        console.error("Erreur lors du test avec un mot de passe invalide:", error);
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
     }
 });

@@ -19,7 +19,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
   let documentPage;
 
   beforeEach(async function() {
-    driver = await createUniqueBrowser();
+    driver = await new Builder().forBrowser('chrome').build();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     documentPage = new DocumentPage(driver);
@@ -104,8 +104,10 @@ afterEach(async function() {
       const documentCountAfter = await documentPage.countDocumentsInTable();
       logResult('Test OK : Ajout d\'un nouveau document réussi');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
-      throw error;
+    const errorMessage ='Ajout d\'un nouveau document a échoué';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;      
+    throw error;
     }
   })
 
@@ -132,8 +134,10 @@ afterEach(async function() {
            if (errorElements.length > 0 || errorMessages.length > 0) {
                 logResult('Test OK : Echec de création d\'un document  - champs obligatoires vides.');
             } else {
-                logResult('Test KO : Aucune erreur de validation n\'est affichée.');
-                throw new Error('Échec de la validation des champs obligatoires.');
+              const errorMessage ='Aucune erreur de validation n\'est affichée.';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
+              throw error;
             }
         } catch (error) {
             logResult('Test KO : ' + error.message);
@@ -158,21 +162,26 @@ afterEach(async function() {
         await driver.executeScript("arguments[0].click();", submitButton);
         await driver.sleep(2000);
         const documentFound = await documentPage.waitForDocumentInTable(newDocumentName, 10000);
+        await driver.sleep(2000);
         
         if (documentFound) {
           logResult(`Test OK : Modification du nom du document réussie`);
         } else {
           const oldNameStillExists = await documentPage.isDocumentInTable(firstDocumentName);
           if (oldNameStillExists) {
-            logResult(`Test KO : Le document porte toujours l'ancien nom "${firstDocumentName}" dans le tableau`);
-          } else {
+            const errorMessage =' Le document porte toujours l\'ancien nom';
+            logResult('Test KO : ' + errorMessage);
+         
+            } else {
             logResult(`Test KO : Ni l'ancien nom "${firstDocumentName}" ni le nouveau nom "${newDocumentName}" n'ont été trouvés dans le tableau`);
           }
           throw new Error('La modification du nom du document a échoué');
         }
         
       } catch (error) {
-        logResult('Test KO : ' + error.message);
+        const errorMessage = error.message;
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;      
         throw error;
       }
     })
@@ -203,8 +212,11 @@ afterEach(async function() {
             if (displayedFileName.includes(newFileName)) {
               logResult('Test OK : Modification du document - mise à jour du fichier vérifiée');
             } else {
-              logResult(`Test KO : Le nom du fichier affiché "${displayedFileName}" ne correspond pas au fichier mis à jour "${newFileName}"`);
-              throw new Error('La vérification de la mise à jour du fichier a échoué');
+              const errorMessage ='Modification échoué - Mis à jour du fichier a échoué';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
+              throw error;
+           
             }
           } catch (error) {
             logResult('Test KO : Impossible de trouver l\'élément affichant le nom du fichier: ' + error.message);
@@ -248,8 +260,11 @@ afterEach(async function() {
             logResult(`Test OK : Modification réussie - Désélection d'un membre`);
           }
         } catch (error) {
-          logResult('Test KO : ' + error.message);
+           const errorMessage ='Déselection d\'un membre a échoué';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;      
           throw error;
+           
         }
       });
       
@@ -274,8 +289,11 @@ afterEach(async function() {
                 throw new Error('Échec du test du bouton Annuler: ' + error.message);
               }
             } catch (error) {
-              logResult('Test KO : ' + error.message);
+              const errorMessage ='Le bouton Annuler ne fonctionne pas comme prévenu';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
               throw error;
+           
             }
           });
 
@@ -311,8 +329,10 @@ afterEach(async function() {
             if (testPassed === true) {
               logResult("Test OK : Le système n'autorise pas le partage sans sélection de membre");
             } else {
-              logResult("Test KO : Le bouton de partage n'est pas désactivé ou un message de partage avec succès est affiché sans sélection de membre");
-              throw new Error('Le système permet incorrectement le partage sans sélection de membre');
+              const errorMessage ='Le bouton de partage n\'est pas désactivé ou un message de partage avec succès est affiché sans sélection de membre';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
+              throw error;
             }
           });
 
@@ -367,7 +387,9 @@ afterEach(async function() {
               }
               
             } catch (error) {
-              logResult('Test KO : ' + error.message);
+               const errorMessage ='Partage de document avec un membre a échoué';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
               throw error;
             }
           });
@@ -383,7 +405,11 @@ afterEach(async function() {
                   await documentPage.clickDeleteFirstDocumentThenCancel();
                   logResult('Test OK : Bouton annuler lors de la suppression d\'un document réussie');
               }catch{
-                logResult('Test KO : Bouton annuler lors de la suppression d\'un document a échoué'); }
+                 const errorMessage ='Bouton annuler lors de la suppression d\'un document a échoué';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
+              throw error;
+                }
               } catch (error) {
                 logResult('Test KO : ' + error.message);
                 throw error;
@@ -415,8 +441,11 @@ afterEach(async function() {
                     const rowsAfterDeletion = await driver.findElements(By.xpath("//tbody/tr"));
                     const countAfterDeletion = rowsAfterDeletion.length;
                      } else {
-                    logResult(`Test KO : Le document "${documentNameToDelete}" est toujours présent dans la liste après suppression`);
-                    throw new Error('La suppression du document n\'a pas réussi');
+                       const errorMessage =' Le document est toujours présent dans la liste après suppression';
+                        logResult('Test KO : ' + errorMessage);
+                      global.lastTestError = errorMessage;      
+                    throw error;
+                
                   }
                 } catch (findError) {
                   throw findError;

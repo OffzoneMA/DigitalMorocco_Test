@@ -5,9 +5,9 @@ const testInfo = require('./testInfo');
 
 const jira = new JiraApi({
   protocol: 'https',
-  host: '',
-  username: '',
-  password: '',
+  host: 'elhajiikram35.atlassian.net',
+  username: 'elhajiikram35@gmail.com',
+  password: 'ATATT3xFfGF0KTXWsEDKVyMFaN6HtODw3vUcqzRst_Io67Avn91WsFtMjmhvIO7xqXgwo_KYhGpjqWMAAIN-wlKejO353WZWCP18g3e9FcWL7mm_vzXiFBwFyoD9g4Mn3m6qJ7LihlvoqNpZIwfioM0__tCbzqwjgl7jeeSlAXw0Wc5KObeNKJQ=65A1A6B2',
   apiVersion: '3',
   strictSSL: true
 });
@@ -141,21 +141,91 @@ async function takeScreenshot(driver, testName) {
     if (!fs.existsSync(screenshotDir)) {
       fs.mkdirSync(screenshotDir, { recursive: true });
     }
+    await driver.sleep(2000);
+    await driver.manage().window().maximize();
+    await driver.sleep(1000);
+    try {
+      const dimensions = await driver.executeScript(`
+        return {
+          windowHeight: window.innerHeight,
+          windowWidth: window.innerWidth,
+          bodyHeight: Math.max(document.body.scrollHeight, document.body.offsetHeight),
+          bodyWidth: Math.max(document.body.scrollWidth, document.body.offsetWidth),
+          documentHeight: Math.max(document.documentElement.scrollHeight, document.documentElement.offsetHeight),
+          documentWidth: Math.max(document.documentElement.scrollWidth, document.documentElement.offsetWidth)
+        };
+      `);
+      const optimalWidth = Math.max(
+        dimensions.windowWidth, 
+        dimensions.bodyWidth, 
+        dimensions.documentWidth, 
+        1920
+      );
+      const optimalHeight = Math.max(
+        dimensions.windowHeight, 
+        dimensions.bodyHeight, 
+        dimensions.documentHeight, 
+        1080
+      );
+      await driver.manage().window().setRect({
+        width: Math.min(optimalWidth, 3840), // Limiter à 4K
+        height: Math.min(optimalHeight, 2160)
+      });
+
+      await driver.sleep(1500);
+
+    } catch (jsError) {
+      console.warn("Erreur JavaScript, utilisation des dimensions par défaut:", jsError.message);
+      await driver.manage().window().setRect({
+        width: 1920,
+        height: 1080
+      });
+      await driver.sleep(1000);
+    }
+
+    try {
+      await driver.executeScript("window.scrollTo(0, 0);");
+      await driver.sleep(500);
+    } catch (scrollError) {
+      console.warn("Erreur de scroll:", scrollError.message);
+    }
+    try {
+      await driver.executeScript(`
+        document.body.style.transform = 'translateZ(0)';
+        setTimeout(() => {
+          document.body.style.transform = '';
+        }, 100);
+      `);
+      await driver.sleep(200);
+    } catch (renderError) {
+      console.warn("Erreur de rendu:", renderError.message);
+    }
 
     const timestamp = new Date().getTime();
     const screenshotName = `${testName.replace(/\s+/g, '_')}_${timestamp}.png`;
     const screenshotPath = path.join(screenshotDir, screenshotName);
-
     const screenshotData = await driver.takeScreenshot();
     fs.writeFileSync(screenshotPath, screenshotData, 'base64');
-    
-    console.log(`Capture d'écran enregistrée à: ${screenshotPath}`);
-    return screenshotPath;
+      return screenshotPath;
+
   } catch (error) {
     console.error("Erreur lors de la prise de capture d'écran:", error);
-    return null;
+    
+    //Capture simple en cas d'erreur
+    try {
+      const timestamp = new Date().getTime();
+      const screenshotName = `${testName.replace(/\s+/g, '_')}_fallback_${timestamp}.png`;
+      const screenshotPath = path.join(screenshotDir, screenshotName);
+      const screenshotData = await driver.takeScreenshot();
+      fs.writeFileSync(screenshotPath, screenshotData, 'base64');
+      return screenshotPath;
+    } catch (fallbackError) {
+      console.error("Erreur fallback:", fallbackError);
+      return null;
+    }
   }
 }
+
 
 async function attachScreenshotToIssue(issueKey, screenshotPath) {
   try {

@@ -261,6 +261,8 @@ class HistoriquePage {
             return false;
         }
     }
+
+    
 }
 
 module.exports = HistoriquePage;

@@ -6,6 +6,8 @@ const config = require('../config/config');
 const path = require('path');
 const assert = require('assert');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
+const { createBugTicket} = require('../utils/jiraUtils');
+const testInfo = require('../utils/testInfo');
 
 
 
@@ -22,6 +24,44 @@ describe('Tests de création d\'un employé', function () {
 });
 
   afterEach(async function() {
+      if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
     if (driver) {
       await driver.quit();
     }
@@ -87,7 +127,9 @@ describe('Tests de création d\'un employé', function () {
       
       logResult('Test OK : Création d\'un nouveau employé réussie ');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = error.message || 'Erreur inconnue lors de la création d\'un employé';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   })
@@ -113,11 +155,15 @@ describe('Tests de création d\'un employé', function () {
      if (nameHasError.includes('shadow-inputBsError') && workEmailHasError.includes('shadow-inputBsError') && phoneHasError.includes('shadow-inputBsError') && countryContainerClass.includes('shadow-inputBsError') ) {
         logResult('Test OK : Echec de la création d\'un nouveau employé - Champs obligatoires non remplis.');
       } else {
-        logResult('Test KO : Les champs obligatoires ne sont pas correctement mis en évidence.');
-        throw new Error('Échec de la mise en évidence des champs obligatoires.');
+        const errorMessage = 'Les champs obligatoires ne sont pas correctement mis en évidence.'
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = error.message || 'Erreur inconnue lors de la validation des champs obligatoires';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;      
       throw error;
     }
   });
@@ -137,12 +183,17 @@ describe('Tests de création d\'un employé', function () {
           if (emailClass.includes('shadow-inputBsError')) {
             logResult('Test OK : Echec de la création d\'un employé - Format email invalide');
           } else {
-            logResult('Test KO : Le champ email invalide n\'est pas signalé ');
-            throw new Error('Pas de classe shadow-inputBsError pour l\'email invalide');
+            const errorMessage = 'Le champ email invalide n\'est pas signalé .'
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;
+            throw new Error(errorMessage);
+            
           }
           
         } catch (error) {
-          logResult('Test KO : ' + error.message);
+          const errorMessage = error.message || 'Erreur inconnue lors de la validation du champ email';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;     
           throw error;
         }
       });
@@ -164,13 +215,18 @@ describe('Tests de création d\'un employé', function () {
           if (phoneClass.includes('shadow-inputBsError')) {
             logResult('Test OK : Echec de la création d\'un employé - numéro de téléphone trop invalide');
           } else {
-            logResult('Test KO : Le champ du numéro de téléphone invalide n\'est pas signalé ');
-            throw new Error('Pas de classe shadow-inputBsError pour numéro de téléphoneinvalide');
+            const errorMessage = 'Le champ du numéro de téléphone invalide n\'est pas signalé'
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;
+            throw new Error(errorMessage);
+       
           }
           
         } catch (error) {
-          logResult('Test KO : ' + error.message);
-          throw error;
+          const errorMessage = error.message || 'Erreur inconnue lors de la validation champs numéro de téléphone';
+          logResult('Test KO : ' + errorMessage);
+         global.lastTestError = errorMessage;      
+         throw error;
         }
       });
 
@@ -193,13 +249,18 @@ describe('Tests de création d\'un employé', function () {
           if (phoneClass.includes('shadow-inputBsError')) {
             logResult('Test OK : Echec de la création d\'un employé - numéro de téléphone trop long/court');
           } else {
-            logResult('Test KO : Le champ du numéro de téléphone invalide n\'est pas signalé ');
-            throw new Error('Pas de classe shadow-inputBsError pour numéro de téléphoneinvalide');
+            const errorMessage = 'Test KO : Le champ du numéro de téléphone invalide n\'est pas signalé '
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;
+            throw new Error(errorMessage);
+        
           }
           
         } catch (error) {
-          logResult('Test KO : ' + error.message);
-          throw error;
+        const errorMessage = error.message || 'Erreur inconnue lors de la validation champs numéro de téléphone';
+        logResult('Test KO : ' + errorMessage);
+         global.lastTestError = errorMessage;      
+         throw error;
         }
       });
 
@@ -220,13 +281,18 @@ describe('Tests de création d\'un employé', function () {
           if (phoneClass.includes('shadow-inputBsError')) {
             logResult('Test OK : Echec de la création d\'un employé - numéro de téléphone trop court');
           } else {
-            logResult('Test KO : Le champ du numéro de téléphone invalide n\'est pas signalé ');
-            throw new Error('Pas de classe shadow-inputBsError pour numéro de téléphoneinvalide');
+            const errorMessage = 'Test KO : Le champ du numéro de téléphone invalide n\'est pas signalé '
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;
+            throw new Error(errorMessage);
+          
           }
           
         } catch (error) {
-          logResult('Test KO : ' + error.message);
-          throw error;
+        const errorMessage = error.message || 'Erreur inconnue lors de la validation champs numéro de téléphone';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;      
+        throw error;
         }
       });
 
@@ -245,13 +311,20 @@ describe('Tests de création d\'un employé', function () {
               if (!fundingValue.includes('-')) {
                 logResult('Test OK :Echec de la création d\'un employé - Champs numériques doivent être positifs');
               } else {
-                logResult('Test KO : Au moins un des champs accepte des valeurs négatives');
-                throw new Error('Échec de la validation - valeurs négatives acceptées');
+                const errorMessage = 'Au moins un des champs accepte des valeurs négatives'
+                logResult('Test KO : ' + errorMessage);
+                global.lastTestError = errorMessage;
+                throw new Error(errorMessage);
+             
               }
               
             } catch (error) {
-              logResult('Test KO : ' + error.message);
-              throw error;
+            const errorMessage = error.message || 'Erreur inconnue lors de la validation champs numéro de téléphone';
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;      
+            throw error;
+        
+             
             }
           });
 
@@ -276,8 +349,12 @@ describe('Tests de création d\'un employé', function () {
            const submitUpdateSuccess = await employeePage.submitEmployeeForm();
            logResult('Test OK : Modification du nom d\'un employé réussie');
          } catch (error) {
-           logResult('Test KO : ' + error.message);
-           throw error;
+      
+        const errorMessage = error.message || 'Erreur inconnue lors de la modification d\'un employé existant';
+         logResult('Test KO : ' + errorMessage);
+         global.lastTestError = errorMessage;      
+         throw error;
+        
          }
        });
 
@@ -300,8 +377,12 @@ describe('Tests de création d\'un employé', function () {
             const submitUpdateSuccess = await employeePage.submitEmployeeForm();
             logResult('Test OK :Echec de modification - Champ obligatoire vide');
           } catch (error) {
-            logResult('Test KO : ' + error.message);
-            throw error;
+          const errorMessage = error.message || 'Erreur inconnue lors de la modification avec un champs obligatoire vide';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;      
+          throw error;
+        
+            
           }
         });
 
@@ -327,8 +408,11 @@ describe('Tests de création d\'un employé', function () {
                 const submitUpdateSuccess = await employeePage.submitEmployeeForm();
                 logResult('Test OK :Echec de modification d\'un employé - Email invalide');
               } catch (error) {
-                logResult('Test KO : ' + error.message);
+                const errorMessage = error.message || 'Erreur inconnue lors de la modification avec des données  invalides -Email invalide';
+                logResult('Test KO : ' + errorMessage);
+                global.lastTestError = errorMessage;      
                 throw error;
+        
               }
             });
 
@@ -353,8 +437,12 @@ describe('Tests de création d\'un employé', function () {
                   const submitUpdateSuccess = await employeePage.submitEmployeeForm();
                   logResult('Test OK :Echec de modification d\'un employé - numéro de téléphone invalide');
                 } catch (error) {
-                  logResult('Test KO : ' + error.message);
-                  throw error;
+                  const errorMessage = error.message || 'Erreur inconnue lors de la modification avec des donnes invalides -Numéro de téléphone';
+                 logResult('Test KO : ' + errorMessage);
+                global.lastTestError = errorMessage;      
+                throw error;
+        
+                  
                 }
               });
 
@@ -405,9 +493,11 @@ describe('Tests de création d\'un employé', function () {
                     throw new Error("Échec de la vérification après suppression: " + error.message);
                   }
                 } catch (error) {
-                  logResult('Test KO : ' + error.message);
-                  throw error;
-                }
+                    const errorMessage = error.message || 'Erreur inconnue lors de la suppression d\'un employé';
+                    logResult('Test KO : ' + errorMessage);
+                    global.lastTestError = errorMessage;      
+                    throw error;
+        }
               });
 
               it('Annulation de la suppression d\'un employé', async function() {
@@ -463,9 +553,11 @@ describe('Tests de création d\'un employé', function () {
                     throw new Error("Échec de la vérification après annulation: " + error.message);
                   }
                 } catch (error) {
-                  logResult('Test KO : ' + error.message);
-                  throw error;
-                }
+              const errorMessage = error.message || 'Erreur inconnue lors de l\'annulation de la suppression d\'un employé';
+              logResult('Test KO : ' + errorMessage);
+              global.lastTestError = errorMessage;      
+               throw error;
+        }
               });
           
         
