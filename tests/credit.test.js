@@ -75,7 +75,7 @@ describe('Tests fonctionnels de la page des crédits', function () {
             await creditPage. getTotalCreditsValue();
             logResult('Test OK : Affichage du total des crédits validé avec succès');
         } catch (error) {
-        const errorMessage =  'L\'affichage du total des crédits a échoué';
+        const errorMessage = error.message || 'L\'affichage du total des crédits a échoué';
         logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;
         throw error;
@@ -113,7 +113,7 @@ describe('Tests fonctionnels de la page des crédits', function () {
             logResult('Test OK : Test complet du menu déroulant réussi avec succès');
         }
         else {
-            const errorMessage =  ' Test complet du menu déroulant a échoué';
+            const errorMessage =error.message ||  ' Test complet du menu déroulant a échoué';
             logResult('Test KO : ' + errorMessage);
             global.lastTestError = errorMessage;
            throw error;
@@ -156,7 +156,7 @@ it(' Finaliser commande sans accepter les conditions d\'utilisation', async func
             logResult(' Test OK : Validation des conditions d\'utilisation fonctionne correctement');
 
         } catch (error) {
-            const errorMessage =  'La commande est finalisé sans accepter les conditions';
+            const errorMessage = error.message || 'La commande est finalisé sans accepter les conditions';
             logResult('Test KO : ' + errorMessage);
             global.lastTestError = errorMessage;
            throw error;
@@ -178,7 +178,7 @@ it('Finaliser commande sans sélection de crédits', async function() {
         logResult(' Test OK : Finaliser une commande sans sélection de crédits');
 
     } catch (error) {
-       const errorMessage =  'La commande est finalisé sans séléction de crédits';
+       const errorMessage = error.message || 'La commande est finalisé sans séléction de crédits';
         logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;
         throw error;

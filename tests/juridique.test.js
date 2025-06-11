@@ -122,7 +122,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
   
       logResult('Test OK : Ajout et vérification d\'un nouveau document juridique réussis');
     } catch (error) {
-     const errorMessage ='Ajout d\'un nouveau document juridique a échoué';
+     const errorMessage =error.message || 'Ajout d\'un nouveau document juridique a échoué';
     logResult('Test KO : ' + errorMessage);
     global.lastTestError = errorMessage;      
     throw error;
@@ -152,7 +152,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
            if (errorElements.length > 0 || errorMessages.length > 0) {
                 logResult('Test OK : Echec de création d\'un document juridique - champs obligatoires vides.');
             } else {
-              const errorMessage ='Aucune erreur de validation n\'est affichée.';
+              const errorMessage =error.message ||'Aucune erreur de validation n\'est affichée.';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -181,7 +181,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
         await nameInput.sendKeys(newDocumentName);
         const submitButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Modifier le document')]")), 5000, 'Bouton "Modifier le document" non trouvé');
         await driver.executeScript("arguments[0].click();", submitButton);
-        await driver.sleep(2000);
+        await driver.sleep(3000);
         
         try {
           const updatedDocumentElement = await driver.wait( until.elementLocated(By.xpath("//tbody/tr[1]//td[1]//span[contains(@class, 'text-gray500')]")), 5000);
@@ -189,7 +189,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           if (updatedDocumentName.toLowerCase().includes(newDocumentName.toLowerCase())) {
             logResult(`Test OK : Modification du nom du document juridique réussie `);
           } else {
-              const errorMessage ='Modification du nom du document juridique a échoué';
+              const errorMessage = error.message ||'Modification du nom du document juridique a échoué';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -217,7 +217,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
         console.log(`Nom du fichier original: ${originalFileName}`);
         const cancelButton = await driver.findElement(By.xpath("//button[contains(text(), 'Annuler')]"));
         await driver.executeScript("arguments[0].click();", cancelButton);
-        await driver.sleep(1000);
+        await driver.sleep(3000);
         await juridiquePage.clickEditFirstJuridique();
         const newFileName = 'Document (1).pdf';
         const homeDir = require('os').homedir();
@@ -228,9 +228,9 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
         
         const submitButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Modifier le document')]")),5000, 'Bouton "Modifier le document" non trouvé' );
         await driver.executeScript("arguments[0].click();", submitButton);
-        await driver.sleep(3000);
+        await driver.sleep(5000);
         await juridiquePage.clickEditFirstJuridique();
-        await driver.sleep(1000);
+        await driver.sleep(5000);
         
         try {
           const fileNameElement = await driver.findElement(By.xpath("//label[contains(@class, 'text-gray-900_01') and contains(@class, 'font-DmSans')]"));
@@ -239,7 +239,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           if (displayedFileName.includes(newFileName)) {
             logResult('Test OK :Modification réussie - Mise à jour du document ');
           } else {
-             const errorMessage ='Modification échoué - Mis à jour du fichier a échoué';
+             const errorMessage =error.message ||'Modification échoué - Mis à jour du fichier a échoué';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -272,7 +272,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           await driver.executeScript("arguments[0].click();", cancelButton);
           logResult('Test OK : bouton Annuler lors de la modification du document juridique');
         } catch (error) {
-           const errorMessage ='Le bouton Annuler ne fonctionne pas correctement';
+           const errorMessage = error.message ||'Le bouton Annuler ne fonctionne pas correctement';
            logResult('Test KO : ' + errorMessage);
             global.lastTestError = errorMessage;      
             throw error;
@@ -314,7 +314,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
             logResult(`Test KO : ${downloadResult.message || 'le téléchargement n\'a pas pu être initié'}`);
           }
         } catch (error) {
-           const errorMessage =' téléchargement d\'un document juridique a échoué';
+           const errorMessage = error.message ||' téléchargement d\'un document juridique a échoué';
            logResult('Test KO : ' + errorMessage);
             global.lastTestError = errorMessage;      
             throw error;
@@ -337,7 +337,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           await juridiquePage.clickDeleteFirstJuridiqueThenCancel();
           logResult('Test OK : Bouton annuler lors de la suppression d\'un document juridique réussie');
       }catch{
-        const errorMessage =' Bouton annuler lors de la suppression d\'un document juridique a échoué';
+        const errorMessage = error.message ||' Bouton annuler lors de la suppression d\'un document juridique a échoué';
         logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;      
         throw error; }
@@ -359,7 +359,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           await juridiquePage.clickDeleteFirstJuridique();
           logResult('Test OK : suppression d\'un document juridique réussie');
       }catch{
-        const errorMessage ='suppression d\'un document juridique a échoué';
+        const errorMessage = error.message ||'suppression d\'un document juridique a échoué';
         logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;      
         throw error;
@@ -409,7 +409,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
             if (afterSubmitErrors.length > 0) {
               logResult('Test OK : Le système a correctement rejeté le fichier non autorisé après tentative de soumission');
             } else {
-              const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
+              const errorMessage = error.message || `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
               logResult('Test KO :' + errorMessage);
               global.lastTestError = errorMessage;
               throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
@@ -469,7 +469,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
             if (afterSubmitErrors.length > 0) {
               logResult('Test OK : Le système a correctement rejeté le fichier volumineux');
             } else {
-              const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
+              const errorMessage = error.message ||`Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;
 

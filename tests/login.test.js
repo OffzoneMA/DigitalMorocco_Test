@@ -71,7 +71,7 @@ describe('Tests de connexion', function () {
       if (currentUrl.includes('Dashboard')) {
         logResult('Test OK : Connexion réussie');
       } else {
-        const errorMessage =`Redirection inattendue vers ${currentUrl}`;
+        const errorMessage =error.message ||`Redirection inattendue vers ${currentUrl}`;
         logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;
 
@@ -96,7 +96,7 @@ describe('Tests de connexion', function () {
         if (!currentUrl.includes('Dashboard')) {
           logResult('Test OK : Connexion échouée avec un email incorrect');
         } else {
-          const errorMessage =' La connexion a réussi malgré un email incorrect';
+          const errorMessage =error.message ||' La connexion a réussi malgré un email incorrect';
           logResult('Test KO : ' + errorMessage);
           global.lastTestError = errorMessage;
 
@@ -122,7 +122,7 @@ describe('Tests de connexion', function () {
         if (!currentUrl.includes('Dashboard_Investor')) {
           logResult('Test OK : Connexion échouée avec un mot de passe incorrect');
         } else {
-          const errorMessage ='La connexion a réussi malgré un mot de passe incorrect';
+          const errorMessage =error.message ||'La connexion a réussi malgré un mot de passe incorrect';
           logResult('Test KO : ' + errorMessage);
           global.lastTestError = errorMessage;
 
@@ -144,7 +144,7 @@ describe('Tests de connexion', function () {
       await loginPage.waitForConfirmationPage();
       logResult('Test OK : Demande de réinitialisation de mot de passe envoyée');
     } catch (error) {
-      const errorMessage =' Demande de réinitialisation de mot de passe a échoué';
+      const errorMessage =error.message ||' Demande de réinitialisation de mot de passe a échoué';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
     }

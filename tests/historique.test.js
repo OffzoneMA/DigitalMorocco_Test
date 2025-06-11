@@ -5,6 +5,9 @@ const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
 const ProfilePage = require('../pages/profile.page');
+const testInfo = require('../utils/testInfo');
+const { createBugTicket } = require('../utils/jiraUtils');
+
 
 
 describe('Tests de la page Historique', function () {
@@ -24,6 +27,44 @@ describe('Tests de la page Historique', function () {
     });
 
     afterEach(async function() {
+        if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
         if (driver) {
             await driver.quit();
         }
@@ -85,7 +126,9 @@ describe('Tests de la page Historique', function () {
             }
 
         } catch (error) {
-            logResult('Test KO : ' + error.message);
+            const errorMessage = error.message || 'URL inattendue';
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;      
             throw error;
         }
     });
@@ -120,7 +163,9 @@ describe('Tests de la page Historique', function () {
             }
 
         } catch (error) {
-            logResult('Test KO : ' + error.message);
+            const errorMessage =error.message || ' Certaines entrées sont incomplètes';
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;      
             throw error;
         }
     });
@@ -145,7 +190,9 @@ describe('Tests de la page Historique', function () {
             }
 
         } catch (error) {
-            logResult('Test KO : ' + error.message);
+            const errorMessage = error.message ||'  L\'ordre chronologique n\'est pas respecté';
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;      
             throw error;
         }
     });
@@ -180,7 +227,9 @@ describe('Tests de la page Historique', function () {
             }
 
         } catch (error) {
-            logResult('Test KO : ' + error.message);
+           const errorMessage =error.message || '  Le bon utilisateur n\'est pas affiché .';
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;      
             throw error;
         }
     });
@@ -268,8 +317,10 @@ describe('Tests de la page Historique', function () {
         logResult('Test OK : L\'action de modification du profil a été correctement ajoutée à l\'historique');
 
     } catch (error) {
-        logResult('Test KO : ' + error.message);
-        throw error;
+         const errorMessage =error.message || '  L\'action n\'est pas correctement ajouté à l\'historique .';
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;      
+            throw error;
     }
 });
 

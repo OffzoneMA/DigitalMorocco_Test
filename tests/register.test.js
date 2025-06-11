@@ -220,7 +220,6 @@ describe('Tests d\'inscription', function () {
       
     } catch (error) {
       const errorMessage = error.message || 'Erreur inconnue lors du test d\'inscription et validation d\'email';
-      console.error("Erreur lors du test d'inscription et validation d'email:", error);
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;

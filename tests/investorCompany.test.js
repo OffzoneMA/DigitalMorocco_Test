@@ -106,7 +106,7 @@ describe('Tests du profil entreprise investisseur', function () {
       logResult('Test OK : Création du profil entreprise investisseur réussie');
       
     } catch (error) {
-      const errorMessage = 'Échec de la création du profil entreprise investisseur';
+      const errorMessage = error.message ||'Échec de la création du profil entreprise investisseur';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -133,7 +133,7 @@ describe('Tests du profil entreprise investisseur', function () {
       }
       const detailedResults = validationResults.errorResults.map(result => `Champ "${result.field}": ${result.hasError ? 'Erreur affichée ✓' : 'Pas d\'erreur affichée ✗'}` ).join('\n');
        } catch (error) {
-      const errorMessage = 'Échec de la vérification de la validation des champs obligatoires';
+      const errorMessage = error.message ||'Échec de la vérification de la validation des champs obligatoires';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -161,7 +161,7 @@ describe('Tests du profil entreprise investisseur', function () {
           }
           logResult('Test OK : Validation du champ numéro d\'identification fiscale - Seuls les nombres sont acceptés');
         } catch (error) {
-          const errorMessage = 'Le champ numéro d\'identification fiscale accepte des caractères non numériques';
+          const errorMessage =error.message || 'Le champ numéro d\'identification fiscale accepte des caractères non numériques';
           logResult('Test KO : ' + errorMessage);
           global.lastTestError = errorMessage;
           throw error;
@@ -193,7 +193,7 @@ describe('Tests du profil entreprise investisseur', function () {
             
             logResult('Test OK : Validation du champ numéro d\'identification de l\'entreprise - Seuls les nombres sont acceptés');
           } catch (error) {
-            const errorMessage = 'Le champ numéro d\'identification de l\'entreprise accepte des caractères non numériques';
+            const errorMessage = error.message ||'Le champ numéro d\'identification de l\'entreprise accepte des caractères non numériques';
             logResult('Test KO : ' + errorMessage);
             global.lastTestError = errorMessage;
             throw error;
@@ -223,7 +223,7 @@ it('Test de téléchargement du logo d\'entreprise ', async function() {
     }
     
   } catch (error) {
-    const errorMessage = 'Échec du téléchargement du logo de l\'entreprise';
+    const errorMessage = error.message ||'Échec du téléchargement du logo de l\'entreprise';
     logResult('Test KO : ' + errorMessage);
     global.lastTestError = errorMessage;
     throw error;
@@ -252,7 +252,7 @@ it('Test de changement du logo d\'entreprise', async function() {
     }
     
   } catch (error) {
-    const errorMessage = 'Échec du changement du logo de l\'entreprise';
+    const errorMessage = error.message || 'Échec du changement du logo de l\'entreprise';
     logResult('Test KO : ' + errorMessage);
     global.lastTestError = errorMessage;
     throw error;
@@ -280,7 +280,7 @@ it('Test de suppression du logo d\'entreprise', async function() {
     }
     
   } catch (error) {
-    const errorMessage = 'Échec de la suppression du logo de l\'entreprise';
+    const errorMessage =error.message || 'Échec de la suppression du logo de l\'entreprise';
     logResult('Test KO : ' + errorMessage);
     global.lastTestError = errorMessage;
     throw error;
@@ -329,7 +329,7 @@ it('Test d\'échec de téléchargement de logo - format non autorisé', async fu
 }
     
   } catch (error) {
-    const errorMessage = 'Le système accepte un format de fichier non autorisé pour le logo';
+    const errorMessage = error.message || 'Le système accepte un format de fichier non autorisé pour le logo';
     logResult('Test KO : ' + errorMessage);
     global.lastTestError = errorMessage;
     throw error;
@@ -385,7 +385,7 @@ it('Validation du format email dans le profil', async function() {
       throw new Error('Un ou plusieurs tests de validation email ont échoué');
     }
   } catch (error) {
-    const errorMessage = 'Échec de la validation du format email dans le profil';
+    const errorMessage =error.message || 'Échec de la validation du format email dans le profil';
     logResult('Test KO : ' + errorMessage);
     global.lastTestError = errorMessage;
     throw error;
@@ -457,7 +457,7 @@ it('Validation du format URL dans le profil', async function() {
       throw new Error(errorMessage);
     }
   } catch (error) {
-    const errorMessage = 'Échec de la validation du format URL dans le profil';
+    const errorMessage = error.message || 'Échec de la validation du format URL dans le profil';
     logResult('Test KO : ' + errorMessage);
     global.lastTestError = errorMessage;
     throw error; 

@@ -99,7 +99,7 @@ describe('Tests de notification', function () {
         throw new Error(`URL inattendue: ${currentUrl}`);
       }
     } catch (error) {
-      const errorMessage = 'Échec de Navigation vers la page de notifications';
+      const errorMessage = error.message ||'Échec de Navigation vers la page de notifications';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;

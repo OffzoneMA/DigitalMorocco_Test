@@ -116,7 +116,7 @@ describe('Tests de création de projet', function () {
       
       logResult('Test OK : Création de l\'entreprise réussie ');
     } catch (error) {
-      const errorMessage =  'La création de l\'entreprise a échoué';
+      const errorMessage =  error.message ||'La création de l\'entreprise a échoué';
         logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;
         throw error;
@@ -145,7 +145,7 @@ describe('Tests de création de projet', function () {
       
       logResult('Test OK : Echec de modification - champs obligatoires vides');
     } catch (error) {
-       const errorMessage =  'Aucun message d\'erreur est affiché';
+       const errorMessage =error.message ||  'Aucun message d\'erreur est affiché';
         logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;
         throw error;
@@ -172,7 +172,7 @@ describe('Tests de création de projet', function () {
       
       logResult('Test OK : Echec de modification - Format Email invalide');
     } catch (error) {
-     const errorMessage =  'Aucun message d\'erreur est affiché';
+     const errorMessage =error.message ||  'Aucun message d\'erreur est affiché';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -204,7 +204,7 @@ describe('Tests de création de projet', function () {
         }
         logResult('Test OK : Validation du champ numéro d\'identification fiscale - Seuls les nombres sont acceptés');
       } catch (error) {
-        const errorMessage =  'Aucun message d\'erreur est affiché';
+        const errorMessage =error.message ||  'Aucun message d\'erreur est affiché';
         logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;
         throw error;
@@ -239,7 +239,7 @@ describe('Tests de création de projet', function () {
         
         logResult('Test OK : Validation du champ numéro d\'identification de l\'entreprise - Seuls les nombres sont acceptés');
       } catch (error) {
-       const errorMessage =  'Aucun message d\'erreur est affiché';
+       const errorMessage = error.message || 'Aucun message d\'erreur est affiché';
        logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;
         throw error;

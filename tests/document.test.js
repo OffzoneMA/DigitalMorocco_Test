@@ -104,7 +104,7 @@ afterEach(async function() {
       const documentCountAfter = await documentPage.countDocumentsInTable();
       logResult('Test OK : Ajout d\'un nouveau document réussi');
     } catch (error) {
-    const errorMessage ='Ajout d\'un nouveau document a échoué';
+    const errorMessage =error.message ||'Ajout d\'un nouveau document a échoué';
     logResult('Test KO : ' + errorMessage);
     global.lastTestError = errorMessage;      
     throw error;
@@ -134,7 +134,7 @@ afterEach(async function() {
            if (errorElements.length > 0 || errorMessages.length > 0) {
                 logResult('Test OK : Echec de création d\'un document  - champs obligatoires vides.');
             } else {
-              const errorMessage ='Aucune erreur de validation n\'est affichée.';
+              const errorMessage =error.message ||'Aucune erreur de validation n\'est affichée.';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -212,7 +212,7 @@ afterEach(async function() {
             if (displayedFileName.includes(newFileName)) {
               logResult('Test OK : Modification du document - mise à jour du fichier vérifiée');
             } else {
-              const errorMessage ='Modification échoué - Mis à jour du fichier a échoué';
+              const errorMessage =error.message ||'Modification échoué - Mis à jour du fichier a échoué';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -260,7 +260,7 @@ afterEach(async function() {
             logResult(`Test OK : Modification réussie - Désélection d'un membre`);
           }
         } catch (error) {
-           const errorMessage ='Déselection d\'un membre a échoué';
+           const errorMessage =error.message ||'Déselection d\'un membre a échoué';
           logResult('Test KO : ' + errorMessage);
           global.lastTestError = errorMessage;      
           throw error;
@@ -289,7 +289,7 @@ afterEach(async function() {
                 throw new Error('Échec du test du bouton Annuler: ' + error.message);
               }
             } catch (error) {
-              const errorMessage ='Le bouton Annuler ne fonctionne pas comme prévenu';
+              const errorMessage =error.message ||'Le bouton Annuler ne fonctionne pas comme prévenu';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -329,7 +329,7 @@ afterEach(async function() {
             if (testPassed === true) {
               logResult("Test OK : Le système n'autorise pas le partage sans sélection de membre");
             } else {
-              const errorMessage ='Le bouton de partage n\'est pas désactivé ou un message de partage avec succès est affiché sans sélection de membre';
+              const errorMessage =error.message ||'Le bouton de partage n\'est pas désactivé ou un message de partage avec succès est affiché sans sélection de membre';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -387,7 +387,7 @@ afterEach(async function() {
               }
               
             } catch (error) {
-               const errorMessage ='Partage de document avec un membre a échoué';
+               const errorMessage =error.message ||'Partage de document avec un membre a échoué';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -405,7 +405,7 @@ afterEach(async function() {
                   await documentPage.clickDeleteFirstDocumentThenCancel();
                   logResult('Test OK : Bouton annuler lors de la suppression d\'un document réussie');
               }catch{
-                 const errorMessage ='Bouton annuler lors de la suppression d\'un document a échoué';
+                 const errorMessage =error.message ||'Bouton annuler lors de la suppression d\'un document a échoué';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -441,7 +441,7 @@ afterEach(async function() {
                     const rowsAfterDeletion = await driver.findElements(By.xpath("//tbody/tr"));
                     const countAfterDeletion = rowsAfterDeletion.length;
                      } else {
-                       const errorMessage =' Le document est toujours présent dans la liste après suppression';
+                       const errorMessage =error.message ||' Le document est toujours présent dans la liste après suppression';
                         logResult('Test KO : ' + errorMessage);
                       global.lastTestError = errorMessage;      
                     throw error;
@@ -497,7 +497,7 @@ afterEach(async function() {
                   if (afterSubmitErrors.length > 0) {
                     logResult('Test OK : Le système a correctement rejeté le fichier non autorisé après tentative de soumission');
                   } else {
-                    const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
+                    const errorMessage =error.message || `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
                     logResult('Test KO :' + errorMessage);
                     global.lastTestError = errorMessage;
                     throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
@@ -558,7 +558,7 @@ afterEach(async function() {
                     if (afterSubmitErrors.length > 0) {
                       logResult('Test OK : Le système a correctement rejeté le fichier volumineux');
                     } else {
-                      const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
+                      const errorMessage = error.message ||`Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
                       logResult('Test KO : ' + errorMessage);
                       global.lastTestError = errorMessage;
                       throw new Error('Le système n\'a pas détecté le fichier volumineux');

@@ -270,7 +270,7 @@ Je vous transmets ci-dessous la stack trace complète ainsi que des informations
     const issueData = {
       fields: {
         project: {
-          key: 'SCRUM' // le keydu projet
+          key: '' // lekey du projet
         },
         summary: `[BUG] Test échoué: ${testName}`,
         description: {

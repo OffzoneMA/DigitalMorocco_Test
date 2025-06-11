@@ -412,15 +412,150 @@ const testInfo = {
      stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page profil investisseur\n3.Saisir des caractères dans le champs nombre de fonds\n4.Cliquer sur le bouton Sauvegarder",
     expectedResult: "le champs doit refusé les cacactères "
     },
-      "Validation du champ nombre d\'acquisitions - accepte uniquement des nombres entiers": {
+      "Validation du champ nombre d'acquisitions - accepte uniquement des nombres entiers": {
      stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page profil investisseur\n3.Saisir des caractères dans le champs nombre d'acquisitions\n4.Cliquer sur le bouton Sauvegarder",
     expectedResult: "le champs doit refusé les cacactères "
     },
     //notification
-     "Clic sur l\'icône de notification et navigation vers la page": {
+     "Clic sur l'icône de notification et navigation vers la page": {
      stepsPerformed: "1. Connexion à l'application\n2.Cliquer dur l'icon de notification",
     expectedResult: "l'utilisateur est dirigé vers la page de notifications "
     },
+
+    //paiement
+     "Test d'affichage des informations du plan Basique": {
+     stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement",
+    expectedResult: "les informations du plan basique sont correctement affichés. "
+    },
+      "Test d'affichage des informations du plan Standard": {
+     stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement",
+    expectedResult: "les informations du plan Standard sont correctement affichés. "
+    },
+    "Test d'affichage des informations du plan Premium": {
+     stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement",
+    expectedResult: "les informations du plan Premium sont correctement affichés. "
+    },
+    "Sélection du plan Basique ": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Cliquer sur le bouton Commencez maitenant pour la plan basique",
+    expectedResult: "le plan Basique est bien séléctionné. "
+    },
+     "Sélection du plan Standard ": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Cliquer sur le bouton Commencez maitenant pour la plan standard",
+    expectedResult: "le plan Standard est bien séléctionné. "
+    },
+    "Sélection du plan Premium ": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Cliquer sur le bouton Commencez maitenant pour la plan Premium",
+    expectedResult: "le plan Premium est bien séléctionné. "
+    },
+     "Test de validation de réductions pour le plan Basic en mode annuel": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Cliquer sur le bouton Commencez maitenant pour la plan Basique\n5.Cliquer sur le bouton annuel",
+    expectedResult: "la réduction pour plan basique est bien appliqué. "
+    },
+     "Test de validation de réductions pour le plan Standard en mode annuel": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Cliquer sur le bouton Commencez maitenant pour la plan Standard\n5.Cliquer sur le bouton annuel",
+    expectedResult: "la réduction pour plan Standard est bien appliqué. "
+    },
+     "Test de validation de réductions pour le plan Premium en mode annuel": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Cliquer sur le bouton Commencez maitenant pour la plan Premium\n5.Cliquer sur le bouton annuel",
+    expectedResult: "la réduction pour plan Premium est bien appliqué. "
+    },
+      "Paiement échoué avec carte CVV invalide": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.remplir le formulaire de paiement avec un CVV incorrecte\n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "le paiement est rejeté."
+    },
+     "Paiement échoué avec carte restreinte": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.remplir le formulaire de paiement avec une carte restreinte\n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "le paiement est rejeté."
+    },
+     "Paiement échoué avec carte bloquée": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.remplir le formulaire de paiement avec uné Carte bloquée\n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "le paiement est rejeté."
+    },
+     "Paiement échoué : fonds insuffisants": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.remplir le formulaire de paiement avec une carte fonds insuffisants\n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "le paiement est rejeté."
+    },
+     "Paiement échoué avec une date d'expiration invalide": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.remplir le formulaire de paiement avec une date d'expiration invalide\n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "le paiement est rejeté."
+    },
+    "Paiement échoué : plafond dépassé": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.remplir le formulaire de paiement avec un plafond dépassé\n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "le paiement est rejeté."
+    },
+      "Paiement sans cocher la case d'acceptation": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.remplir le formulaire de paiement sans cocher la case d'acceptation \n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "Un message d'erreur s'affiche."
+    },
+      "Bouton retour au marchand": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.Cliquer sur le bouton retour au marchand",
+    expectedResult: "Se rediriger vers la page abonnement et facturation."
+    },
+      "Annulation de l\'abonnement avec bouton Annuler": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton Annuler",
+    expectedResult: "Se rediriger vers la page abonnement et facturation."
+    },
+     "Validation des champs de carte de crédit trop courts": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.remplir le formulaire de paiement avec un numero de carte et CVV trop court  \n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "Un message d'erreur s'affiche."
+    },
+      "Validation des champs obligatoires de carte de crédit": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.laisser les champs obligatoires vides\n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "Un message d'erreur s'affiche."
+    },
+    "Paiement réussi avec carte Visa pour plan Basique Mensuel": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Commencez votre essai gratuitement\n4.Choisir un plan\n5.Cliquer sur le bouton confirmer mon abonnement\n6.Remplir le formulaire de paiement\n7.Cliquer sur le bouton payez maitenant",
+    expectedResult: "Le paiement est réussi et le plan est activé."
+    },
+    "Renouveler l'abonnement": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Renouveler l'abonnement\n4.Remplir le formulaire de paiement\n5.Cliquer sur le bouton payez maitenant",
+    expectedResult: "Le paiement est renouvelé."
+    },
+     "Annuler l'annulation du plan (garder le plan)": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Annuler l'abonnement\n4.Une alerte d'affiche\n5.Cliquer sur le bouton Annuler",
+    expectedResult: "L'alerte est fermé et le plan est gardé."
+    },
+     "Mettre à niveau le plan": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Mettre à niveau\n4.Choisir un autre plan\n5.Remplir le formulaire de paiement\n6.Cliquer sur le bouton payez maitenant",
+    expectedResult: "Le paiement est réussi et le plan est mis à niveau."
+    },
+     "Vérifier qu'un utilisateur ne peut pas mettre à niveau un plan déjà actif": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Mettre à niveau\n4.Choisir le même plan actif",
+    expectedResult: "Le bouton pour le plan actif est désactivé."
+    },
+     "Annuler le plan actuel": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Abonnement et facturation\n3.Cliquer sur le bouton Annuler l'abonnement\n4.Une alerte d'affiche\n5.Cliquer sur le bouton Confirmer l'annulation",
+    expectedResult: "Le plan est annulé ."
+    },
+
+    //historique
+      "Affichage de la page Historique": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Historique",
+    expectedResult: "La page est correctement affichée."
+    },
+      "Affichage des informations de l'action - Vérifier que chaque ligne affiche l'action, la date/heure et l'utilisateur": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Historique",
+    expectedResult: "Toutes les entrées contiennent les informations requises."
+    },
+     "Vérification de l'ordre chronologique - Actions affichées de la plus récente à la plus ancienne": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Historique",
+    expectedResult: "L'ordre chronologique est respecté (plus récent en premier)"
+    },
+     "Vérification que le bon nom d'utilisateur est affiché dans l'action": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Historique",
+    expectedResult: "Le bon nom d'utilisateur n'est pas affiché dans l'action ."
+    },
+      "Vérification que les actions utilisateur sont ajoutées à l'historique": {
+    stepsPerformed: "1. Connexion à l'application\n2.Naviguer vers la page Historique",
+    expectedResult: " L\'action a été correctement ajoutée à l\'historique."
+    },
+
+
+
+
+
+
+
 
 
 

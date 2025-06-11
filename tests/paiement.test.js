@@ -5,7 +5,6 @@ const PaiementPage = require('../pages/paiement.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
-const { createBugTicket} = require('../utils/jiraUtils');
 const testInfo = require('../utils/testInfo');
 
 describe('Tests de paiement', function () {
@@ -127,9 +126,10 @@ describe('Tests de paiement', function () {
     }
 
   } catch (error) {
-    logResult('Test KO : ' + error.message);
-    await createBugTicket('Affichage des informations du plan Basique échoué', error.message, driver);
-    throw error;
+     const errorMessage =error.message || 'Les informations du plan Basique ne sont pas correctement affichées.';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
   }
 });
 
@@ -198,9 +198,10 @@ it("Test d'affichage des informations du plan Standard", async function () {
       logResult(`Test KO : Features manquantes pour le plan Standard: ${missingFeatures.join(', ')}`);
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
-    await createBugTicket('Affichage des informations du plan Standard échoué', error.message, driver);
-    throw error;
+     const errorMessage = error.message ||'Les informations du plan Standard ne sont pas correctement affichées.';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
   }
 });
 
@@ -278,9 +279,10 @@ it("Test d'affichage des informations du plan Premium", async function () {
       logResult(`Test KO : Features manquantes pour le plan Premium: ${missingFeatures.join(', ')}`);
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
-    await createBugTicket('Affichage des informations du plan Premium échoué', error.message, driver);
-    throw error;
+     const errorMessage = error.message ||'Les informations du plan Premium ne sont pas correctement affichées.';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
   }
 });
 
@@ -312,9 +314,10 @@ it("Test d'affichage des informations du plan Premium", async function () {
         }
         
       } catch (error) {
-        logResult('Test KO : ' + error.message);
-        await createBugTicket('Sélection plan Basique échouée', error.message, driver);
-        throw error;
+        const errorMessage = error.message ||'La sélection plan Basique a échouée.';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
       }
     });
 
@@ -346,9 +349,10 @@ it("Test d'affichage des informations du plan Premium", async function () {
         }
         
       } catch (error) {
-        logResult('Test KO : ' + error.message);
-        await createBugTicket('Sélection plan Standard échouée', error.message, driver);
-        throw error;
+        const errorMessage = error.message ||'La sélection plan Standard a échouée.';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
       }
     });
 
@@ -380,9 +384,10 @@ it("Test d'affichage des informations du plan Premium", async function () {
         }
         
       } catch (error) {
-        logResult('Test KO : ' + error.message);
-        await createBugTicket('Sélection plan Premium échouée', error.message, driver);
-        throw error;
+       const errorMessage = 'La sélection plan Premium a échouée.';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
       }
     });
 
@@ -422,7 +427,9 @@ it("Test d'affichage des informations du plan Premium", async function () {
     }
 
   } catch (error) {
-    logResult(`Test KO pour plan ${plan.name} : ${error.message}`);
+      const errorMessage = error.message ||'Plan Basique - réduction incorrecte';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     try {
       await driver.get(config.baseUrl + '/Dashboard');
       await driver.wait(until.urlContains('Dashboard'), 5000);
@@ -471,8 +478,10 @@ it('Test de validation de réductions pour le plan Standard en mode annuel', asy
     }
 
   } catch (error) {
-    logResult(`Test KO pour plan ${plan.name} : ${error.message}`);
-    try {
+      const errorMessage = error.message ||'Plan Standard - réduction incorrecte';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;    
+      try {
       await driver.get(config.baseUrl + '/Dashboard');
       await driver.wait(until.urlContains('Dashboard'), 5000);
     } catch (recoveryError) {
@@ -519,8 +528,10 @@ it('Test de validation de réductions pour le plan Premium en mode annuel', asyn
     }
 
   } catch (error) {
-    logResult(`Test KO pour plan ${plan.name} : ${error.message}`);
-    try {
+      const errorMessage = error.message ||'Plan Premium - réduction incorrecte';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;  
+        try {
       await driver.get(config.baseUrl + '/Dashboard');
       await driver.wait(until.urlContains('Dashboard'), 5000);
     } catch (recoveryError) {
@@ -559,8 +570,9 @@ it('Test de validation de réductions pour le plan Premium en mode annuel', asyn
       logResult(`Test KO : Résultat inattendu. Message: ${paymentResult.message}`);
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
-    await createBugTicket('Test de paiement avec CVV invalide a échoué', error.message, driver);
+    const errorMessage = error.message || 'Le paiement avec CVV invalide a été accepté alors qu\'il devrait être rejeté!';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -594,8 +606,9 @@ it('Paiement échoué avec carte restreinte', async function() {
       logResult(`Test KO : Résultat inattendu. Message: ${paymentResult.message}`);
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
-    await createBugTicket('Test de paiement avec carte restreinte a échoué', error.message, driver);
+     const errorMessage = error.message ||'Le paiement avec carte restreinte a été accepté alors qu\'il devrait être rejeté';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -629,8 +642,9 @@ it('Paiement échoué avec carte bloquée', async function() {
       logResult(`Test KO : Résultat inattendu. Message: ${paymentResult.message}`);
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
-    await createBugTicket('Test de paiement avec carte bloquée a échoué', error.message, driver);
+     const errorMessage = error.message || 'Le paiement avec carte bloquée a été accepté alors qu\'il devrait être rejeté';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -664,8 +678,9 @@ it('Paiement échoué : fonds insuffisants', async function() {
       logResult(`Test KO : Résultat inattendu. Message: ${paymentResult.message}`);
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
-    await createBugTicket('Test de paiement avec CVV invalide a échoué', error.message, driver);
+    const errorMessage = error.message ||'Le paiement avec carte fonds insuffisants a été accepté alors qu\'il devrait être rejeté';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -698,7 +713,9 @@ it('Paiement échoué avec une date d\'expiration invalide', async function() {
       logResult(`Test KO : Résultat inattendu. Message: ${paymentResult.message}`);
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage =error.message || 'Le paiement avec une date d\'expiration invalide a été accepté alors qu\'il devrait être rejeté';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -732,7 +749,9 @@ it('Paiement échoué : plafond dépassé', async function() {
       logResult(`Test KO : Résultat inattendu. Message: ${paymentResult.message}`);
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = error.message || 'Le paiement avec carte plafond dépassé a été accepté alors qu\'il devrait être rejeté';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -802,8 +821,9 @@ it(' Paiement sans cocher la case d\'acceptation', async function() {
     }
     
   } catch (error) {
-    logResult('Test KO : Erreur lors du test de validation de la checkbox - ' + error.message);
-    await createBugTicket('Validation checkbox conditions générales défaillante', error.message, driver);
+     const errorMessage = error.message || 'Le paiement semble avoir été accepté sans cocher la case';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -835,8 +855,9 @@ it('Bouton retour au marchand', async function() {
     }
     
   } catch (error) {
-    logResult('Test KO : Erreur lors du test du bouton retour au marchand - ' + error.message);
-    await createBugTicket('Bouton retour au marchand dysfonctionnel', error.message, driver);
+     const errorMessage = error.message || 'Redirection incorrecte';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -859,8 +880,10 @@ it('Bouton retour au marchand', async function() {
         logResult(`Test KO : La page après annulation n'est pas celle attendue: ${currentUrl}`);
       }
     } catch (error) {
-      logResult('Test KO : ' + error.message);
-      throw error;
+       const errorMessage = error.message ||'La page après annulation n\'est pas celle attendue';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+    throw error;
     }
   });
 
@@ -906,8 +929,9 @@ it('Bouton retour au marchand', async function() {
     }
     
      } catch (error) {
-    logResult('Test KO : ' + error.message);
-    await createBugTicket('Test de validation des champs de carte de crédit', error.message, driver);
+    const errorMessage =error.message ||' Message d\'erreur incorrect';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -950,7 +974,9 @@ it('Validation des champs obligatoires de carte de crédit', async function() {
     }
     
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+     const errorMessage =error.message ||' Message d\'erreur incorrect';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -995,8 +1021,9 @@ it('Validation des champs obligatoires de carte de crédit', async function() {
       }
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
-    await createBugTicket('Paiement avec Visa échoué', error.message, driver);
+     const errorMessage =error.message ||'  Paiement échoué pour plan Basique Mensuel';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -1027,8 +1054,9 @@ it('Renouveler l\'abonnement', async function() {
         
         
     } catch (error) {
-        logResult('Test KO : Renouvellement d\'abonnement échoué - ' + error.message);
-        await createBugTicket('Renouvellement d\'abonnement échoué', error.message, driver);
+          const errorMessage =error.message ||'Bouton Renouvellement d\'abonnement échoue';
+         logResult('Test KO : ' + errorMessage);
+         global.lastTestError = errorMessage;
         throw error;
     }
 });
@@ -1065,8 +1093,9 @@ it('Annuler l\'annulation du plan (garder le plan)', async function() {
         }
         
     } catch (error) {
-        logResult('Test KO : Conservation du plan échouée - ' + error.message);
-        await createBugTicket('Conservation du plan échouée', error.message, driver);
+       const errorMessage =error.message ||'Plan non conservé .';
+         logResult('Test KO : ' + errorMessage);
+         global.lastTestError = errorMessage;
         throw error;
     }
 });
@@ -1109,8 +1138,9 @@ it('Mettre à niveau le plan', async function() {
         }
         
     } catch (error) {
-        logResult('Test KO : ' + error.message);
-        await createBugTicket('Mise à niveau du plan échoué', error.message, driver);
+         const errorMessage =error.message ||'La mise à niveau du plan a échouée .';
+         logResult('Test KO : ' + errorMessage);
+         global.lastTestError = errorMessage;
         throw error;
     }
 });
@@ -1132,8 +1162,9 @@ it('Vérifier qu\'un utilisateur ne peut pas mettre à niveau un plan déjà act
             logResult(`Test OK : Impossible de mettre à niveau un plan déjà actif `);
         }
  } catch (error) {
-        logResult('Test ERREUR : ' + error.message);
-        await createBugTicket('Test de sélection de plan actif échoué', error.message, driver);
+        const errorMessage =error.message ||' L\'utilisateur peut sélectionner le plan déjà actif';
+         logResult('Test KO : ' + errorMessage);
+         global.lastTestError = errorMessage;
         throw error;
     }
 });
@@ -1165,13 +1196,14 @@ it('Annuler le plan actuel', async function() {
          if (cancellationResult.success) {
             logResult('Test OK : Annulation du plan réussie - Plan annulé avec confirmation');
         } else {
-           logResult('Test KO : Annulation du plan échouéé');
+           logResult('Test KO : Annulation du plan échoué');
           
         }
         
     } catch (error) {
-        logResult('Test KO : Annulation du plan échouée - ' + error.message);
-        await createBugTicket('Annulation du plan échouée', error.message, driver);
+         const errorMessage =error.message ||'Annulation du plan échoué';
+         logResult('Test KO : ' + errorMessage);
+         global.lastTestError = errorMessage;
         throw error;
     }
 });

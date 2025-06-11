@@ -107,7 +107,7 @@ describe('Tests du profil investisseur', function () {
         logResult('Test OK : Formulaire investisseur soumis avec succès');}
       
     } catch (error) {
-      const errorMessage = 'Échec de remplissage et soumission du formulaire investisseur';
+      const errorMessage = error.message || 'Échec de remplissage et soumission du formulaire investisseur';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -153,7 +153,7 @@ describe('Tests du profil investisseur', function () {
       logResult('Test OK : Validation des champs obligatoires');
       
     } catch (error) {
-      const errorMessage = 'Échec de la vérification des champs obligatoires';
+      const errorMessage = error.message ||'Échec de la vérification des champs obligatoires';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -209,7 +209,7 @@ describe('Tests du profil investisseur', function () {
         throw new Error('Un ou plusieurs tests de validation email ont échoué');
       }
     } catch (error) {
-      const errorMessage = 'Les emails invalides sont acceptés sans validation';
+      const errorMessage = error.message || 'Les emails invalides sont acceptés sans validation';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -281,7 +281,7 @@ describe('Tests du profil investisseur', function () {
         throw new Error(errorMessage);
       }
     } catch (error) {
-      const errorMessage = 'Les URLs invalides sont acceptées sans validation';
+      const errorMessage = error.message || 'Les URLs invalides sont acceptées sans validation';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error; 
@@ -350,7 +350,7 @@ describe('Tests du profil investisseur', function () {
         throw new Error(errorMessage);
       }
     } catch (error) {
-      const errorMessage = 'Les numéros de téléphone invalides sont acceptés sans validation';
+      const errorMessage = error.message || 'Les numéros de téléphone invalides sont acceptés sans validation';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error; 
@@ -396,7 +396,7 @@ describe('Tests du profil investisseur', function () {
       logResult('Test OK : Modification et soumission du formulaire investisseur réussies');
       
     } catch (error) {
-      const errorMessage = 'Échec de la modification des champs du profil investisseur';
+      const errorMessage = error.message || 'Échec de la modification des champs du profil investisseur';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -458,7 +458,7 @@ describe('Tests du profil investisseur', function () {
         throw new Error(errorMessage);
       }
     } catch (error) {
-      const errorMessage = 'Le champ capacité d\'investissement accepte des valeurs invalides';
+      const errorMessage = error.message || 'Le champ capacité d\'investissement accepte des valeurs invalides';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -521,7 +521,7 @@ describe('Tests du profil investisseur', function () {
         throw new Error(errorMessage);
       }
     } catch (error) {
-      const errorMessage = 'Le champ nombre d\'investissements accepte des valeurs invalides';
+      const errorMessage = error.message ||'Le champ nombre d\'investissements accepte des valeurs invalides';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -584,7 +584,7 @@ describe('Tests du profil investisseur', function () {
         throw new Error(errorMessage);
       }
     } catch (error) {
-      const errorMessage = 'Le champ nombre de sorties accepte des valeurs invalides';
+      const errorMessage = error.message || 'Le champ nombre de sorties accepte des valeurs invalides';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
@@ -647,7 +647,7 @@ it('Validation du champ nombre de fonds - accepte uniquement des nombres entiers
       throw new Error(errorMessage);
     }
   } catch (error) {
-   const errorMessage = 'Le champ nombre de fonds accepte des valeurs invalides';
+   const errorMessage =  error.message ||'Le champ nombre de fonds accepte des valeurs invalides';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;}
@@ -709,7 +709,7 @@ it('Validation du champ nombre d\'acquisitions - accepte uniquement des nombres 
       throw new Error(errorMessage);
     }
   } catch (error) {
-    const errorMessage = 'Le champ nombre d\'acquisitions accepte des valeurs invalides';
+    const errorMessage = error.message ||'Le champ nombre d\'acquisitions accepte des valeurs invalides';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;
