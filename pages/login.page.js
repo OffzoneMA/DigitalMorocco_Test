@@ -59,7 +59,7 @@ class LoginPage {
 
   async clickForgotPassword() {
     try {
-      const forgotPasswordLink = await this.driver.wait(until.elementLocated(By.xpath("//a[contains(@class, 'cursorpointer')]//label[contains(text(), 'Forgot Password') or contains(text(), 'Mot de passe oublié')]")), 10000,'Lien "Forgot Password/Mot de passe oublié" non trouvé' );
+      const forgotPasswordLink = await this.driver.wait(until.elementLocated(By.xpath("//span[contains(@class, 'cursorpointer')]//label[contains(text(), 'Forgot Password') or contains(text(), 'Mot de passe oublié')]")), 10000,'Lien "Forgot Password/Mot de passe oublié" non trouvé' );
       const linkText = await forgotPasswordLink.getText();
       await this.driver.executeScript("arguments[0].click();", forgotPasswordLink);
       await this.driver.sleep(2000);

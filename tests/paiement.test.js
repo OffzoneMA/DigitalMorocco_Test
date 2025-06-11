@@ -5,6 +5,8 @@ const PaiementPage = require('../pages/paiement.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
+const { createBugTicket} = require('../utils/jiraUtils');
+const testInfo = require('../utils/testInfo');
 
 describe('Tests de paiement', function () {
   let driver;
@@ -19,6 +21,44 @@ describe('Tests de paiement', function () {
   });
 
   afterEach(async function() {
+     if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
     if (driver) {
       await driver.quit();
     }
