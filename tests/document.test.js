@@ -219,12 +219,12 @@ afterEach(async function() {
            
             }
           } catch (error) {
-            logResult('Test KO : Impossible de trouver l\'élément affichant le nom du fichier: ' + error.message);
-            throw error;
+            logResult('Test KO : Impossible de trouver l\'élément affichant le nom du fichier');
           }
           
          } catch (error) {
-          logResult('Test KO : ' + error.message);
+           logResult('Test KO : Modification échoué - Mis à jour du fichier a échoué');
+
           throw error;
         }
       });

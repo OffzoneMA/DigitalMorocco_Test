@@ -4,7 +4,6 @@ const CreditPage = require('../pages/credit.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
-const { createUniqueBrowser } = require('../helpers/browser.helper');
 const { createBugTicket} = require('../utils/jiraUtils');
 const testInfo = require('../utils/testInfo');
 

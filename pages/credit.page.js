@@ -519,7 +519,6 @@ async resetFormState() {
 
 async getOrderSummary() {
     try {
-        console.log('🔍 Recherche des éléments du résumé de commande...');
         
         await this.driver.sleep(1000);
         
