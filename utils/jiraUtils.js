@@ -270,7 +270,7 @@ Je vous transmets ci-dessous la stack trace complète ainsi que des informations
     const issueData = {
       fields: {
         project: {
-          key: 'SCRUM'
+          key: ''//le nom de projet
         },
         summary: `[BUG] Test échoué: ${testName}`,
         description: {
@@ -399,7 +399,7 @@ Je vous transmets ci-dessous la stack trace complète ainsi que des informations
         issuetype: {
           name: 'Bug'
         },
-        labels: ['automatisation', 'test-selenium']
+        labels: ['automatisation']
       }
     };
 

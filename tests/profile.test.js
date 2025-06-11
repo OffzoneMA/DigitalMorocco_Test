@@ -5,6 +5,8 @@ const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const assert =require("assert");
 const { createUniqueBrowser } = require('../helpers/browser.helper');
+const { createBugTicket} = require('../utils/jiraUtils');
+const testInfo = require('../utils/testInfo');
 
 
 describe('Test Profile', function () {
@@ -20,6 +22,44 @@ describe('Test Profile', function () {
 });
 
   afterEach(async function() {
+     if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
     if (driver) {
       await driver.quit();
     }
@@ -48,14 +88,6 @@ describe('Test Profile', function () {
         const profileInfo = await profilePage.getProfileInfo();
         if (profileInfo) {
             logResult('Étape 3 OK : Informations du profil récupérées avec succès');
-            console.log("Informations du profil:");
-            console.log("Prénom:", profileInfo.firstName);
-            console.log("Nom:", profileInfo.lastName);
-            console.log("Email:", profileInfo.email);
-            console.log("Téléphone:", profileInfo.phoneNumber);
-            console.log("Site Web:", profileInfo.website);
-            console.log("Adresse:", profileInfo.address);
-            console.log("Pays:", profileInfo.country);
             assert.strictEqual(profileInfo.email, config.validEmail, "L'email affiché ne correspond pas à celui utilisé pour la connexion");
         } else {
             logResult('Étape 3 KO : Échec de récupération des informations du profil');
@@ -64,7 +96,9 @@ describe('Test Profile', function () {
     
         logResult('Test OK : Affichage des informations du profil ');
     } catch (error) {
-        logResult('Test KO : ' + error.message);
+        const errorMessage = 'Les informations du profil ne s\'affichent pas correctement';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
         throw error;
     }
 })
@@ -108,7 +142,9 @@ it('Modification des informations personnelles dans le profil', async function()
     }
     logResult('Test OK : Modification du profil réussie');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'Les modifications des informations personnelles ne sont pas sauvegardées';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -141,7 +177,9 @@ it('Modification du mot de passe dans le profil', async function() {
     
     logResult('Test OK : Modification du mot de passe réussie');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'La modification du mot de passe n\'est pas fonctionnelle';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -165,7 +203,9 @@ it('Validation des critères de mot de passe non conforme', async function() {
     }    
     logResult('Test OK : Détection réussie du mot de passe non conforme aux critères');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'Les critères de validation du mot de passe ne sont pas appliqués';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -190,7 +230,9 @@ it('Échec de correspondance entre le nouveau mot de passe et sa confirmation', 
     }
     logResult('Test OK : Détection de la non-concordance entre les mots de passe réussie');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'La validation de correspondance des mots de passe ne fonctionne pas';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -251,7 +293,9 @@ it('Validation des champs obligatoires dans le profil', async function() {
     }
     logResult('Test OK : Validation des champs obligatoires réussie');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'La validation des champs obligatoires ne s\'effectue pas correctement';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -285,7 +329,9 @@ it('Validation du format email dans le profil', async function() {
       throw new Error('Un ou plusieurs tests de validation email ont échoué');
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'La validation du format email ne fonctionne pas correctement';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -304,7 +350,9 @@ it('Téléchargement de photo de profil', async function() {
     await driver.sleep(5000);
    logResult('Test OK : Téléchargement de photo de profil réussie');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'Le téléchargement de photo de profil ne fonctionne pas';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -326,7 +374,9 @@ it('Changement de photo de profil', async function() {
     await driver.sleep(3000);
     logResult('Test OK : Changement de photo de profil réussi');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'Le changement de photo de profil ne s\'effectue pas correctement';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -344,7 +394,9 @@ it('Suppression de photo de profil', async function() {
     await driver.sleep(3000);
     logResult('Test OK : Suppression de photo de profil réussi');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'La suppression de photo de profil ne fonctionne pas';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -383,7 +435,9 @@ it('Refus de téléchargement de photo avec format non autorisé', async functio
     await driver.sleep(5000);
     logResult('Test OK : Refus de téléchargement de photo avec format non autorisé');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'La validation du format de photo ne fonctionne pas correctement';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -410,7 +464,9 @@ it('Affichage initial des sélections de langue', async function() {
     }
     logResult('Test OK : Affichage initial des sélections de langue vérifié avec succès');
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'L\'affichage des sélections de langue ne fonctionne pas correctement';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -444,7 +500,9 @@ it('Changement de langue et de région avec vérification', async function() {
       await driver.navigate().refresh();
       logResult('Test OK : Changement de langue et de région effectué avec succès et vérifié');
   } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Le changement de langue et de région ne fonctionne pas correctement';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
   }
 });

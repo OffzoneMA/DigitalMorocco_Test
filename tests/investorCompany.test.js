@@ -6,6 +6,8 @@ const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
 const path = require('path');
+const testInfo = require('../utils/testInfo');
+
 
 
 describe('Tests du profil entreprise investisseur', function () {
@@ -21,6 +23,44 @@ describe('Tests du profil entreprise investisseur', function () {
   });
 
   afterEach(async function() {
+    if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
     if (driver) {
       await driver.quit();
     }
@@ -66,7 +106,9 @@ describe('Tests du profil entreprise investisseur', function () {
       logResult('Test OK : Création du profil entreprise investisseur réussie');
       
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Échec de la création du profil entreprise investisseur';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -91,10 +133,13 @@ describe('Tests du profil entreprise investisseur', function () {
       }
       const detailedResults = validationResults.errorResults.map(result => `Champ "${result.field}": ${result.hasError ? 'Erreur affichée ✓' : 'Pas d\'erreur affichée ✗'}` ).join('\n');
        } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Échec de la vérification de la validation des champs obligatoires';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
+
   it('Echec de modification - Numéro d\'identification fiscale invalide', async function() {
         try {
           await driver.get(config.baseUrl);
@@ -116,10 +161,13 @@ describe('Tests du profil entreprise investisseur', function () {
           }
           logResult('Test OK : Validation du champ numéro d\'identification fiscale - Seuls les nombres sont acceptés');
         } catch (error) {
-          logResult('Test KO : ' + error.message);
+          const errorMessage = 'Le champ numéro d\'identification fiscale accepte des caractères non numériques';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
           throw error;
         }
       });
+
     it('Echec de modification - Numéro d\'identification de l\'entreprise invalide', async function() {
           try {
             await driver.get(config.baseUrl);
@@ -145,10 +193,13 @@ describe('Tests du profil entreprise investisseur', function () {
             
             logResult('Test OK : Validation du champ numéro d\'identification de l\'entreprise - Seuls les nombres sont acceptés');
           } catch (error) {
-            logResult('Test KO : ' + error.message);
+            const errorMessage = 'Le champ numéro d\'identification de l\'entreprise accepte des caractères non numériques';
+            logResult('Test KO : ' + errorMessage);
+            global.lastTestError = errorMessage;
             throw error;
           }
         });
+
 it('Test de téléchargement du logo d\'entreprise ', async function() {
   try {
     await driver.get(config.baseUrl);
@@ -172,10 +223,13 @@ it('Test de téléchargement du logo d\'entreprise ', async function() {
     }
     
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'Échec du téléchargement du logo de l\'entreprise';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
+
 it('Test de changement du logo d\'entreprise', async function() {
   try {
     await driver.get(config.baseUrl);
@@ -198,7 +252,9 @@ it('Test de changement du logo d\'entreprise', async function() {
     }
     
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'Échec du changement du logo de l\'entreprise';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -224,7 +280,9 @@ it('Test de suppression du logo d\'entreprise', async function() {
     }
     
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'Échec de la suppression du logo de l\'entreprise';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -271,7 +329,9 @@ it('Test d\'échec de téléchargement de logo - format non autorisé', async fu
 }
     
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'Le système accepte un format de fichier non autorisé pour le logo';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -325,7 +385,9 @@ it('Validation du format email dans le profil', async function() {
       throw new Error('Un ou plusieurs tests de validation email ont échoué');
     }
   } catch (error) {
-    logResult('Test KO : ' + error.message);
+    const errorMessage = 'Échec de la validation du format email dans le profil';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
@@ -390,11 +452,14 @@ it('Validation du format URL dans le profil', async function() {
     if (allValidationsSuccessful) {
       logResult('Test OK : Validation du format URL réussie - Toutes les URLs invalides ont été correctement rejetées');
     } else {
-      const errorMessage = 'Test KO : Format URL invalide est accepté' 
-      logResult(errorMessage);
+      const errorMessage = 'Format URL invalide est accepté' 
+      logResult('Test KO : ' + errorMessage);
       throw new Error(errorMessage);
     }
   } catch (error) {
+    const errorMessage = 'Échec de la validation du format URL dans le profil';
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error; 
   }
 });

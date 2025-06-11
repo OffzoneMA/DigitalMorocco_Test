@@ -5,6 +5,8 @@ const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const assert = require('assert');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
+const { createBugTicket} = require('../utils/jiraUtils');
+const testInfo = require('../utils/testInfo');
 
 
 
@@ -22,6 +24,44 @@ describe('Tests d\'ajout de jalon à un projet', function () {
    });
 
    afterEach(async function() {
+     if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
      if (driver) {
        await driver.quit();
      }
@@ -37,7 +77,7 @@ describe('Tests d\'ajout de jalon à un projet', function () {
      try {
          const addJalonSuccess = await projectsDetailsPage.clickAddJalon();
          const jalonName = "Jalon de test ";
-         const jalonDate = "25/04/2025";
+         const jalonDate = "25/06/2025";
          const jalonDescription = "Description créée par test ";
         const formFilled = await projectsDetailsPage.fillJalonForm(jalonName, jalonDate, jalonDescription);
          if (!formFilled) {
@@ -53,10 +93,17 @@ describe('Tests d\'ajout de jalon à un projet', function () {
          }
 
        } catch (error) {
-         logResult('Test KO : Modification du projet - Ajouter un nouveau jalon', error.message);
+         const errorMessage = error.message || 'Erreur inconnue lors du test d\'ajout de jalon';
+         console.error("Erreur lors du test d'ajout de jalon:", error);
+         logResult('Test KO : ' + errorMessage);
+         global.lastTestError = errorMessage;
          throw error;
        }
      } catch (error) {
+       const errorMessage = error.message || 'Erreur inconnue lors du test d\'ajout de jalon';
+       console.error("Erreur lors du test d'ajout de jalon:", error);
+       logResult('Test KO : ' + errorMessage);
+       global.lastTestError = errorMessage;
        throw error;
      }
    });
@@ -80,9 +127,14 @@ describe('Tests d\'ajout de jalon à un projet', function () {
         throw new Error('Validation du champ nom a échoué');
       }
     } catch (error) {
+      const errorMessage = error.message || 'Erreur inconnue lors du test de validation du champ nom vide';
+      console.error("Erreur lors du test de validation du champ nom vide:", error);
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
+
   it('Échec de création de jalon - Champ date vide', async function() {     
     try {
        await driver.get(config.baseUrl);
@@ -108,10 +160,14 @@ describe('Tests d\'ajout de jalon à un projet', function () {
        logResult('Test OK : Échec de création de jalon - Champ date vide');
        
     } catch (error) {
-       logResult('Test KO :Test de validation du champ date', false, error.message);
+       const errorMessage = error.message || 'Erreur inconnue lors du test de validation du champ date vide';
+       console.error("Erreur lors du test de validation du champ date vide:", error);
+       logResult('Test KO : ' + errorMessage);
+       global.lastTestError = errorMessage;
        throw error;
     }
 });
+
   it('Échec de création de jalon - Tous les champs obligatoires vides', async function() {
     try {
       await driver.get(config.baseUrl);
@@ -146,8 +202,10 @@ describe('Tests d\'ajout de jalon à un projet', function () {
       
       logResult('Test OK : Échec de création de jalon - Tous les champs obligatoires vides');
     } catch (error) {
-      console.error('Erreur détaillée:', error);
-      logResult('Test KO : Erreur Test de validation de tous les champs', false, error.message);
+      const errorMessage = error.message || 'Erreur inconnue lors du test de validation de tous les champs obligatoires vides';
+      console.error("Erreur lors du test de validation de tous les champs obligatoires vides:", error);
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -171,12 +229,12 @@ describe('Tests d\'ajout de jalon à un projet', function () {
       logResult('Test OK : Vérification du bouton Annuler dans le formulaire de jalon');
     }
   } catch (error) {
-    console.error('Erreur lors du test du bouton Annuler:', error);
-    logResult('Test du bouton Annuler', false, error.message);
+    const errorMessage = error.message || 'Erreur inconnue lors du test du bouton Annuler';
+    console.error("Erreur lors du test du bouton Annuler:", error);
+    logResult('Test KO : ' + errorMessage);
+    global.lastTestError = errorMessage;
     throw error;
   }
 });
-
-
 
 });

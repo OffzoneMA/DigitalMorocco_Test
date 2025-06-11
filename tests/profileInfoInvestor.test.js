@@ -1,13 +1,12 @@
-
-const { Builder, By, until } = require('selenium-webdriver');
+const { Builder, By, until, Key } = require('selenium-webdriver');
 const { createBugTicket } = require('../utils/jiraUtils');
 const LoginPage = require('../pages/login.page');
 const ProfilePage = require('../pages/profile.page');
 const { logResult } = require('../utils/loggers');
 const config = require('../config/config');
 const { createUniqueBrowser } = require('../helpers/browser.helper');
-const assert =require("assert");
-
+const assert = require("assert");
+const testInfo = require('../utils/testInfo');
 
 describe('Tests du profil investisseur', function () {
   let driver;
@@ -22,53 +21,102 @@ describe('Tests du profil investisseur', function () {
   });
 
   afterEach(async function() {
+    if (this.currentTest && this.currentTest.state === 'failed') {
+      console.log(`Le test "${this.currentTest.title}" a échoué!`);
+      
+      if (!global.ticketCreatedForTest) {
+        global.ticketCreatedForTest = {};
+      }
+      if (global.ticketCreatedForTest[this.currentTest.title]) {
+        console.log(`Un ticket a déjà été créé pour le test "${this.currentTest.title}". Éviter la duplication.`);
+      } else {
+        let errorMessage = 'Erreur inconnue';
+        
+        if (this.currentTest.err) {
+          errorMessage = this.currentTest.err.message;
+          console.log("Message d'erreur détecté:", errorMessage);
+        }
+        if (global.lastTestError) {
+          errorMessage = global.lastTestError;
+          console.log("Utilisation du message d'erreur global:", errorMessage);
+        }
+        const testSpecificInfo = testInfo[this.currentTest.title] || {};
+        const stepsInfo = {
+          stepsPerformed: testSpecificInfo.stepsPerformed || "Étapes non spécifiées",
+          actualResult: errorMessage,
+          expectedResult: testSpecificInfo.expectedResult || "Résultat attendu non spécifié"
+        };
+        
+        const ticketKey = await createBugTicket(
+          this.currentTest.title,
+          errorMessage,
+          stepsInfo,
+          driver
+        );
+        
+        if (ticketKey) {
+          global.ticketCreatedForTest[this.currentTest.title] = ticketKey;
+        }
+      }
+    }
     if (driver) {
       await driver.quit();
     }
   });
+
   it('Affichage des informations du profil', async function() {
-      try {
-          await driver.get(config.baseUrl);
-          await loginPage.login(config.emailInvestor, config.validPassword);
-          await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
-          const dashboardUrl = await driver.getCurrentUrl();
-          if (dashboardUrl.includes('Dashboard_Investor')) {
-              logResult('Étape 1 OK : Connexion réussie');
-          } else {
-              logResult(`Étape 1 KO : Redirection inattendue vers ${dashboardUrl}`);
-              throw new Error('Échec de connexion');
-          }
-          const navigateSuccess = await profilePage.navigateToProfile();
-          if (navigateSuccess) {
-              logResult('Étape 2 OK : Navigation vers la page profile réussie');
-          } else {
-              logResult('Étape 2 KO : Échec de navigation vers la page profile');
-              throw new Error('Échec de navigation vers la page profile');
-          }
-          await driver.sleep(2000);
-          const profileInfo = await profilePage.getProfileInfo();
-          if (profileInfo) {
-              logResult('Étape 3 OK : Informations du profil récupérées avec succès');
-              console.log("Informations du profil:");
-              console.log("Prénom:", profileInfo.firstName);
-              console.log("Nom:", profileInfo.lastName);
-              console.log("Email:", profileInfo.email);
-              console.log("Téléphone:", profileInfo.phoneNumber);
-              console.log("Site Web:", profileInfo.website);
-              console.log("Adresse:", profileInfo.address);
-              console.log("Pays:", profileInfo.country);
-              assert.strictEqual(profileInfo.email, config.emailInvestor, "L'email affiché ne correspond pas à celui utilisé pour la connexion");
-          } else {
-              logResult('Étape 3 KO : Échec de récupération des informations du profil');
-              throw new Error('Échec de récupération des informations du profil');
-          }
-      
-          logResult('Test OK : Affichage des informations du profil investisseur ');
-      } catch (error) {
-          logResult('Test KO : ' + error.message);
-          throw error;
+    try {
+      await driver.get(config.baseUrl);
+      await loginPage.login(config.emailInvestor, config.validPassword);
+      await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
+      const dashboardUrl = await driver.getCurrentUrl();
+      if (dashboardUrl.includes('Dashboard_Investor')) {
+        logResult('Étape 1 OK : Connexion réussie');
+      } else {
+        logResult(`Étape 1 KO : Redirection inattendue vers ${dashboardUrl}`);
+        const errorMessage = 'Échec de connexion - redirection inattendue';
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
+      const navigateSuccess = await profilePage.navigateToProfile();
+      if (navigateSuccess) {
+        logResult('Étape 2 OK : Navigation vers la page profile réussie');
+      } else {
+        logResult('Étape 2 KO : Échec de navigation vers la page profile');
+        const errorMessage = 'Échec de navigation vers la page profile';
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
+      }
+      await driver.sleep(2000);
+      const profileInfo = await profilePage.getProfileInfo();
+      await driver.sleep(3000);
+      if (profileInfo) {
+        logResult('Étape 3 OK : Informations du profil récupérées avec succès');
+        console.log("Informations du profil:");
+        console.log("Prénom:", profileInfo.firstName);
+        console.log("Nom:", profileInfo.lastName);
+        console.log("Email:", profileInfo.email);
+        console.log("Téléphone:", profileInfo.phoneNumber);
+        console.log("Site Web:", profileInfo.website);
+        console.log("Adresse:", profileInfo.address);
+        console.log("Pays:", profileInfo.country);
+        assert.strictEqual(profileInfo.email, config.emailInvestor, "L'email affiché ne correspond pas à celui utilisé pour la connexion");
+      } else {
+        logResult('Étape 3 KO : Échec de récupération des informations du profil');
+        const errorMessage = 'Échec de récupération des informations du profil';
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
+      }
+      
+      logResult('Test OK : Affichage des informations du profil investisseur');
+    } catch (error) {
+      const errorMessage = 'Erreur lors de l\'affichage des informations du profil';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
+    }
   });
+
   it('Modification des informations personnelles dans le profil', async function() {
     try {
       await driver.get(config.baseUrl);
@@ -103,12 +151,16 @@ describe('Tests du profil investisseur', function () {
       if (currentInfo.firstName === updates.firstName && 
           currentInfo.lastName === updates.lastName &&
           currentInfo.country === paysRecherche) {
+        logResult('Test OK : Modification du profil investisseur réussie');
       } else {
-        throw new Error('Les modifications du profil n\'ont pas été correctement enregistrées');
+        const errorMessage = 'Les modifications du profil n\'ont pas été correctement enregistrées';
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
-      logResult('Test OK : Modification du profil investisseur réussie');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors de la modification des informations personnelles';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -124,7 +176,9 @@ describe('Tests du profil investisseur', function () {
       await profilePage.changePassword(currentPassword, newPassword, newPassword);
       const saveResult = await profilePage.savePasswordChanges();
       if (!saveResult.success) {
-        throw new Error(`Échec de la modification du mot de passe: ${saveResult.message}`);
+        const errorMessage = `Échec de la modification du mot de passe: ${saveResult.message}`;
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
       await profilePage.logout();
       await loginPage.login(config.emailInvestor, newPassword);
@@ -133,7 +187,9 @@ describe('Tests du profil investisseur', function () {
       await profilePage.changePassword(newPassword, currentPassword, currentPassword);
       const restoreResult = await profilePage.savePasswordChanges();
       if (!restoreResult.success) {
-        throw new Error(`Échec de la restauration du mot de passe original: ${restoreResult.message}`);
+        const errorMessage = `Échec de la restauration du mot de passe original: ${restoreResult.message}`;
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
       await profilePage.logout();
       await loginPage.login(config.validEmail, currentPassword);
@@ -141,11 +197,12 @@ describe('Tests du profil investisseur', function () {
       
       logResult('Test OK : Modification du mot de passe réussie');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors de la modification du mot de passe';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
-  
   
   it('Validation des critères de mot de passe non conforme', async function() {
     try {
@@ -161,15 +218,18 @@ describe('Tests du profil investisseur', function () {
       const hasErrorNewPassword = await profilePage.checkFieldHasError('newPassword');
       const errorMsgNewPassword = await profilePage.getFieldErrorMessage('newPassword');    
       if (!hasErrorNewPassword) {
-        throw new Error("Le champ de mot de passe non conforme ne présente pas d'erreur visible");
+        const errorMessage = "Le champ de mot de passe non conforme ne présente pas d'erreur visible";
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }    
       logResult('Test OK : Détection réussie du mot de passe non conforme aux critères');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors de la validation des critères de mot de passe';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
-  
   
   it('Échec de correspondance entre le nouveau mot de passe et sa confirmation', async function() {
     try {
@@ -186,15 +246,18 @@ describe('Tests du profil investisseur', function () {
       const hasErrorConfirm = await profilePage.checkFieldHasError('confirmNewPassword');
       const errorMsgConfirm = await profilePage.getFieldErrorMessage('confirmNewPassword');
       if (!hasErrorConfirm) {
-        throw new Error("Le champ de confirmation différente ne présente pas d'erreur visible");
+        const errorMessage = "Le champ de confirmation différente ne présente pas d'erreur visible";
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
       logResult('Test OK : Détection de la non-concordance entre les mots de passe réussie');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage ='Erreur lors de la validation de correspondance des mots de passe';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
-  
   
   it('Validation des champs obligatoires dans le profil', async function() {
     try {
@@ -251,7 +314,9 @@ describe('Tests du profil investisseur', function () {
       }
       logResult('Test OK : Validation des champs obligatoires investisseur réussie');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors de la validation des champs obligatoires';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -282,14 +347,17 @@ describe('Tests du profil investisseur', function () {
       if (allValidationsSuccessful) {
         logResult('Test OK : Validation du format email investisseur réussie');
       } else {
-        throw new Error('Un ou plusieurs tests de validation email ont échoué');
+        const errorMessage = 'Un ou plusieurs tests de validation email ont échoué';
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors de la validation du format email';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
-  
   
   it('Téléchargement de photo de profil', async function() {
     try {
@@ -302,9 +370,11 @@ describe('Tests du profil investisseur', function () {
       await profilePage.uploadProfilePhoto(imageName);
       await driver.navigate().refresh();
       await driver.sleep(5000);
-     logResult('Test OK : Téléchargement de photo de profil investisseur réussie');
+      logResult('Test OK : Téléchargement de photo de profil investisseur réussie');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors du téléchargement de photo de profil';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -319,14 +389,18 @@ describe('Tests du profil investisseur', function () {
       const imageName = 'photoprof.png';  
       const photoChangeSuccess = await profilePage.changeProfilePhoto(imageName);
       if (!photoChangeSuccess) {
-        throw new Error("Échec du changement de photo de profil");
+        const errorMessage = "Échec du changement de photo de profil";
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
       await profilePage.saveProfileInfo();
       await driver.navigate().refresh();
       await driver.sleep(3000);
       logResult('Test OK : Changement de photo de profil investisseur réussi');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors du changement de photo de profil';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -342,9 +416,11 @@ describe('Tests du profil investisseur', function () {
       await profilePage.saveProfileInfo();
       await driver.navigate().refresh();
       await driver.sleep(3000);
-      logResult('Test OK : Suppression de photo de profil investisseur  réussi');
+      logResult('Test OK : Suppression de photo de profil investisseur réussi');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors de la suppression de photo de profil';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -383,7 +459,9 @@ describe('Tests du profil investisseur', function () {
       await driver.sleep(5000);
       logResult('Test OK : Refus de téléchargement de photo avec format non autorisé');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors du test de refus de format non autorisé';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
@@ -402,50 +480,55 @@ describe('Tests du profil investisseur', function () {
       await driver.sleep(2000); 
       const languageValue = await profilePage.getSelectedLanguage();
       if (languageValue) {
-      console.log("Langue actuellement sélectionnée:", languageValue);
-      const expectedLanguage = "Français";
-      assert.strictEqual(languageValue, expectedLanguage, `La langue affichée (${languageValue}) ne correspond pas à la valeur attendue (${expectedLanguage})`);
+        console.log("Langue actuellement sélectionnée:", languageValue);
+        const expectedLanguage = "Français";
+        assert.strictEqual(languageValue, expectedLanguage, `La langue affichée (${languageValue}) ne correspond pas à la valeur attendue (${expectedLanguage})`);
       } else {
-      throw new Error('Échec de récupération de la valeur de langue');
+        const errorMessage = 'Échec de récupération de la valeur de langue';
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
       }
       logResult('Test OK : Affichage initial des sélections de langue vérifié avec succès');
     } catch (error) {
-      logResult('Test KO : ' + error.message);
+      const errorMessage = 'Erreur lors de l\'affichage des sélections de langue';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
       throw error;
     }
   });
   
-  
   it('Changement de langue et de région avec vérification', async function() {
     try {
-        await driver.get(config.baseUrl);
-        await loginPage.login(config.emailInvestor, config.validPassword);
-        await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
-        await profilePage.navigateToProfile();
-        await driver.sleep(3000);
-        await profilePage.scrollToLanguageSection();
-        const langSectionVisible = await profilePage.checkLanguageSectionVisible();
-        assert.strictEqual(langSectionVisible, true, 'La section des paramètres de langue n\'est pas visible');
-        const isFrench = await profilePage.verifyPageLanguage();
-        assert.strictEqual(isFrench, true, 'L\'interface n\'est pas en français initialement');
-        const initialLanguage = await profilePage.getSelectedLanguage();
-        console.log("Langue initiale:", initialLanguage);
-        assert.strictEqual(initialLanguage, "Français", `La langue initiale (${initialLanguage}) n'est pas celle attendue (Français)`);
-        
-        await profilePage.changeLanguage("English");
-        await profilePage.changeRegion("Asie");
-        await profilePage.saveLanguageAndRegionSettings();
-        await driver.sleep(6000);      
-        const isEnglish = await profilePage.verifyEnglishInterface();
-        assert.strictEqual(isEnglish, true, 'L\'interface n\'est pas passée en anglais après le changement');
-        await profilePage.changeLanguage("Français");
-        await profilePage.saveLanguageAndRegionSettings();
-        await driver.sleep(5000);
-        await driver.navigate().refresh();
-        logResult('Test OK : Changement de langue et de région effectué avec succès et vérifié');
+      await driver.get(config.baseUrl);
+      await loginPage.login(config.emailInvestor, config.validPassword);
+      await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
+      await profilePage.navigateToProfile();
+      await driver.sleep(3000);
+      await profilePage.scrollToLanguageSection();
+      const langSectionVisible = await profilePage.checkLanguageSectionVisible();
+      assert.strictEqual(langSectionVisible, true, 'La section des paramètres de langue n\'est pas visible');
+      const isFrench = await profilePage.verifyPageLanguage();
+      assert.strictEqual(isFrench, true, 'L\'interface n\'est pas en français initialement');
+      const initialLanguage = await profilePage.getSelectedLanguage();
+      console.log("Langue initiale:", initialLanguage);
+      assert.strictEqual(initialLanguage, "Français", `La langue initiale (${initialLanguage}) n'est pas celle attendue (Français)`);
+      
+      await profilePage.changeLanguage("English");
+      await profilePage.changeRegion("Asie");
+      await profilePage.saveLanguageAndRegionSettings();
+      await driver.sleep(6000);      
+      const isEnglish = await profilePage.verifyEnglishInterface();
+      assert.strictEqual(isEnglish, true, 'L\'interface n\'est pas passée en anglais après le changement');
+      await profilePage.changeLanguage("Français");
+      await profilePage.saveLanguageAndRegionSettings();
+      await driver.sleep(5000);
+      await driver.navigate().refresh();
+      logResult('Test OK : Changement de langue et de région effectué avec succès et vérifié');
     } catch (error) {
-        logResult('Test KO : ' + error.message);
-        throw error;
+      const errorMessage = 'Erreur lors du changement de langue et de région';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
     }
   });
 })
