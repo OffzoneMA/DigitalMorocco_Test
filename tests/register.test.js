@@ -20,7 +20,7 @@ describe('Tests d\'inscription', function () {
   let driver;
   let registerPage;
   let originalPost;
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     host: 'sandbox.smtp.mailtrap.io',
     port: 2525,
     auth: {
