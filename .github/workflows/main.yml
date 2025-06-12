@@ -20,6 +20,10 @@ on:
           - paiement
           - credit
           - notification
+          - historique
+          - investorCompany
+          - investorProfile
+          - profileInfoInvestor
       
 jobs:
   test:

@@ -19,6 +19,7 @@
     "investorCompany":"npx wdio run wdio.conf.js --spec ./tests/investorCompany.test.js",
     "investorProfile":"npx wdio run wdio.conf.js --spec ./tests/investorProfile.test.js",
     "investorInfo":"npx wdio run wdio.conf.js --spec ./tests/profileInfoInvestor.test.js",
+    "historique":"npx wdio run wdio.conf.js --spec ./tests/historique.test.js",
     "test:login": "docker-compose run --name test-login test npx wdio run wdio.conf.js --spec ./tests/login.test.js",
     "test:profile": "docker-compose run --name test-profile test npx wdio run wdio.conf.js --spec ./tests/profile.test.js",
     "test:company": "docker-compose run --name test-company test npx wdio run wdio.conf.js --spec ./tests/company.test.js",

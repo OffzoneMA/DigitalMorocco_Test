@@ -409,7 +409,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
             if (afterSubmitErrors.length > 0) {
               logResult('Test OK : Le système a correctement rejeté le fichier non autorisé après tentative de soumission');
             } else {
-              const errorMessage = error.message || `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
+              const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
               logResult('Test KO :' + errorMessage);
               global.lastTestError = errorMessage;
               throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
@@ -469,7 +469,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
             if (afterSubmitErrors.length > 0) {
               logResult('Test OK : Le système a correctement rejeté le fichier volumineux');
             } else {
-              const errorMessage = error.message ||`Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
+              const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;
 

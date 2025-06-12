@@ -65,7 +65,7 @@ describe('Test Profile', function () {
     }
   });  
 
- it('Affichage des informations du profil', async function() {
+it('Affichage des informations du profil', async function() {
     try {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
@@ -435,7 +435,7 @@ it('Refus de téléchargement de photo avec format non autorisé', async functio
     await driver.sleep(5000);
     logResult('Test OK : Refus de téléchargement de photo avec format non autorisé');
   } catch (error) {
-    const errorMessage = error.message ||'La validation du format de photo ne fonctionne pas correctement';
+    const errorMessage = 'La validation du format de photo ne fonctionne pas correctement';
     logResult('Test KO : ' + errorMessage);
     global.lastTestError = errorMessage;
     throw error;
@@ -500,7 +500,7 @@ it('Changement de langue et de région avec vérification', async function() {
       await driver.navigate().refresh();
       logResult('Test OK : Changement de langue et de région effectué avec succès et vérifié');
   } catch (error) {
-      const errorMessage = error.message || 'Le changement de langue et de région ne fonctionne pas correctement';
+      const errorMessage =  'Le changement de langue et de région ne fonctionne pas correctement';
       logResult('Test KO : ' + errorMessage);
       global.lastTestError = errorMessage;
       throw error;

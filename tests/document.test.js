@@ -145,7 +145,7 @@ afterEach(async function() {
         }
     });
 
-    it('Modification du nom d\'un document ', async function() {
+    it('Modification du nom d\'un document', async function() {
       try {
         await driver.get(config.baseUrl);
         await loginPage.login(config.validEmail, config.validPassword);
@@ -179,7 +179,7 @@ afterEach(async function() {
         }
         
       } catch (error) {
-        const errorMessage = error.message;
+        const errorMessage = 'La modification du nom a échoué .';
         logResult('Test KO : ' + errorMessage);
         global.lastTestError = errorMessage;      
         throw error;
@@ -441,7 +441,7 @@ afterEach(async function() {
                     const rowsAfterDeletion = await driver.findElements(By.xpath("//tbody/tr"));
                     const countAfterDeletion = rowsAfterDeletion.length;
                      } else {
-                       const errorMessage =error.message ||' Le document est toujours présent dans la liste après suppression';
+                       const errorMessage =' La suppression du document a échoué';
                         logResult('Test KO : ' + errorMessage);
                       global.lastTestError = errorMessage;      
                     throw error;
@@ -497,7 +497,7 @@ afterEach(async function() {
                   if (afterSubmitErrors.length > 0) {
                     logResult('Test OK : Le système a correctement rejeté le fichier non autorisé après tentative de soumission');
                   } else {
-                    const errorMessage =error.message || `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
+                    const errorMessage =`Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
                     logResult('Test KO :' + errorMessage);
                     global.lastTestError = errorMessage;
                     throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
@@ -558,7 +558,7 @@ afterEach(async function() {
                     if (afterSubmitErrors.length > 0) {
                       logResult('Test OK : Le système a correctement rejeté le fichier volumineux');
                     } else {
-                      const errorMessage = error.message ||`Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
+                      const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
                       logResult('Test KO : ' + errorMessage);
                       global.lastTestError = errorMessage;
                       throw new Error('Le système n\'a pas détecté le fichier volumineux');

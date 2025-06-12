@@ -1054,7 +1054,7 @@ it('Renouveler l\'abonnement', async function() {
         
         
     } catch (error) {
-          const errorMessage =error.message ||'Bouton Renouvellement d\'abonnement échoue';
+          const errorMessage ='Bouton Renouvellement d\'abonnement échoue';
          logResult('Test KO : ' + errorMessage);
          global.lastTestError = errorMessage;
         throw error;
@@ -1093,7 +1093,7 @@ it('Annuler l\'annulation du plan (garder le plan)', async function() {
         }
         
     } catch (error) {
-       const errorMessage =error.message ||'Plan non conservé .';
+       const errorMessage ='Le bouton non trouvé .';
          logResult('Test KO : ' + errorMessage);
          global.lastTestError = errorMessage;
         throw error;
@@ -1138,7 +1138,7 @@ it('Mettre à niveau le plan', async function() {
         }
         
     } catch (error) {
-         const errorMessage =error.message ||'La mise à niveau du plan a échouée .';
+         const errorMessage ='Le bouton non trouvé .';
          logResult('Test KO : ' + errorMessage);
          global.lastTestError = errorMessage;
         throw error;
@@ -1162,7 +1162,7 @@ it('Vérifier qu\'un utilisateur ne peut pas mettre à niveau un plan déjà act
             logResult(`Test OK : Impossible de mettre à niveau un plan déjà actif `);
         }
  } catch (error) {
-        const errorMessage =error.message ||' L\'utilisateur peut sélectionner le plan déjà actif';
+        const errorMessage =' La vérification a échoué ';
          logResult('Test KO : ' + errorMessage);
          global.lastTestError = errorMessage;
         throw error;

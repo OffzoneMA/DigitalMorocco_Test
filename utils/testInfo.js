@@ -174,7 +174,7 @@ const testInfo = {
     
     
     //document
-    "Création d'un document avec vérification dans le tableau": {
+    "Création d\'un document avec vérification dans le tableau": {
       stepsPerformed: "1. Connexion à l'application\n2. Navigation vers la page des documents\n3. Clic sur le bouton 'Télécharger un nouveau document'\n4. Remplissage du formulaire avec les informations du document\n5. Soumission du formulaire",
       expectedResult: "Le document estajouté à la table"
     },
@@ -182,11 +182,11 @@ const testInfo = {
       stepsPerformed: "1. Connexion à l'application\n2. Navigation vers la page des documents\n3. Clic sur le bouton 'Télécharger un nouveau document'\n4. Remplissage du formulaire avec les informations en laissant les champs obligatoires vides \n5. Soumission du formulaire",
       expectedResult: "Un message d'erreur est affiché "
     },
-     "Modification du nom d'un document": {
+     "Modification du nom d\'un document": {
       stepsPerformed: "1. Connexion à l'application\n2. Navigation vers la page des documents\n3. Clic sur l'icon modifier\n4. Modifier le nom du document\n5.Cliquer sur le bouton Modifier le document",
       expectedResult: "Le nom du document est modifié "
     },
-     "Mise à jour du fichier d'un document avec vérification": {
+     "Mise à jour du fichier d\'un document avec vérification": {
       stepsPerformed: "1. Connexion à l'application\n2. Navigation vers la page des documents\n3. Clic sur l'icon modifier\n4. Cliquer sur le bouton mettre à jour le document\n5.Cliquer sur le bouton Modifier le document",
       expectedResult: "Le document est mis à jour "
     },

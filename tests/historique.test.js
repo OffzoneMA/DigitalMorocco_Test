@@ -324,7 +324,7 @@ describe('Tests de la page Historique', function () {
     }
 });
 
-b
+
 
    
 });
