@@ -92,14 +92,6 @@ describe('Tests du profil investisseur', function () {
       await driver.sleep(3000);
       if (profileInfo) {
         logResult('Étape 3 OK : Informations du profil récupérées avec succès');
-        console.log("Informations du profil:");
-        console.log("Prénom:", profileInfo.firstName);
-        console.log("Nom:", profileInfo.lastName);
-        console.log("Email:", profileInfo.email);
-        console.log("Téléphone:", profileInfo.phoneNumber);
-        console.log("Site Web:", profileInfo.website);
-        console.log("Adresse:", profileInfo.address);
-        console.log("Pays:", profileInfo.country);
         assert.strictEqual(profileInfo.email, config.emailInvestor, "L'email affiché ne correspond pas à celui utilisé pour la connexion");
       } else {
         logResult('Étape 3 KO : Échec de récupération des informations du profil');

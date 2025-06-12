@@ -19,7 +19,7 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
   let documentPage;
 
   beforeEach(async function() {
-    driver = await new Builder().forBrowser('chrome').build();
+    driver = await createUniqueBrowser();
     await driver.manage().window().maximize();
     loginPage = new LoginPage(driver);
     documentPage = new DocumentPage(driver);

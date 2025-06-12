@@ -18,7 +18,7 @@ describe('Tests de la page Historique', function () {
 
 
     beforeEach(async function() {
-        driver = await new Builder().forBrowser('chrome').build();
+        driver = await createUniqueBrowser();
         await driver.manage().window().maximize();
         loginPage = new LoginPage(driver);
         historiquePage = new HistoriquePage(driver);
