@@ -21,6 +21,7 @@
     "investorInfo":"npx wdio run wdio.conf.js --spec ./tests/profileInfoInvestor.test.js",
     "historique":"npx wdio run wdio.conf.js --spec ./tests/historique.test.js",
     "test:login": "docker-compose run --name test-login test npx wdio run wdio.conf.js --spec ./tests/login.test.js",
+    "test:notification": "docker-compose run --name test-notification test npx wdio run wdio.conf.js --spec ./tests/notification.test.js",
     "test:profile": "docker-compose run --name test-profile test npx wdio run wdio.conf.js --spec ./tests/profile.test.js",
     "test:company": "docker-compose run --name test-company test npx wdio run wdio.conf.js --spec ./tests/company.test.js",
     "test:document": "docker-compose run --name test-document test npx wdio run wdio.conf.js --spec ./tests/document.test.js",
@@ -28,7 +29,15 @@
     "test:register": "docker-compose run --name test-register test npx wdio run wdio.conf.js --spec ./tests/register.test.js",
     "test:project": "docker-compose run --name test-project test npx wdio run wdio.conf.js --spec ./tests/project.test.js",
     "test:projectdetails": "docker-compose run --name test-projectdetails test npx wdio run wdio.conf.js --spec ./tests/projectDetails.test.js",
-    "test:juridique": "docker-compose run --name test-juridique test npx wdio run wdio.conf.js --spec ./tests/juridique.test.js"
+    "test:juridique": "docker-compose run --name test-juridique test npx wdio run wdio.conf.js --spec ./tests/juridique.test.js",
+    "test:paiement": "docker-compose run --name test-paiement test npx wdio run wdio.conf.js --spec ./tests/paiement.test.js",
+    "test:historique": "docker-compose run --name test-historique test npx wdio run wdio.conf.js --spec ./tests/historique.test.js",
+    "test:credit": "docker-compose run --name test-credit test npx wdio run wdio.conf.js --spec ./tests/credit.test.js",
+    "test:investorCompany": "docker-compose run --name test-investorCompany test npx wdio run wdio.conf.js --spec ./tests/investorCompany.test.js",
+    "test:investorProfile": "docker-compose run --name test-investorProfile test npx wdio run wdio.conf.js --spec ./tests/investorProfile.test.js",
+    "test:profileInfoInvestor": "docker-compose run --name test-profileInfoInvestor test npx wdio run wdio.conf.js --spec ./tests/profileInfoInvestor.test.js"
+
+
     },
   "keywords": [],
   "author": "",

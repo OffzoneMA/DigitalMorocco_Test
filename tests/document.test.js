@@ -212,7 +212,7 @@ afterEach(async function() {
             if (displayedFileName.includes(newFileName)) {
               logResult('Test OK : Modification du document - mise à jour du fichier vérifiée');
             } else {
-              const errorMessage =error.message ||'Modification échoué - Mis à jour du fichier a échoué';
+              const errorMessage ='Modification échoué - Mis à jour du fichier a échoué';
               logResult('Test KO : ' + errorMessage);
               global.lastTestError = errorMessage;      
               throw error;
@@ -260,7 +260,7 @@ afterEach(async function() {
             logResult(`Test OK : Modification réussie - Désélection d'un membre`);
           }
         } catch (error) {
-           const errorMessage =error.message ||'Déselection d\'un membre a échoué';
+           const errorMessage ='Déselection d\'un membre a échoué';
           logResult('Test KO : ' + errorMessage);
           global.lastTestError = errorMessage;      
           throw error;
@@ -464,12 +464,9 @@ afterEach(async function() {
               await loginPage.login(config.validEmail, config.validPassword);
               await driver.wait(until.urlContains('Dashboard'), 20000);
               await documentPage.navigateToDocuments();
-              
               const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Télécharger un nouveau document')]]") ), 10000);
               await driver.executeScript("arguments[0].click();", createDocumentButton);
-              
               const modalForm = await driver.wait(until.elementLocated( By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Télécharger un nouveau document')]]]")), 5000);
-              
               const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
               await titleInput.clear();
               await titleInput.sendKeys("Test fichier non autorisé");
@@ -489,8 +486,6 @@ afterEach(async function() {
                 try {
                   const loadingButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Envoi en cours')]")), 5000);
                   logResult('Test KO : Le système a accepté un fichier non autorisé et a commencé le téléchargement');
-                  
-                  
                   throw new Error('Le système a tenté de télécharger un fichier avec format non autorisé');
                 } catch (timeoutError) {
                   const afterSubmitErrors = await driver.findElements(By.xpath("//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]" ));
