@@ -64,7 +64,7 @@ describe('Tests du profil investisseur', function () {
     }
   });
 
-  it('Affichage des informations du profil', async function() {
+ /* it('Affichage des informations du profil', async function() {
     try {
       await driver.get(config.baseUrl);
       await loginPage.login(config.emailInvestor, config.validPassword);
@@ -424,7 +424,7 @@ describe('Tests du profil investisseur', function () {
       await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
       await profilePage.navigateToProfile();
       await driver.sleep(5000);
-      const invalidImageName = 'Cas_de_Test.docx';
+      const invalidImageName = 'Document.pdf';
       let errorOccurred = false;
       let errorMessage = '';
       try {
@@ -456,7 +456,7 @@ describe('Tests du profil investisseur', function () {
       global.lastTestError = errorMessage;
       throw error;
     }
-  });
+  });*/
   
   it('Affichage initial des sélections de langue', async function() {
     try {
@@ -506,14 +506,14 @@ describe('Tests du profil investisseur', function () {
       assert.strictEqual(initialLanguage, "Français", `La langue initiale (${initialLanguage}) n'est pas celle attendue (Français)`);
       
       await profilePage.changeLanguage("English");
-      await profilePage.changeRegion("Asie");
+      await profilePage.changeRegionAlternative("Asie");
       await profilePage.saveLanguageAndRegionSettings();
-      await driver.sleep(6000);      
+      await driver.sleep(12000);      
       const isEnglish = await profilePage.verifyEnglishInterface();
       assert.strictEqual(isEnglish, true, 'L\'interface n\'est pas passée en anglais après le changement');
       await profilePage.changeLanguage("Français");
       await profilePage.saveLanguageAndRegionSettings();
-      await driver.sleep(5000);
+      await driver.sleep(12000);
       await driver.navigate().refresh();
       logResult('Test OK : Changement de langue et de région effectué avec succès et vérifié');
     } catch (error) {

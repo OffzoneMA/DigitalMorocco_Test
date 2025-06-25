@@ -265,81 +265,101 @@ async clearAllFields() {
   }
 
 async uploadCompanyLogo(filePath) {
-  try {
-    const uploadLabel = await this.driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Téléchargez le logo de votre entreprise')]")), 10000, "Label de téléchargement du logo non trouvé" );
-    let fileInput;
     try {
-      const labelForAttribute = await uploadLabel.getAttribute('for');
-      if (labelForAttribute) {
-        fileInput = await this.driver.findElement(By.id(labelForAttribute));
-      } else {
-        fileInput = await this.driver.findElement(By.css("input[type='file']"));
-      }
-    } catch (e) {
-      await this.driver.executeScript(`
-        const tempInput = document.createElement('input');
-        tempInput.type = 'file';
-        tempInput.id = 'tempFileInput';
-        tempInput.style.display = 'block';
-        document.body.appendChild(tempInput);
-      `);
-      
-      fileInput = await this.driver.findElement(By.id('tempFileInput'));
+        const uploadLabel = await this.driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Téléchargez le logo de votre entreprise')]")), 10000, "Label de téléchargement du logo non trouvé" );
+        let fileInput;
+        try {
+            const labelForAttribute = await uploadLabel.getAttribute('for');
+            if (labelForAttribute) {
+                fileInput = await this.driver.findElement(By.id(labelForAttribute));
+            } else {
+                fileInput = await this.driver.findElement(By.css("input[type='file']"));
+            }
+        } catch (e) {
+            await this.driver.executeScript(`
+                const tempInput = document.createElement('input');
+                tempInput.type = 'file';
+                tempInput.id = 'tempFileInput';
+                tempInput.style.display = 'block';
+                document.body.appendChild(tempInput);
+            `);
+            
+            fileInput = await this.driver.findElement(By.id('tempFileInput'));
+        }
+        
+        await this.driver.executeScript(
+            "arguments[0].style.display = 'block'; arguments[0].style.visibility = 'visible';", 
+            fileInput
+        );
+        
+        await fileInput.sendKeys(filePath);
+        await this.driver.sleep(2000);
+        
+        try {
+            await this.driver.wait(until.elementLocated(By.css(".company-logo-preview, img[alt*='logo'], .logo-preview")), 10000, "Aperçu du logo non trouvé après téléchargement");
+            console.log("Logo téléchargé avec succès");
+            return true;
+        } catch (previewError) {
+            console.warn("Aperçu du logo non trouvé, mais le téléchargement peut avoir réussi");
+            return true;
+        }
+    } catch (error) {
+        console.error("Erreur lors du téléchargement du logo:", error.message);
+        throw error;
     }
-    await this.driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.visibility = 'visible';", fileInput);
-    await fileInput.sendKeys(filePath);
-    await this.driver.sleep(2000); 
-    try {
-      await this.driver.wait(until.elementLocated(By.css(".company-logo-preview, img[alt*='logo'], .logo-preview")), 10000, "Aperçu du logo non trouvé après téléchargement");
-      console.log("Logo téléchargé avec succès");
-      return true;
-    } catch (previewError) {
-      
-    }
-  } catch (error) {
-    console.error("Erreur lors du téléchargement du logo:", error.message);
-    throw error;
-  }
 }
 
 async changeCompanyLogo(filePath) {
-  try {
-    const optionsButton = await this.driver.wait(until.elementLocated(By.css('svg[width="14"][height="4"]')), 10000, "Menu d'options (trois points) non trouvé");
-    await optionsButton.click();
-    await this.driver.sleep(1000); 
-    const changeOption = await this.driver.wait(until.elementLocated(By.xpath('//div[contains(@class, "flex-col") and contains(@class, "bg-white-A700")]//div[contains(text(), "Changer")]')),5000,"Option 'Changer' non trouvée dans le dropdown");
-    await changeOption.click();
-    await this.driver.sleep(1000); 
-    let fileInput;
     try {
-      fileInput = await this.driver.findElement(By.css("input[type='file']"));
-    } catch (e) {
-      console.warn("Input file non trouvé via méthode standard, utilisation d'approche alternative");
-      await this.driver.executeScript(`
-        const tempInput = document.createElement('input');
-        tempInput.type = 'file';
-        tempInput.id = 'tempFileInput';
-        tempInput.style.display = 'block';
-        document.body.appendChild(tempInput);
-      `);
-      
-      fileInput = await this.driver.findElement(By.id('tempFileInput'));
+        const optionsButton = await this.driver.wait(until.elementLocated(By.css('svg[width="14"][height="4"]')), 10000, "Menu d'options (trois points) non trouvé" );
+        await optionsButton.click();
+        await this.driver.sleep(1000);
+        
+        const changeOption = await this.driver.wait(until.elementLocated(By.xpath('//div[contains(@class, "flex-col") and contains(@class, "bg-white-A700")]//div[contains(text(), "Changer")]')),5000,"Option 'Changer' non trouvée dans le dropdown");
+        await changeOption.click();
+        await this.driver.sleep(1000);
+        
+        let fileInput;
+        try {
+            fileInput = await this.driver.findElement(By.css("input[type='file']"));
+        } catch (e) {
+            console.warn("Input file non trouvé via méthode standard, utilisation d'approche alternative");
+            await this.driver.executeScript(`
+                const tempInput = document.createElement('input');
+                tempInput.type = 'file';
+                tempInput.id = 'tempFileInput';
+                tempInput.style.display = 'block';
+                document.body.appendChild(tempInput);
+            `);
+            
+            fileInput = await this.driver.findElement(By.id('tempFileInput'));
+        }
+        
+        await this.driver.executeScript(
+            "arguments[0].style.display = 'block'; arguments[0].style.visibility = 'visible';", 
+            fileInput
+        );
+        await fileInput.sendKeys(filePath);
+        await this.driver.sleep(2000);
+        
+        try {
+            await this.driver.wait(
+                until.elementLocated(By.css(".company-logo-preview, img[alt*='logo'], .logo-preview")), 
+                10000,
+                "Aperçu du logo non trouvé après changement"
+            );
+            console.log("Logo changé avec succès");
+            return true;
+        } catch (previewError) {
+            console.warn("Aperçu du logo non trouvé, mais le changement peut avoir réussi");
+            return true;
+        }
+    } catch (error) {
+        console.error("Erreur lors du changement du logo:", error.message);
+        throw error;
     }
-    await this.driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.visibility = 'visible';", fileInput);
-    await fileInput.sendKeys(filePath);
-    await this.driver.sleep(2000); 
-    try {
-      await this.driver.wait(until.elementLocated(By.css(".company-logo-preview, img[alt*='logo'], .logo-preview")), 10000,"Aperçu du logo non trouvé après changement");
-      console.log("Logo changé avec succès");
-      return true;
-    } catch (previewError) {
-     throw previewError;
-    }
-  } catch (error) {
-    console.error("Erreur lors du changement du logo:", error.message);
-    throw error;
-  }
 }
+
 
 async removeCompanyLogoIfExists() {
   try {

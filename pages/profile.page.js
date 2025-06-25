@@ -1,4 +1,4 @@
-const {By, until} = require("selenium-webdriver");
+const {By, until ,  Key } = require("selenium-webdriver");
 const os = require('os');
 
 
@@ -371,10 +371,10 @@ class ProfilePage {
 
       async uploadProfilePhoto(imageName) {
         try {
-          const os = require('os');
           const path = require('path');
-          const downloadsFolder = path.join(os.homedir(), 'Downloads');
-          const absoluteImagePath = path.join(downloadsFolder, imageName);
+          const fs = require('fs');
+          const testFilesImagesPath = path.join(__dirname, '..', 'test-files', 'images');
+          const absoluteImagePath = path.join(testFilesImagesPath, imageName);
           const fileInput = await this.driver.findElement(By.css('input[type="file"]'));
           await fileInput.sendKeys(absoluteImagePath);
           await this.driver.sleep(3000);
@@ -387,31 +387,42 @@ class ProfilePage {
       }
 
       async changeProfilePhoto(imageName) {
-        try {
-            await this.driver.sleep(5000);
-            const iconContainer = await this.driver.wait(until.elementLocated(By.className('icon-container1')),10000,"Le conteneur de l'icône n'a pas été trouvé" );
-            const actions = this.driver.actions({async: true});
-            await actions.move({origin: iconContainer}).perform();
-            await this.driver.sleep(2000);
-            const changeButton = await this.driver.wait(until.elementLocated(By.xpath('//div[text()="Changer"]')),5000,"Le bouton 'Changer' n'a pas été trouvé après hover" );
-            await changeButton.click();
-            await this.driver.sleep(1000);
-            const fileInput = await this.driver.wait(until.elementLocated(By.css('input[type="file"]')),5000,"Le sélecteur de fichier n'est pas apparu");
-            await fileInput.sendKeys(this.getAbsoluteImagePath(imageName));
-            await this.driver.sleep(3000);
-            return true;
-        } catch (error) {
-            console.error(`Erreur lors du changement de photo de profil: ${error.message}`);
-            throw new Error(`Impossible de changer la photo de profil: ${error.message}`);
-        }
+    try {
+        await this.driver.sleep(5000);
+        const iconContainer = await this.driver.wait(until.elementLocated(By.className('icon-container1')), 10000, "Le conteneur de l'icône n'a pas été trouvé" );
+        const actions = this.driver.actions({async: true});
+        await actions.move({origin: iconContainer}).perform();
+        await this.driver.sleep(2000);
+        const changeButton = await this.driver.wait(until.elementLocated(By.xpath('//div[text()="Changer"]')), 5000, "Le bouton 'Changer' n'a pas été trouvé après hover");
+        await changeButton.click();
+        await this.driver.sleep(1000);
+        const fileInput = await this.driver.wait(until.elementLocated(By.css('input[type="file"]')), 5000, "Le sélecteur de fichier n'est pas apparu" );
+        const path = require('path');
+        const fs = require('fs');
+        const testFilesImagesPath = path.join(__dirname, '..', 'test-files', 'images');
+        const absoluteImagePath = path.join(testFilesImagesPath, imageName);        
+        await fileInput.sendKeys(absoluteImagePath);
+        await this.driver.sleep(3000);
+        return true;
+    } catch (error) {
+        console.error(`Erreur lors du changement de photo de profil: ${error.message}`);
+        throw new Error(`Impossible de changer la photo de profil: ${error.message}`);
+    }
+}
+    
+    getTestImagePath(imageName) {
+    const path = require('path');
+    const fs = require('fs');
+    
+    const testFilesImagesPath = path.join(__dirname, '..', 'test-files', 'images');
+    const absoluteImagePath = path.join(testFilesImagesPath, imageName);
+    
+    if (!fs.existsSync(absoluteImagePath)) {
+        throw new Error(`Fichier image non trouvé: ${absoluteImagePath}`);
     }
     
-    getAbsoluteImagePath(imageName) {
-        const os = require('os');
-        const path = require('path');
-        const downloadsFolder = path.join(os.homedir(), 'Downloads');
-        return path.join(downloadsFolder, imageName);
-    }
+    return absoluteImagePath;
+}
 
     async DeleteProfilePhoto() {
         try {
@@ -430,67 +441,163 @@ class ProfilePage {
         }
     }
 
-    async changeLanguage(language) {
+  async changeLanguage(language) {
+    try {
+        
+        await this.driver.wait(until.elementLocated(By.tagName('body')), 10000);
+        const languageSection = await this.driver.wait(
+            until.elementLocated(By.xpath("//label[contains(text(), 'Paramètres de langue et de région') or contains(text(), 'Language & Region Settings')]")), 
+            10000, 
+            'Section des paramètres de langue non trouvée'
+        );
+        
+        await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", languageSection);
+        await this.driver.sleep(2000); 
+        
+        const languageField = await this.driver.wait(
+            until.elementLocated(By.xpath("//input[@placeholder='Sélectionnez la langue' or @placeholder='Select Language']")), 
+            10000, 
+            'Champ de sélection de langue non trouvé'
+        );
+        
+        await this.driver.wait(until.elementIsVisible(languageField), 5000);
+        await this.driver.wait(until.elementIsEnabled(languageField), 5000);
+        
+        await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", languageField);
+        await this.driver.sleep(1000);
+        
+        const parentDiv = await languageField.findElement(By.xpath("./.."));
+        
+        await this.driver.executeScript("arguments[0].click();", parentDiv);
+        await this.driver.sleep(2000);
+        
+        const searchInput = await this.driver.wait(
+            until.elementLocated(By.xpath("//input[@placeholder='Rechercher une language' or @placeholder='Search Language']")), 
+            10000, 
+            'Champ de recherche de langue non trouvé'
+        );
+        
+        await this.driver.wait(until.elementIsVisible(searchInput), 5000);
+        await this.driver.wait(until.elementIsEnabled(searchInput), 5000);
+        console.log("Vidage complet du champ de recherche...");
+        const currentValue = await searchInput.getAttribute('value');
+        console.log(`Valeur actuelle dans le champ: "${currentValue}"`);
+        await searchInput.clear();
+        await this.driver.sleep(300);
+        await searchInput.sendKeys(Key.CONTROL + "a");
+        await this.driver.sleep(200);
+        await searchInput.sendKeys(Key.DELETE);
+        await this.driver.sleep(300);
+        for (let i = 0; i < 15; i++) {
+            await searchInput.sendKeys(Key.BACK_SPACE);
+        }
+        await this.driver.sleep(300);
+        const valueAfterClear = await searchInput.getAttribute('value');
+        console.log(`Valeur après vidage: "${valueAfterClear}"`);
+        if (valueAfterClear && valueAfterClear.trim() !== '') {
+            console.log("Le champ n'est pas vide, tentative avec executeScript...");
+            await this.driver.executeScript("arguments[0].value = '';", searchInput);
+            await this.driver.sleep(300);
+        }
+                
+        console.log(`Saisie de "${language}" dans le champ vidé...`);
+        await searchInput.sendKeys(language);
+        await this.driver.sleep(2000); // Augmenter le délai pour le chargement des options
+        
+        const languageOption = await this.driver.wait(
+            until.elementLocated(By.xpath(`//*[contains(text(), '${language}')]`)), 
+            10000, 
+            `Option de langue "${language}" non trouvée`
+        );
+        
+        await this.driver.wait(until.elementIsVisible(languageOption), 5000);
+        await this.driver.executeScript("arguments[0].click();", languageOption);
+        await this.driver.sleep(2000);
+        
+        console.log(` Langue "${language}" sélectionnée avec succès`);
+        return true;
+        
+    } catch (error) {
+        console.error(` Erreur lors du changement de langue vers ${language}:`, error);
+        
+        // Debug amélioré
         try {
-            const languageSection = await this.driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Paramètres de langue et de région') or contains(text(), 'Language & Region Settings')]")),5000,'Section des paramètres de langue non trouvée');
-            await this.driver.executeScript("arguments[0].scrollIntoView(true);", languageSection);
-            await this.driver.sleep(1000); 
-            const languageField = await this.driver.wait(until.elementLocated(By.xpath("//input[@placeholder='Sélectionnez la langue' or @placeholder='Select Language']") ), 5000, 'Champ de sélection de langue non trouvé');           
-            await this.driver.executeScript("arguments[0].scrollIntoView(true);", languageField);
-            await this.driver.sleep(500);
-            const parentDiv = await languageField.findElement(By.xpath("./.."));
-            await parentDiv.click();
-            await this.driver.sleep(1000);
-            const searchInput = await this.driver.wait(until.elementLocated( By.xpath("//input[@placeholder='Rechercher une language' or @placeholder='Search Language']")   ),  5000,  'Champ de recherche de langue non trouvé'  );            
-            await searchInput.clear();
-            await searchInput.sendKeys(language);
-            await this.driver.sleep(1000);
-            const languageOption = await this.driver.wait(until.elementLocated(By.xpath(`//*[contains(text(), '${language}')]`)),5000,`Option de langue "${language}" non trouvée` );
-            await languageOption.click();
-            await this.driver.sleep(1000);
+            // Vérifier si des options sont disponibles
+            const options = await this.driver.findElements(By.xpath("//*[contains(@class, 'option') or contains(@role, 'option')]"));
             
-            return true;
-        } catch (error) {
-            console.error(`Erreur lors du changement de langue vers ${language}:`, error);
-            throw error;
+            if (options.length > 0) {
+                console.log("Options disponibles:");
+                for (let i = 0; i < Math.min(options.length, 5); i++) {
+                    const optionText = await options[i].getText();
+                }
+            }
+            
+            const searchInputs = await this.driver.findElements(By.xpath("//input[@placeholder='Rechercher une language' or @placeholder='Search Language']"));
+            if (searchInputs.length > 0) {
+                const currentValue = await searchInputs[0].getAttribute('value');
+            }
+            
+       
+        } catch (screenshotError) {
+            console.error('Impossible de capturer les infos de debug:', screenshotError);
         }
+        
+        throw error;
     }
-
-    async changeRegion(region) {
-        try {
-            const regionField = await this.driver.wait(until.elementLocated(By.xpath("//input[@placeholder='Sélectionnez votre région' or @placeholder='Sélectionnez la région']")),5000,'Champ de sélection de région non trouvé' );
-            await this.driver.executeScript("arguments[0].scrollIntoView(true);", regionField);
-            await this.driver.sleep(500);
-            const parentDiv = await regionField.findElement(By.xpath("./.."));
-            await parentDiv.click();
-            await this.driver.sleep(1000);
-            const searchInput = await this.driver.wait(until.elementLocated(By.xpath("//input[@placeholder='Rechercher une région']")),5000,'Champ de recherche de région non trouvé');
-            await searchInput.clear();
-            await searchInput.sendKeys(region);
-            await this.driver.sleep(1000);
-            const regionOption = await this.driver.wait(until.elementLocated(By.xpath(`//*[contains(text(), '${region}')]`)), 5000, `Option de région "${region}" non trouvée` );
-            await regionOption.click();
-            await this.driver.sleep(1000);
-            return true;
-        } catch (error) {
-            console.error(`Erreur lors du changement de région vers ${region}:`, error);
-            throw error;
-        }
+}
+async changeRegionAlternative(region) {
+    try {
+        await this.driver.executeScript(`
+            // Trouver et cliquer sur le champ région
+            const regionField = document.querySelector("input[placeholder*='région'], input[placeholder*='Region']");
+            if (regionField) {
+                regionField.closest('div').click();
+                
+                // Attendre l'apparition du champ de recherche
+                setTimeout(() => {
+                    const searchField = document.querySelector("input[name='search']");
+                    if (searchField) {
+                        searchField.value = '${region}';
+                        searchField.dispatchEvent(new Event('input', { bubbles: true }));
+                        
+                        // Attendre et cliquer sur l'option
+                        setTimeout(() => {
+                            const option = Array.from(document.querySelectorAll('*')).find(el => el.textContent.includes('${region}'));
+                            if (option) {
+                                option.click();
+                            }
+                        }, 2000);
+                    }
+                }, 1000);
+            }
+        `);
+        
+        await this.driver.sleep(5000);
+        return true;
+    } catch (error) {
+        console.error('Erreur avec méthode alternative:', error);
+        throw error;
     }
+}
 
-   async saveLanguageAndRegionSettings() {
+async saveLanguageAndRegionSettings() {
     try {
         const saveButton = await this.driver.wait(
             until.elementLocated(
-                By.xpath("//label[contains(text(), 'Paramètres de langue et de région') or contains(text(), 'Language & Region Settings')]/following::button[contains(text(), 'Enregistrer') or contains(text(), 'Save')][1]"
+                By.xpath("//label[contains(text(), 'Paramètres de langue et de région') or contains(text(), 'Language & Region Settings')]/following::button[contains(text(), 'Enregistrer') or contains(text(), 'Save')][1]")
             ), 
-            5000, 
+            10000, 
             'Bouton Enregistrer pour les paramètres de langue et de région non trouvé'
-        ));
-        await this.driver.executeScript("arguments[0].scrollIntoView(true);", saveButton);
-        await this.driver.sleep(500);
-        await saveButton.click();
-        await this.driver.sleep(2000); 
+        );
+        
+        await this.driver.wait(until.elementIsVisible(saveButton), 5000);
+        await this.driver.wait(until.elementIsEnabled(saveButton), 5000);
+        await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", saveButton);
+        await this.driver.sleep(1000);
+        
+        await this.driver.executeScript("arguments[0].click();", saveButton);
+        await this.driver.sleep(3000); // Augmenter le délai d'attente après sauvegarde
+        
         return true;
     } catch (error) {
         console.error('Erreur lors de l\'enregistrement des paramètres de langue et région:', error);
@@ -498,29 +605,112 @@ class ProfilePage {
     }
 }
 
-    async verifyEnglishInterface() {
-        try {
-            await this.scrollToLanguageSection();
-            const sectionTitle = await this.driver.wait(until.elementLocated(By.xpath("//label[contains(text(), 'Language & Region Settings')]")),10000,'Titre "Language & Region Settings" non trouvé' );
-            const languageLabel = await this.driver.wait(until.elementLocated(By.xpath("//*[contains(text(), 'Select Language')]")),5000,'Texte "Select Language" non trouvé');
-            const regionLabel = await this.driver.wait(until.elementLocated(By.xpath("//*[contains(text(), 'Select Region')]")),5000,'Texte "Select Region" non trouvé'   );
-            const saveButton = await this.driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Save')]")),5000,'Bouton "Save" non trouvé'  );
-            console.log("Interface vérifiée avec succès en anglais!");
-            return true;
-            } catch (error) {
-            console.error('L\'interface ne semble pas être en anglais:', error.message);
-            return false;
-        }
+async verifyEnglishInterface() {
+    try {
+        await this.scrollToLanguageSection();
+        
+        await this.driver.sleep(3000);
+        
+        const sectionTitle = await this.driver.wait(
+            until.elementLocated(By.xpath("//label[contains(text(), 'Language & Region Settings')]")), 
+            15000, 
+            'Titre "Language & Region Settings" non trouvé'
+        );
+        
+        const languageLabel = await this.driver.wait(
+            until.elementLocated(By.xpath("//*[contains(text(), 'Select Language')]")), 
+            10000, 
+            'Texte "Select Language" non trouvé'
+        );
+        
+        const regionLabel = await this.driver.wait(
+            until.elementLocated(By.xpath("//*[contains(text(), 'Select Region')]")), 
+            10000, 
+            'Texte "Select Region" non trouvé'
+        );
+        
+        const saveButton = await this.driver.wait(
+            until.elementLocated(By.xpath("//button[contains(text(), 'Save')]")), 
+            10000, 
+            'Bouton "Save" non trouvé'
+        );
+        
+        console.log("Interface vérifiée avec succès en anglais!");
+        return true;
+    } catch (error) {
+        console.error('L\'interface ne semble pas être en anglais:', error.message);
+        return false;
     }
+}
+
 async scrollToLanguageSection() {
     try {
         const xpathExpression = "//label[contains(text(), 'Paramètres de langue et de région') or contains(text(), 'Language & Region Settings')]";
-        const languageSection = await this.driver.wait(until.elementLocated(By.xpath(xpathExpression)),5000,'Section des paramètres de langue et de région non trouvée dans aucune langue' );
-        await this.driver.executeScript("arguments[0].scrollIntoView(true);", languageSection);
-        await this.driver.sleep(1000); 
+        const languageSection = await this.driver.wait(
+            until.elementLocated(By.xpath(xpathExpression)), 
+            10000, 
+            'Section des paramètres de langue et de région non trouvée dans aucune langue'
+        );
+        
+        await this.driver.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", languageSection);
+        await this.driver.sleep(2000); // Augmenter le délai d'attente
+        
         return true;
     } catch (error) {
         console.error('Erreur lors du défilement vers la section des paramètres de langue:', error);
+        throw error;
+    }
+}
+
+async waitForPageStability() {
+    return new Promise(resolve => {
+        let stabilityCounter = 0;
+        const checkStability = () => {
+            this.driver.executeScript('return document.readyState').then(state => {
+                if (state === 'complete') {
+                    stabilityCounter++;
+                    if (stabilityCounter >= 3) { // Vérifier 3 fois que la page est stable
+                        resolve();
+                    } else {
+                        setTimeout(checkStability, 500);
+                    }
+                } else {
+                    stabilityCounter = 0;
+                    setTimeout(checkStability, 500);
+                }
+            });
+        };
+        checkStability();
+    });
+}
+
+async isElementInteractable(element) {
+    try {
+        const isDisplayed = await element.isDisplayed();
+        const isEnabled = await element.isEnabled();
+        const location = await element.getLocation();
+        const size = await element.getSize();
+        
+        return isDisplayed && isEnabled && location.x >= 0 && location.y >= 0 && size.width > 0 && size.height > 0;
+    } catch (error) {
+        return false;
+    }
+}
+
+async handleLanguageChange(language) {
+    try {
+        console.log(`Début du changement vers ${language}`);
+        
+        await this.changeLanguage(language);
+        console.log(`Langue changée vers ${language}`);
+        
+        await this.waitForPageStability();
+        await this.driver.sleep(3000);
+        
+        console.log('Page stabilisée après changement de langue');
+        return true;
+    } catch (error) {
+        console.error(`Erreur lors du changement de langue vers ${language}:`, error);
         throw error;
     }
 }

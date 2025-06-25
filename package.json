@@ -3,23 +3,23 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test":"npx wdio run wdio.conf.js",
-    "login":"npx wdio run wdio.conf.js --spec ./tests/login.test.js",
-    "register":"npx wdio run wdio.conf.js --spec ./tests/register.test.js",
-    "project":"npx wdio run wdio.conf.js --spec ./tests/project.test.js",
-    "company":"npx wdio run wdio.conf.js --spec ./tests/company.test.js",
-    "employe":"npx wdio run wdio.conf.js --spec ./tests/employee.test.js",
-    "juridique":"npx wdio run wdio.conf.js --spec ./tests/juridique.test.js",
-    "document":"npx wdio run wdio.conf.js --spec ./tests/document.test.js",
-    "projectDetails":"npx wdio run wdio.conf.js --spec ./tests/projectDetails.test.js",
-    "notification":"npx wdio run wdio.conf.js --spec ./tests/notification.test.js",
-    "credit":"npx wdio run wdio.conf.js --spec ./tests/credit.test.js",
-    "profile":"npx wdio run wdio.conf.js --spec ./tests/profile.test.js",
-    "paiement":"npx wdio run wdio.conf.js --spec ./tests/paiement.test.js",
-    "investorCompany":"npx wdio run wdio.conf.js --spec ./tests/investorCompany.test.js",
-    "investorProfile":"npx wdio run wdio.conf.js --spec ./tests/investorProfile.test.js",
-    "investorInfo":"npx wdio run wdio.conf.js --spec ./tests/profileInfoInvestor.test.js",
-    "historique":"npx wdio run wdio.conf.js --spec ./tests/historique.test.js",
+    "test": "npx wdio run wdio.conf.js",
+    "login": "npx wdio run wdio.conf.js --spec ./tests/login.test.js",
+    "register": "npx wdio run wdio.conf.js --spec ./tests/register.test.js",
+    "project": "npx wdio run wdio.conf.js --spec ./tests/project.test.js",
+    "company": "npx wdio run wdio.conf.js --spec ./tests/company.test.js",
+    "employe": "npx wdio run wdio.conf.js --spec ./tests/employee.test.js",
+    "juridique": "npx wdio run wdio.conf.js --spec ./tests/juridique.test.js",
+    "document": "npx wdio run wdio.conf.js --spec ./tests/document.test.js",
+    "projectDetails": "npx wdio run wdio.conf.js --spec ./tests/projectDetails.test.js",
+    "notification": "npx wdio run wdio.conf.js --spec ./tests/notification.test.js",
+    "credit": "npx wdio run wdio.conf.js --spec ./tests/credit.test.js",
+    "profile": "npx wdio run wdio.conf.js --spec ./tests/profile.test.js",
+    "paiement": "npx wdio run wdio.conf.js --spec ./tests/paiement.test.js",
+    "investorCompany": "npx wdio run wdio.conf.js --spec ./tests/investorCompany.test.js",
+    "investorProfile": "npx wdio run wdio.conf.js --spec ./tests/investorProfile.test.js",
+    "investorInfo": "npx wdio run wdio.conf.js --spec ./tests/profileInfoInvestor.test.js",
+    "historique": "npx wdio run wdio.conf.js --spec ./tests/historique.test.js",
     "test:login": "docker-compose run --name test-login test npx wdio run wdio.conf.js --spec ./tests/login.test.js",
     "test:notification": "docker-compose run --name test-notification test npx wdio run wdio.conf.js --spec ./tests/notification.test.js",
     "test:profile": "docker-compose run --name test-profile test npx wdio run wdio.conf.js --spec ./tests/profile.test.js",
@@ -36,9 +36,7 @@
     "test:investorCompany": "docker-compose run --name test-investorCompany test npx wdio run wdio.conf.js --spec ./tests/investorCompany.test.js",
     "test:investorProfile": "docker-compose run --name test-investorProfile test npx wdio run wdio.conf.js --spec ./tests/investorProfile.test.js",
     "test:profileInfoInvestor": "docker-compose run --name test-profileInfoInvestor test npx wdio run wdio.conf.js --spec ./tests/profileInfoInvestor.test.js"
-
-
-    },
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -53,7 +51,8 @@
     "mailparser": "^3.7.2",
     "nodemailer": "^6.10.0",
     "request-promise-native": "^1.0.9",
-    "selenium-webdriver": "^4.29.0"
+    "selenium-webdriver": "^4.29.0",
+    "wdio-chromedriver-service": "^8.1.1"
   },
   "devDependencies": {
     "@reportportal/agent-js-mocha": "^5.1.0",
@@ -63,10 +62,10 @@
     "@wdio/mocha-framework": "^9.11.0",
     "@wdio/spec-reporter": "^9.11.0",
     "chromedriver": "^136.0.3",
+    "expect-webdriverio": "^5.3.2",
     "mailtrap": "^4.0.0",
     "nock": "^14.0.1",
     "sinon": "^19.0.2",
-    "wdio-chromedriver-service": "^8.1.1",
     "webdriverio": "^9.11.0"
   }
 }

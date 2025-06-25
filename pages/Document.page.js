@@ -55,8 +55,8 @@ class DocumentPage {
                 `, fileInput);
                 
                 const path = require('path');
-                const downloadsFolder = path.join(require('os').homedir(), 'Downloads');
-                const filePath = path.join(downloadsFolder, 'Document.pdf');
+                const testFilesDocumentsPath = path.join(__dirname, '..', 'test-files', 'documents');
+                const filePath = path.join(testFilesDocumentsPath, 'Document.pdf');
                 await fileInput.sendKeys(filePath);
                 await this.driver.sleep(1000);
                 try {
@@ -108,6 +108,19 @@ class DocumentPage {
             throw error;
         }
     }
+
+    getTestDocumentPath(documentName) {
+    const path = require('path');
+    const fs = require('fs');
+    const testFilesDocumentsPath = path.join(__dirname, '..', 'test-files', 'documents');
+    const documentPath = path.join(testFilesDocumentsPath, documentName);
+    
+    if (!fs.existsSync(documentPath)) {
+        throw new Error(`Fichier document non trouvé: ${documentPath}`);
+    }
+    
+    return documentPath;
+}
 
 
 async clickEditFirstDocument() {

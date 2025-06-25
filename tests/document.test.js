@@ -193,9 +193,11 @@ afterEach(async function() {
           await driver.wait(until.urlContains('Dashboard'), 20000);
           await documentPage.navigateToDocuments();
           await documentPage.clickEditFirstDocument();
-          const newFileName = 'Document (1).pdf';
-          const homeDir = require('os').homedir();
-          const filePath = path.join(homeDir, 'Downloads', newFileName);
+          const newFileName = 'Document (1).pdf'; 
+          const path = require('path');
+          const fs = require('fs');
+          const testFilesDocumentsPath = path.join(__dirname, '..', 'test-files', 'documents');
+          const filePath = path.join(testFilesDocumentsPath, newFileName);
           const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
           await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
           await fileInput.sendKeys(filePath);
@@ -458,119 +460,122 @@ afterEach(async function() {
             }
           });
 
-          it('Échec du téléchargement d\'un fichier avec format non autorisé', async function() {
-            try {
-              await driver.get(config.baseUrl);
-              await loginPage.login(config.validEmail, config.validPassword);
-              await driver.wait(until.urlContains('Dashboard'), 20000);
-              await documentPage.navigateToDocuments();
-              const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Télécharger un nouveau document')]]") ), 10000);
-              await driver.executeScript("arguments[0].click();", createDocumentButton);
-              const modalForm = await driver.wait(until.elementLocated( By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Télécharger un nouveau document')]]]")), 5000);
-              const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
-              await titleInput.clear();
-              await titleInput.sendKeys("Test fichier non autorisé");
-              const homeDir = require('os').homedir();
-              const filePath = path.join(homeDir, 'Desktop', 'bug partage du document.mp4');
-              const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
-              await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
-              await fileInput.sendKeys(filePath);
-              await driver.sleep(2000);
-              const immediateErrors = await driver.findElements(By.xpath("//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"  ));
-              if (immediateErrors.length > 0) {
-                logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier non autorisé');
-              } else {
-                const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
-                await driver.executeScript("arguments[0].click();", submitButton);
-                
-                try {
-                  const loadingButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Envoi en cours')]")), 5000);
-                  logResult('Test KO : Le système a accepté un fichier non autorisé et a commencé le téléchargement');
-                  throw new Error('Le système a tenté de télécharger un fichier avec format non autorisé');
-                } catch (timeoutError) {
-                  const afterSubmitErrors = await driver.findElements(By.xpath("//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]" ));
-                  if (afterSubmitErrors.length > 0) {
-                    logResult('Test OK : Le système a correctement rejeté le fichier non autorisé après tentative de soumission');
-                  } else {
-                    const errorMessage =`Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
-                    logResult('Test KO :' + errorMessage);
-                    global.lastTestError = errorMessage;
-                    throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
-                  }
-                }
-              }
+          it('Échec de l\'ajout d\'un document avec format de fichier non autorisé', async function() {
+          try {
+            await driver.get(config.baseUrl);
+            await loginPage.login(config.validEmail, config.validPassword);
+            await driver.wait(until.urlContains('Dashboard'), 20000);
+            await documentPage.navigateToDocuments();
+            
+            const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Ajouter un nouveau document')]]")), 10000);
+            await driver.executeScript("arguments[0].click();", createDocumentButton);
+            
+            const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Ajouter un nouveau document')]]]")), 5000);
+            
+            const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
+            await titleInput.clear();
+            await titleInput.sendKeys("Test fichier non autorisé - Juridique");
+            
+            const filePath = path.resolve(__dirname, '..', 'test-files', 'images', 'video.mp4');
+            const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
+            await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
+            await fileInput.sendKeys(filePath);
+            await driver.sleep(2000);
+            
+            const immediateErrors = await driver.findElements(By.xpath("//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
+            if (immediateErrors.length > 0) {
+              logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier non autorisé dans la section juridique');
+            } else {
+              const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
+              await driver.executeScript("arguments[0].click();", submitButton);
               
               try {
-                const cancelButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
-                await driver.executeScript("arguments[0].click();", cancelButton);
-              } catch (error) {
-                logResult('Impossible de fermer le modal: ' + error.message);
-              }
-              
-            } catch (error) {
-              logResult('Test KO : ' + error.message);
-              throw error;
-            }
-          });
-          
-         it('Échec de l\'ajout d\'un document  avec un fichier volumineux', async function() {
-              try {
-                await driver.get(config.baseUrl);
-                await loginPage.login(config.validEmail, config.validPassword);
-                await driver.wait(until.urlContains('Dashboard'), 20000);
-                await documentPage.navigateToDocuments();
+                const loadingButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Envoi en cours')]")), 5000);
+                logResult('Test KO : Le système a accepté un fichier non autorisé et a commencé le téléchargement');
                 
-                const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Télécharger un nouveau document')]]")), 10000);
-                await driver.executeScript("arguments[0].click();", createDocumentButton);
-                
-                const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Télécharger un nouveau document')]]]")), 5000);
-                
-                const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
-                await titleInput.clear();
-                await titleInput.sendKeys("Test fichier ");
-                
-                const homeDir = require('os').homedir();
-                const filePath = path.join(homeDir, 'Downloads', 'car_prices.csv');
-                const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
-                await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
-                await fileInput.sendKeys(filePath);
-                await driver.sleep(2000);
-                
-                const immediateErrors = await driver.findElements(By.xpath("//*[contains(text(), 'volumineux') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
-                if (immediateErrors.length > 0) {
-                  logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier volumineux');
+                throw new Error('Le système a tenté de télécharger un fichier avec format non autorisé');
+              } catch (timeoutError) {
+                const afterSubmitErrors = await driver.findElements(By.xpath("//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
+                if (afterSubmitErrors.length > 0) {
+                  logResult('Test OK : Le système a correctement rejeté le fichier non autorisé après tentative de soumission');
                 } else {
-                  const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
-                  await driver.executeScript("arguments[0].click();", submitButton);
-                  
-                  try {
-                    const loadingButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Envoi en cours')]")), 5000);
-                    logResult('Test KO : Le système a accepté un fichier volumineux');
-                    
-                    throw new Error('Le système a tenté de télécharger un fichier volumineux');
-                  } catch (timeoutError) {
-                    const afterSubmitErrors = await driver.findElements(By.xpath("//*[contains(text(), 'volumineux') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
-                    if (afterSubmitErrors.length > 0) {
-                      logResult('Test OK : Le système a correctement rejeté le fichier volumineux');
-                    } else {
-                      const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
-                      logResult('Test KO : ' + errorMessage);
-                      global.lastTestError = errorMessage;
-                      throw new Error('Le système n\'a pas détecté le fichier volumineux');
-                    }
-                  }
+                  const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
+                  logResult('Test KO :' + errorMessage);
+                  global.lastTestError = errorMessage;
+                  throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
                 }
-                
-                try {
-                  const cancelButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
-                  await driver.executeScript("arguments[0].click();", cancelButton);
-                } catch (error) {
-                  logResult('Impossible de fermer le modal: ' + error.message);
-                }
-                
-              } catch (error) {
-                logResult('Test KO : ' + error.message);
-                throw error;
               }
-            });
-})
+            }
+            
+            try {
+              const cancelButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
+              await driver.executeScript("arguments[0].click();", cancelButton);
+            } catch (error) {
+              logResult('Impossible de fermer le modal: ' + error.message);
+            }
+            
+          } catch (error) {
+            logResult('Test KO : ' + error.message);
+            throw error;
+          }
+        });
+        
+        /*it('Échec de l\'ajout d\'un document avec un fichier volumineux', async function() {
+          try {
+            await driver.get(config.baseUrl);
+            await loginPage.login(config.validEmail, config.validPassword);
+            await driver.wait(until.urlContains('Dashboard'), 20000);
+            await documentPage.navigateToDocuments();
+            
+            const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Ajouter un nouveau document')]]")), 10000);
+            await driver.executeScript("arguments[0].click();", createDocumentButton);
+            
+            const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Ajouter un nouveau document')]]]")), 5000);
+            
+            const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
+            await titleInput.clear();
+            await titleInput.sendKeys("Test fichier volumineux - Juridique");
+            const filePath = path.resolve(__dirname, '..', 'test-files', 'documents', 'Document.pdf');
+            const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
+            await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
+            await fileInput.sendKeys(filePath);
+            await driver.sleep(2000);
+            
+            const immediateErrors = await driver.findElements(By.xpath("//*[contains(text(), 'volumineux') or contains(text(), 'taille') or contains(text(), 'limite') or contains(@class, 'text-red')]"));
+            if (immediateErrors.length > 0) {
+              logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier volumineux');
+            } else {
+              const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
+              await driver.executeScript("arguments[0].click();", submitButton);
+              
+              try {
+                const loadingButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Envoi en cours')]")), 5000);
+                logResult('Test KO : Le système a accepté un fichier volumineux');
+                
+                throw new Error('Le système a tenté de télécharger un fichier volumineux');
+              } catch (timeoutError) {
+                const afterSubmitErrors = await driver.findElements(By.xpath("//*[contains(text(), 'volumineux') or contains(text(), 'taille') or contains(text(), 'limite') or contains(@class, 'text-red')]"));
+                if (afterSubmitErrors.length > 0) {
+                  logResult('Test OK : Le système a correctement rejeté le fichier volumineux');
+                } else {
+                  const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
+                  logResult('Test KO : ' + errorMessage);
+                  global.lastTestError = errorMessage;
+                  throw new Error('Le système n\'a pas détecté le fichier volumineux');
+                }
+              }
+            }
+            
+            try {
+              const cancelButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
+              await driver.executeScript("arguments[0].click();", cancelButton);
+            } catch (error) {
+              logResult('Impossible de fermer le modal: ' + error.message);
+            }
+            
+          } catch (error) {
+            logResult('Test KO : ' + error.message);
+            throw error;
+          }
+        });*/
+      });

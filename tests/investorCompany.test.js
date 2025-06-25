@@ -9,6 +9,13 @@ const path = require('path');
 const testInfo = require('../utils/testInfo');
 
 
+function getTestFilePath(fileName) {
+    const testFilesDir = path.join(__dirname, '..', 'test-files', 'images');
+    return path.join(testFilesDir, fileName);
+}
+
+
+
 
 describe('Tests du profil entreprise investisseur', function () {
   let driver;
@@ -200,34 +207,35 @@ describe('Tests du profil entreprise investisseur', function () {
           }
         });
 
-it('Test de téléchargement du logo d\'entreprise ', async function() {
-  try {
-    await driver.get(config.baseUrl);
-    await loginPage.login(config.emailInvestor, config.validPassword);
-    await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
-    await driver.sleep(3000);
-    await investorCompanyPage.navigateToCompany();
-    await investorCompanyPage.removeCompanyLogoIfExists();
-    const logoFilePath = path.join(require('os').homedir(), 'Downloads', 'photoprof.png');
-    const uploadResult = await investorCompanyPage.uploadCompanyLogo(logoFilePath);
-    await investorCompanyPage.submitCompanyForm();
-    await driver.sleep(2000);
-    await driver.navigate().refresh();
-    await driver.sleep(3000);
+it('Test de téléchargement du logo d\'entreprise', async function() {
     try {
-      await driver.wait(until.elementLocated(By.css(".company-logo-preview, img[alt*='logo'], .logo-preview")), 10000, "Logo non trouvé après rechargement de la page" );
-      logResult('Test OK : Le logo de l\'entreprise a été téléchargé avec succès');
+        await driver.get(config.baseUrl);
+        await loginPage.login(config.emailInvestor, config.validPassword);
+        await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
+        await driver.sleep(3000);
+        await investorCompanyPage.navigateToCompany();
+        await investorCompanyPage.removeCompanyLogoIfExists();
+        const logoFilePath = getTestFilePath('profilephoto.png');
+         const uploadResult = await investorCompanyPage.uploadCompanyLogo(logoFilePath);
+        await investorCompanyPage.submitCompanyForm();
+        await driver.sleep(2000);
+        await driver.navigate().refresh();
+        await driver.sleep(3000);
+        
+        try {
+            await driver.wait(until.elementLocated(By.css(".company-logo-preview, img[alt*='logo'], .logo-preview")), 10000, "Logo non trouvé après rechargement de la page" );
+            logResult('Test OK : Le logo de l\'entreprise a été téléchargé avec succès');
+        } catch (error) {
+            logResult('Test KO : Échec du téléchargement du logo de l\'entreprise');
+            throw error;
+        }
+        
     } catch (error) {
-      logResult('Test KO : Échec du téléchargement du logo de l\'entreprise');
-      throw error;
+        const errorMessage = error.message || 'Échec du téléchargement du logo de l\'entreprise';
+        logResult('Test KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw error;
     }
-    
-  } catch (error) {
-    const errorMessage = error.message ||'Échec du téléchargement du logo de l\'entreprise';
-    logResult('Test KO : ' + errorMessage);
-    global.lastTestError = errorMessage;
-    throw error;
-  }
 });
 
 it('Test de changement du logo d\'entreprise', async function() {
@@ -237,8 +245,8 @@ it('Test de changement du logo d\'entreprise', async function() {
     await driver.wait(until.urlContains('Dashboard_Investor'), 15000);
     await driver.sleep(3000);
     await investorCompanyPage.navigateToCompany();
-    const newLogoPath = path.join(require('os').homedir(), 'Downloads', 'profilephoto.png');
-    const changeResult = await investorCompanyPage.changeCompanyLogo(newLogoPath);
+    const newLogoFilePath = getTestFilePath('photoprof.png');
+    const changeResult = await investorCompanyPage.changeCompanyLogo(newLogoFilePath);
     await investorCompanyPage.submitCompanyForm();
     await driver.sleep(2000);
     await driver.navigate().refresh();
@@ -296,9 +304,11 @@ it('Test d\'échec de téléchargement de logo - format non autorisé', async fu
     await investorCompanyPage.navigateToCompany();
     await investorCompanyPage.removeCompanyLogoIfExists();
     await driver.sleep(2000);
-    const invalidLogoPath = path.join(require('os').homedir(), 'Downloads', 'Cas_de_Test.docx');
+    
+    const invalidLogoPath = path.resolve(__dirname, '..', 'test-files', 'documents', 'Document.pdf');
     await investorCompanyPage.uploadCompanyLogo(invalidLogoPath);
     await driver.sleep(3000);
+    
     try {
       const errorMessage = await driver.findElement(
         By.xpath(
@@ -306,7 +316,9 @@ it('Test d\'échec de téléchargement de logo - format non autorisé', async fu
           "//span[contains(text(), 'format') and contains(text(), 'invalide')] | " +
           "//p[contains(text(), 'type de fichier') and contains(text(), 'incorrect')] | " +
           "//div[contains(@class, 'error')] | " +
-          "//span[contains(@class, 'error-message')]"
+          "//span[contains(@class, 'error-message')] | " +
+          "//div[contains(text(), 'seules les images sont autorisées')] | " +
+          "//span[contains(text(), 'extension non supportée')]"
         )
       );
       
@@ -317,16 +329,18 @@ it('Test d\'échec de téléchargement de logo - format non autorisé', async fu
     } catch (errorNotFound) {
       console.log("Aucun message d'erreur explicite n'a été détecté");
     }
+    
     await investorCompanyPage.submitCompanyForm();
     await driver.sleep(3000);
     await driver.navigate().refresh();
     await driver.sleep(3000);
-   const finalLogoElements = await driver.findElements(By.css(".company-logo-preview, img[alt*='logo'], .logo-preview"));
-   if (finalLogoElements.length === 0) {
-    logResult('Test OK : Le fichier avec format non autorisé a été correctement rejeté');
-   } else {
-    throw new Error('Le système accepte un format de fichier qui devrait être rejeté');
-}
+    
+    const finalLogoElements = await driver.findElements(By.css(".company-logo-preview, img[alt*='logo'], .logo-preview"));
+    if (finalLogoElements.length === 0) {
+      logResult('Test OK : Le fichier avec format non autorisé a été correctement rejeté');
+    } else {
+      throw new Error('Le système accepte un format de fichier qui devrait être rejeté');
+    }
     
   } catch (error) {
     const errorMessage = error.message || 'Le système accepte un format de fichier non autorisé pour le logo';
@@ -335,7 +349,6 @@ it('Test d\'échec de téléchargement de logo - format non autorisé', async fu
     throw error;
   }
 });
-
 it('Validation du format email dans le profil', async function() {
   try {
     await driver.get(config.baseUrl);

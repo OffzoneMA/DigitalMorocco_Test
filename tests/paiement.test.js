@@ -1093,7 +1093,7 @@ it('Annuler l\'annulation du plan (garder le plan)', async function() {
         }
         
     } catch (error) {
-       const errorMessage ='Le bouton non trouvé .';
+       const errorMessage ='Le bouton pour garder le plan non trouvé  .';
          logResult('Test KO : ' + errorMessage);
          global.lastTestError = errorMessage;
         throw error;
@@ -1138,7 +1138,7 @@ it('Mettre à niveau le plan', async function() {
         }
         
     } catch (error) {
-         const errorMessage ='Le bouton non trouvé .';
+         const errorMessage ='Le bouton pour mettre à niveau le plan non trouvé .';
          logResult('Test KO : ' + errorMessage);
          global.lastTestError = errorMessage;
         throw error;
@@ -1162,7 +1162,7 @@ it('Vérifier qu\'un utilisateur ne peut pas mettre à niveau un plan déjà act
             logResult(`Test OK : Impossible de mettre à niveau un plan déjà actif `);
         }
  } catch (error) {
-        const errorMessage =' La vérification a échoué ';
+        const errorMessage =' La vérification a échoué  pour mettre à niveau un plan déjà actif';
          logResult('Test KO : ' + errorMessage);
          global.lastTestError = errorMessage;
         throw error;

@@ -87,20 +87,21 @@ class JuridiquePage {
             await titleInput.clear();
             await titleInput.sendKeys(title);
             if (filePath) {
-                const os = require('os');
-                const path = require('path');
-                let absoluteFilePath = filePath;
-                if (!path.isAbsolute(filePath)) {
-                    const downloadsFolder = path.join(os.homedir(), 'Downloads'); 
-                    absoluteFilePath = path.join(downloadsFolder, filePath);
+                // CHANGEMENT ICI : Supprimer la logique de construction du chemin
+                // car on reçoit maintenant le chemin complet
+                
+                // Vérifier que le fichier existe
+                if (!fs.existsSync(filePath)) {
+                    throw new Error(`Fichier non trouvé: ${filePath}`);
                 }
+
                 const fileInput = await modalForm.findElement(By.xpath(".//input[@type='file']"));
                 await this.driver.executeScript(`
                     arguments[0].style.display = 'block';
                     arguments[0].style.opacity = '1';
                 `, fileInput);
                 
-                await fileInput.sendKeys(absoluteFilePath);
+                await fileInput.sendKeys(filePath);
                 await this.driver.sleep(1000);
             }
             const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]") );
@@ -115,40 +116,39 @@ class JuridiquePage {
     }
 }
 async clickUpdateDocumentButton(newFilePath) {
-  try {
-      const updateButton = await this.driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'cursorpointer') and contains(text(), 'Mettre à jour votre document')]")),10000,  'Bouton "Mettre à jour votre document" non trouvé' );
-      await this.driver.executeScript("arguments[0].click();", updateButton);
-      await this.driver.sleep(1000);
-      const fileInput = await this.driver.wait(until.elementLocated(By.xpath("//input[@type='file']")),5000,'Champ de téléchargement non trouvé après clic sur "Mettre à jour votre document"'  );
-      await this.driver.executeScript(`
-          arguments[0].style.display = 'block';
-          arguments[0].style.opacity = '1';
-      `, fileInput);
-      if (newFilePath) {
-          const os = require('os');
-          const path = require('path');
-          let absoluteFilePath = newFilePath;
-          if (!path.isAbsolute(newFilePath)) {
-              const downloadsFolder = path.join(os.homedir(), 'Downloads');
-              absoluteFilePath = path.join(downloadsFolder, newFilePath);
-          }
-          await fileInput.sendKeys(absoluteFilePath);
-          await this.driver.sleep(1000);
-          try {
-              const confirmButton = await this.driver.wait( until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Confirmer') or contains(text(), 'Enregistrer') or contains(text(), 'Valider')]")), 5000  );
-              await this.driver.executeScript("arguments[0].click();", confirmButton);
-              await this.waitForPageLoad();
-          } catch (confirmError) {
-              console.log("Aucun bouton de confirmation trouvé, la mise à jour a peut-être été automatique");
-          }
-      }
-       return true;
-  } catch (error) {
-      console.error('Erreur lors de la mise à jour du document:', error.message);
-      throw error;
-  }
-}
+    try {
+        const updateButton = await this.driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'cursorpointer') and contains(text(), 'Mettre à jour votre document')]")),10000,  'Bouton "Mettre à jour votre document" non trouvé' );
+        await this.driver.executeScript("arguments[0].click();", updateButton);
+        await this.driver.sleep(1000);
+        const fileInput = await this.driver.wait(until.elementLocated(By.xpath("//input[@type='file']")),5000,'Champ de téléchargement non trouvé après clic sur "Mettre à jour votre document"'  );
+        await this.driver.executeScript(`
+            arguments[0].style.display = 'block';
+            arguments[0].style.opacity = '1';
+        `, fileInput);
+        if (newFilePath) {
+            // CHANGEMENT ICI : Supprimer la logique de construction du chemin
+            // Vérifier que le fichier existe
+            if (!fs.existsSync(newFilePath)) {
+                throw new Error(`Fichier non trouvé: ${newFilePath}`);
+            }
 
+            // CHANGEMENT ICI : Utiliser directement newFilePath
+            await fileInput.sendKeys(newFilePath);
+            await this.driver.sleep(1000);
+            try {
+                const confirmButton = await this.driver.wait( until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Confirmer') or contains(text(), 'Enregistrer') or contains(text(), 'Valider')]")), 5000  );
+                await this.driver.executeScript("arguments[0].click();", confirmButton);
+                await this.waitForPageLoad();
+            } catch (confirmError) {
+                console.log("Aucun bouton de confirmation trouvé, la mise à jour a peut-être été automatique");
+            }
+        }
+         return true;
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du document:', error.message);
+        throw error;
+    }
+}
 async clickEditFirstJuridique() {
   try {
     await this.driver.wait(until.elementLocated(By.css('.bg-white-A700')), 10000);

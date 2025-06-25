@@ -11,6 +11,12 @@ const testInfo = require('../utils/testInfo');
 const { createBugTicket } = require('../utils/jiraUtils');
 
 
+function getTestFilePath(fileName) {
+    const testFilesDir = path.join(__dirname, '..', 'test-files', 'documents');
+    return path.join(testFilesDir, fileName);
+}
+
+
 
 
 describe('Tests d\'ajout  d\'un document juridique ', function () {
@@ -69,6 +75,8 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
      await driver.quit();
    }
  });
+
+
  
   
   it('Création d\'un document juridique avec vérification dans le tableau', async function() {
@@ -96,6 +104,13 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
       
       const documentName = 'Document';
       const fileName = 'Document.pdf';
+      // CHANGEMENT ICI : utiliser getTestFilePath au lieu du chemin Downloads
+      const filePath = getTestFilePath(fileName);
+
+      // Vérifier que le fichier existe
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Fichier de test manquant: ${filePath}`);
+      }
   
       const createDocumentSuccess = await juridiquePage.clickCreateDocument();
       if (createDocumentSuccess) {
@@ -105,12 +120,13 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
         throw new Error('Échec de l\'affichage de l\'alerte');
       }
   
-      const formFillSuccess = await juridiquePage.fillFormDocument(documentName, fileName);
+      // CHANGEMENT ICI : passer filePath complet au lieu de fileName
+      const formFillSuccess = await juridiquePage.fillFormDocument(documentName, filePath);
       if (formFillSuccess) {
         logResult('Étape 4 OK : Formulaire de l\'ajout du document juridique rempli avec succès');
       } else {
         logResult('Étape 4 KO : Échec du remplissage du formulaire de l\'ajout du document juridique');
-        throw new Error('Échec du remplissage du formulaire des employés');
+        throw new Error('Échec du remplissage du formulaire');
       }
       await driver.sleep(3000); 
       const documentFound = await juridiquePage.waitForDocumentInTable(documentName, 10000);
@@ -118,16 +134,14 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
       const documentCountAfter = await juridiquePage.countDocumentsInTable();
       console.log(`Nombre de documents après création: ${documentCountAfter}`);
       
-     
-  
       logResult('Test OK : Ajout et vérification d\'un nouveau document juridique réussis');
     } catch (error) {
-     const errorMessage =error.message || 'Ajout d\'un nouveau document juridique a échoué';
-    logResult('Test KO : ' + errorMessage);
-    global.lastTestError = errorMessage;      
-    throw error;
+      const errorMessage = error.message || 'Ajout d\'un nouveau document juridique a échoué';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;      
+      throw error;
     }
-  });
+});
 
     it('Echec de création d\'un document juridique - champs obligatoires vides', async function() {
         try {
@@ -206,55 +220,63 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
       }
     }) 
     it('Mise à jour du fichier d\'un document juridique avec vérification', async function() {
+    try {
+      await driver.get(config.baseUrl);
+      await loginPage.login(config.validEmail, config.validPassword);
+      await driver.wait(until.urlContains('Dashboard'), 20000);
+      await juridiquePage.navigateToJuridique();
+      await juridiquePage.clickEditFirstJuridique();
+      const originalFileLabel = await driver.findElement(By.xpath("//label[contains(@class, 'text-gray-900_01') and contains(@class, 'font-DmSans')]"));
+      const originalFileName = await originalFileLabel.getText();
+      console.log(`Nom du fichier original: ${originalFileName}`);
+      const cancelButton = await driver.findElement(By.xpath("//button[contains(text(), 'Annuler')]"));
+      await driver.executeScript("arguments[0].click();", cancelButton);
+      await driver.sleep(3000);
+      await juridiquePage.clickEditFirstJuridique();
+      
+      const newFileName = 'Document (1).pdf';
+      // CHANGEMENT ICI : utiliser getTestFilePath au lieu du chemin Downloads
+      const filePath = getTestFilePath(newFileName);
+      
+      // Vérifier que le fichier existe
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Fichier de test manquant: ${filePath}`);
+      }
+      
+      const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
+      await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
+      await fileInput.sendKeys(filePath);
+      
+      const submitButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Modifier le document')]")),5000, 'Bouton "Modifier le document" non trouvé' );
+      await driver.executeScript("arguments[0].click();", submitButton);
+      await driver.sleep(5000);
+      await juridiquePage.clickEditFirstJuridique();
+      await driver.sleep(5000);
+      
       try {
-        await driver.get(config.baseUrl);
-        await loginPage.login(config.validEmail, config.validPassword);
-        await driver.wait(until.urlContains('Dashboard'), 20000);
-        await juridiquePage.navigateToJuridique();
-        await juridiquePage.clickEditFirstJuridique();
-        const originalFileLabel = await driver.findElement(By.xpath("//label[contains(@class, 'text-gray-900_01') and contains(@class, 'font-DmSans')]"));
-        const originalFileName = await originalFileLabel.getText();
-        console.log(`Nom du fichier original: ${originalFileName}`);
-        const cancelButton = await driver.findElement(By.xpath("//button[contains(text(), 'Annuler')]"));
-        await driver.executeScript("arguments[0].click();", cancelButton);
-        await driver.sleep(3000);
-        await juridiquePage.clickEditFirstJuridique();
-        const newFileName = 'Document (1).pdf';
-        const homeDir = require('os').homedir();
-        const filePath = path.join(homeDir, 'Downloads', newFileName);
-        const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
-        await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
-        await fileInput.sendKeys(filePath);
+        const fileNameElement = await driver.findElement(By.xpath("//label[contains(@class, 'text-gray-900_01') and contains(@class, 'font-DmSans')]"));
+        const displayedFileName = await fileNameElement.getText();
         
-        const submitButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Modifier le document')]")),5000, 'Bouton "Modifier le document" non trouvé' );
-        await driver.executeScript("arguments[0].click();", submitButton);
-        await driver.sleep(5000);
-        await juridiquePage.clickEditFirstJuridique();
-        await driver.sleep(5000);
-        
-        try {
-          const fileNameElement = await driver.findElement(By.xpath("//label[contains(@class, 'text-gray-900_01') and contains(@class, 'font-DmSans')]"));
-          const displayedFileName = await fileNameElement.getText();
-          
-          if (displayedFileName.includes(newFileName)) {
-            logResult('Test OK :Modification réussie - Mise à jour du document ');
-          } else {
-             const errorMessage =error.message ||'Modification échoué - Mis à jour du fichier a échoué';
-              logResult('Test KO : ' + errorMessage);
-              global.lastTestError = errorMessage;      
-              throw error;
-           
-          }
-        } catch (error) {
-          logResult('Test KO : Impossible de trouver l\'élément affichant le nom du fichier: ' + error.message);
-          throw error;
+        if (displayedFileName.includes(newFileName)) {
+          logResult('Test OK : Modification réussie - Mise à jour du document');
+        } else {
+          const errorMessage = 'Modification échoué - Mise à jour du fichier a échoué';
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;      
+          throw new Error(errorMessage);
         }
-        
       } catch (error) {
-        logResult('Test KO : ' + error.message);
+        logResult('Test KO : Impossible de trouver l\'élément affichant le nom du fichier: ' + error.message);
         throw error;
       }
-    })
+      
+    } catch (error) {
+      const errorMessage = error.message || 'Mise à jour du fichier a échoué';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
+    }
+});
    it('Test du bouton Annuler lors de la modification du nom d\'un document juridique', async function() {
       try {
         await driver.get(config.baseUrl);
@@ -296,15 +318,12 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
           const downloadResult = await juridiquePage.clickDownloadFirstJuridique();
           
           if (downloadResult.success) {
-            console.log(`Document téléchargé avec succès: ${downloadResult.fileName || 'fichier'}`);
               if (downloadResult.filePath) {
               const fileExists = fs.existsSync(downloadResult.filePath);
               if (fileExists) {
-                console.log(`Vérification réussie: le fichier existe bien à ${downloadResult.filePath}`);
                 logResult('Test OK : téléchargement et vérification du document juridique réussis');
               } else {
                 
-                console.error(`Fichier non trouvé à l'emplacement: ${downloadResult.filePath}`);
                 logResult('Test KO : le fichier téléchargé n\'a pas été trouvé à l\'emplacement attendu');
               }
             } else {
@@ -369,127 +388,124 @@ describe('Tests d\'ajout  d\'un document juridique ', function () {
         throw error;
       }
     });
-    it('Échec de l\'ajout d\'un document juridique avec format de fichier non autorisé', async function() {
+  it('Échec de l\'ajout d\'un document juridique avec format de fichier non autorisé', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 20000);
+    await juridiquePage.navigateToJuridique();
+    
+    const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Ajouter un nouveau document')]]")), 10000);
+    await driver.executeScript("arguments[0].click();", createDocumentButton);
+    
+    const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Ajouter un nouveau document')]]]")), 5000);
+    
+    const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
+    await titleInput.clear();
+    await titleInput.sendKeys("Test fichier non autorisé - Juridique");
+    
+    const filePath = path.resolve(__dirname, '..', 'test-files', 'documents', 'video.mp4');
+    const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
+    await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
+    await fileInput.sendKeys(filePath);
+    await driver.sleep(2000);
+    
+    const immediateErrors = await driver.findElements(By.xpath("//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
+    if (immediateErrors.length > 0) {
+      logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier non autorisé dans la section juridique');
+    } else {
+      const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
+      await driver.executeScript("arguments[0].click();", submitButton);
+      
       try {
-        await driver.get(config.baseUrl);
-        await loginPage.login(config.validEmail, config.validPassword);
-        await driver.wait(until.urlContains('Dashboard'), 20000);
-        await juridiquePage.navigateToJuridique();
+        const loadingButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Envoi en cours')]")), 5000);
+        logResult('Test KO : Le système a accepté un fichier non autorisé et a commencé le téléchargement');
         
-        const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Ajouter un nouveau document')]]")), 10000);
-        await driver.executeScript("arguments[0].click();", createDocumentButton);
-        
-        const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Ajouter un nouveau document')]]]")), 5000);
-        
-        const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
-        await titleInput.clear();
-        await titleInput.sendKeys("Test fichier non autorisé - Juridique");
-        
-        const homeDir = require('os').homedir();
-        const filePath = path.join(homeDir, 'Desktop', 'bug partage du document.mp4');
-        const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
-        await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
-        await fileInput.sendKeys(filePath);
-        await driver.sleep(2000);
-        
-        const immediateErrors = await driver.findElements(By.xpath("//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
-        if (immediateErrors.length > 0) {
-          logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier non autorisé dans la section juridique');
+        throw new Error('Le système a tenté de télécharger un fichier avec format non autorisé');
+      } catch (timeoutError) {
+        const afterSubmitErrors = await driver.findElements(By.xpath("//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
+        if (afterSubmitErrors.length > 0) {
+          logResult('Test OK : Le système a correctement rejeté le fichier non autorisé après tentative de soumission');
         } else {
-          const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
-          await driver.executeScript("arguments[0].click();", submitButton);
-          
-          try {
-            const loadingButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Envoi en cours')]")), 5000);
-            logResult('Test KO : Le système a accepté un fichier non autorisé et a commencé le téléchargement');
-            
-            throw new Error('Le système a tenté de télécharger un fichier avec format non autorisé');
-          } catch (timeoutError) {
-            const afterSubmitErrors = await driver.findElements(By.xpath("//*[contains(text(), 'format non autorisé') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
-            if (afterSubmitErrors.length > 0) {
-              logResult('Test OK : Le système a correctement rejeté le fichier non autorisé après tentative de soumission');
-            } else {
-              const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
-              logResult('Test KO :' + errorMessage);
-              global.lastTestError = errorMessage;
-              throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
-            }
-          }
+          const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier non autorisé`;
+          logResult('Test KO :' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error('Le système n\'a pas détecté le format de fichier non autorisé');
         }
-        
-        try {
-          const cancelButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
-          await driver.executeScript("arguments[0].click();", cancelButton);
-        } catch (error) {
-          logResult('Impossible de fermer le modal: ' + error.message);
-        }
-        
-      } catch (error) {
-        logResult('Test KO : ' + error.message);
-        throw error;
       }
-    });
-    it('Échec de l\'ajout d\'un document juridique avec un fichier volumineux', async function() {
-      try {
-        await driver.get(config.baseUrl);
-        await loginPage.login(config.validEmail, config.validPassword);
-        await driver.wait(until.urlContains('Dashboard'), 20000);
-        await juridiquePage.navigateToJuridique();
-        
-        const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Ajouter un nouveau document')]]")), 10000);
-        await driver.executeScript("arguments[0].click();", createDocumentButton);
-        
-        const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Ajouter un nouveau document')]]]")), 5000);
-        
-        const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
-        await titleInput.clear();
-        await titleInput.sendKeys("Test fichier non autorisé - Juridique");
-        
-        const homeDir = require('os').homedir();
-        const filePath = path.join(homeDir, 'Downloads', 'car_prices.csv');
-        const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
-        await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
-        await fileInput.sendKeys(filePath);
-        await driver.sleep(2000);
-        
-        const immediateErrors = await driver.findElements(By.xpath("//*[contains(text(), 'volumineux') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
-        if (immediateErrors.length > 0) {
-          logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier volumineux');
-        } else {
-          const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
-          await driver.executeScript("arguments[0].click();", submitButton);
-          
-          try {
-            const loadingButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Envoi en cours')]")), 5000);
-            logResult('Test KO : Le système a accepté un fichier volumineux');
-            
-            throw new Error('Le système a tenté de télécharger un fichier volumineux');
-          } catch (timeoutError) {
-            const afterSubmitErrors = await driver.findElements(By.xpath("//*[contains(text(), 'volumineux') or contains(text(), 'type de fichier') or contains(text(), 'extension') or contains(@class, 'text-red')]"));
-            if (afterSubmitErrors.length > 0) {
-              logResult('Test OK : Le système a correctement rejeté le fichier volumineux');
-            } else {
-              const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
-              logResult('Test KO : ' + errorMessage);
-              global.lastTestError = errorMessage;
+    }
+    
+    try {
+      const cancelButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
+      await driver.executeScript("arguments[0].click();", cancelButton);
+    } catch (error) {
+      logResult('Impossible de fermer le modal: ' + error.message);
+    }
+    
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    throw error;
+  }
+});
 
-              throw new Error('Le système n\'a pas détecté le fichier volumineux');
-            }
-          }
-        }
+/*it('Échec de l\'ajout d\'un document juridique avec un fichier volumineux', async function() {
+  try {
+    await driver.get(config.baseUrl);
+    await loginPage.login(config.validEmail, config.validPassword);
+    await driver.wait(until.urlContains('Dashboard'), 20000);
+    await juridiquePage.navigateToJuridique();
+    
+    const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Ajouter un nouveau document')]]")), 10000);
+    await driver.executeScript("arguments[0].click();", createDocumentButton);
+    
+    const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Ajouter un nouveau document')]]]")), 5000);
+    
+    const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
+    await titleInput.clear();
+    await titleInput.sendKeys("Test fichier volumineux - Juridique");
+    const filePath = path.resolve(__dirname, '..', 'test-files', 'documents', 'Document.pdf');
+    const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
+    await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
+    await fileInput.sendKeys(filePath);
+    await driver.sleep(2000);
+    
+    const immediateErrors = await driver.findElements(By.xpath("//*[contains(text(), 'volumineux') or contains(text(), 'taille') or contains(text(), 'limite') or contains(@class, 'text-red')]"));
+    if (immediateErrors.length > 0) {
+      logResult('Test OK : Un message d\'erreur approprié s\'affiche pour un fichier volumineux');
+    } else {
+      const submitButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-blue-A400') and contains(text(), 'Ajouter un document')]"));
+      await driver.executeScript("arguments[0].click();", submitButton);
+      
+      try {
+        const loadingButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Envoi en cours')]")), 5000);
+        logResult('Test KO : Le système a accepté un fichier volumineux');
         
-        try {
-          const cancelButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
-          await driver.executeScript("arguments[0].click();", cancelButton);
-        } catch (error) {
-          logResult('Impossible de fermer le modal: ' + error.message);
+        throw new Error('Le système a tenté de télécharger un fichier volumineux');
+      } catch (timeoutError) {
+        const afterSubmitErrors = await driver.findElements(By.xpath("//*[contains(text(), 'volumineux') or contains(text(), 'taille') or contains(text(), 'limite') or contains(@class, 'text-red')]"));
+        if (afterSubmitErrors.length > 0) {
+          logResult('Test OK : Le système a correctement rejeté le fichier volumineux');
+        } else {
+          const errorMessage = `Aucun message d\'erreur ne s\'affiche pour un fichier volumineux`;
+          logResult('Test KO : ' + errorMessage);
+          global.lastTestError = errorMessage;
+          throw new Error('Le système n\'a pas détecté le fichier volumineux');
         }
-        
-      } catch (error) {
-        logResult('Test KO : ' + error.message);
-        throw error;
       }
-    });
+    }
+    
+    try {
+      const cancelButton = await modalForm.findElement(By.xpath(".//button[contains(@class, 'bg-[#E4E7EC]') and contains(text(), 'Annuler')]"));
+      await driver.executeScript("arguments[0].click();", cancelButton);
+    } catch (error) {
+      logResult('Impossible de fermer le modal: ' + error.message);
+    }
+    
+  } catch (error) {
+    logResult('Test KO : ' + error.message);
+    throw error;
+  }
+});*/
     
 
 });

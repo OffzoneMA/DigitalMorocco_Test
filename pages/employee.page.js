@@ -167,10 +167,10 @@ class EmployeePage{
     }
    async uploadProfilePhoto(imageName) {
       try {
-        const os = require('os');
         const path = require('path');
-        const downloadsFolder = path.join(os.homedir(), 'Downloads'); 
-        const absoluteImagePath = path.join(downloadsFolder, imageName);
+        const fs = require('fs');
+        const testFilesImagesPath = path.join(__dirname, '..', 'test-files', 'images');
+        const absoluteImagePath = path.join(testFilesImagesPath, imageName);
         const uploadContainer = await this.driver.wait(until.elementLocated(By.xpath("//div[contains(@class, 'flex') and .//label[contains(text(), 'Téléchargez la photo ici')]]")),10000,'Conteneur de téléchargement de photo non trouvé' );
         await uploadContainer.click();
         await this.driver.sleep(1000);

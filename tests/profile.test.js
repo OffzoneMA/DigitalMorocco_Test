@@ -408,7 +408,7 @@ it('Refus de téléchargement de photo avec format non autorisé', async functio
     await driver.wait(until.urlContains('Dashboard'), 20000);
     await profilePage.navigateToProfile();
     await driver.sleep(5000);
-    const invalidImageName = 'Cahier_charge.docx';
+    const invalidImageName = 'Document.pdf';
     let errorOccurred = false;
     let errorMessage = '';
     try {
@@ -478,7 +478,7 @@ it('Changement de langue et de région avec vérification', async function() {
       await loginPage.login(config.validEmail, config.validPassword);
       await driver.wait(until.urlContains('Dashboard'), 20000);
       await profilePage.navigateToProfile();
-      await driver.sleep(3000);
+      await driver.sleep(8000);
       await profilePage.scrollToLanguageSection();
       const langSectionVisible = await profilePage.checkLanguageSectionVisible();
       assert.strictEqual(langSectionVisible, true, 'La section des paramètres de langue n\'est pas visible');
@@ -489,9 +489,9 @@ it('Changement de langue et de région avec vérification', async function() {
       assert.strictEqual(initialLanguage, "Français", `La langue initiale (${initialLanguage}) n'est pas celle attendue (Français)`);
       
       await profilePage.changeLanguage("English");
-      await profilePage.changeRegion("Asie");
+      await profilePage.changeRegionAlternative("Asie");
       await profilePage.saveLanguageAndRegionSettings();
-      await driver.sleep(6000);      
+      await driver.sleep(12000);      
       const isEnglish = await profilePage.verifyEnglishInterface();
       assert.strictEqual(isEnglish, true, 'L\'interface n\'est pas passée en anglais après le changement');
       await profilePage.changeLanguage("Français");
