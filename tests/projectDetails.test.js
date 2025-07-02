@@ -77,7 +77,7 @@ describe('Tests d\'ajout de jalon à un projet', function () {
      try {
          const addJalonSuccess = await projectsDetailsPage.clickAddJalon();
          const jalonName = "Jalon de test ";
-         const jalonDate = "25/06/2025";
+         const jalonDate = "25/07/2025";
          const jalonDescription = "Description créée par test ";
         const formFilled = await projectsDetailsPage.fillJalonForm(jalonName, jalonDate, jalonDescription);
          if (!formFilled) {
