@@ -512,13 +512,12 @@ services:
       - ''
 ## Define named volumes for persistent storage
 volumes:
-  # CHANGÉ: utilise les volumes existants qui contiennent vos données
   reportportal_opensearch:
-    external: true
+    name: reportportal_opensearch
   reportportal_storage:
-    external: true
+    name: reportportal_storage  
   reportportal_postgres:
-    external: true
+    name: reportportal_postgres
 
 ## Define custom network for ReportPortal services
 networks:
