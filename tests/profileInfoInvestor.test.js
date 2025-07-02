@@ -64,7 +64,7 @@ describe('Tests du profil investisseur', function () {
     }
   });
 
- /* it('Affichage des informations du profil', async function() {
+ it('Affichage des informations du profil', async function() {
     try {
       await driver.get(config.baseUrl);
       await loginPage.login(config.emailInvestor, config.validPassword);
@@ -456,7 +456,7 @@ describe('Tests du profil investisseur', function () {
       global.lastTestError = errorMessage;
       throw error;
     }
-  });*/
+  });
   
   it('Affichage initial des sélections de langue', async function() {
     try {
