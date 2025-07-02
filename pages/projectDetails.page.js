@@ -95,7 +95,7 @@ class ProjectsDetailsPage {
   
       try {
         const dayElement = await this.driver.findElement(
-          By.xpath(`//abbr[contains(@aria-label, '${day} juin 2025')]`)
+          By.xpath(`//abbr[contains(@aria-label, '${day} juillet 2025')]`)
         );
         await this.driver.executeScript('arguments[0].click();', dayElement);
         await this.driver.sleep(500);
