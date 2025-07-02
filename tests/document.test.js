@@ -221,7 +221,7 @@ afterEach(async function() {
            
             }
           } catch (error) {
-            logResult('Test KO : Impossible de trouver l\'élément affichant le nom du fichier');
+            logResult('Test KO : Modification échoué - Mis à jour du fichier a échoué');
           }
           
          } catch (error) {
@@ -467,16 +467,16 @@ afterEach(async function() {
             await driver.wait(until.urlContains('Dashboard'), 20000);
             await documentPage.navigateToDocuments();
             
-            const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Ajouter un nouveau document')]]")), 10000);
+            const createDocumentButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'bg-blue-A400') and .//span[contains(text(), 'Télécharger un nouveau document')]]")), 10000);
             await driver.executeScript("arguments[0].click();", createDocumentButton);
             
-            const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Ajouter un nouveau document')]]]")), 5000);
+            const modalForm = await driver.wait(until.elementLocated(By.xpath("//form[.//div[contains(@class, 'flex') and .//label[contains(text(), 'Télécharger un nouveau document')]]]")), 5000);
             
             const titleInput = await modalForm.findElement(By.xpath(".//input[@name='title']"));
             await titleInput.clear();
             await titleInput.sendKeys("Test fichier non autorisé - Juridique");
             
-            const filePath = path.resolve(__dirname, '..', 'test-files', 'images', 'video.mp4');
+            const filePath = path.resolve(__dirname, '..', 'test-files', 'documents', 'video.mp4');
             const fileInput = await driver.findElement(By.xpath("//input[@type='file']"));
             await driver.executeScript("arguments[0].style.display = 'block'; arguments[0].style.opacity = '1';", fileInput);
             await fileInput.sendKeys(filePath);
