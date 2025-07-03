@@ -1,14 +1,15 @@
-                                ReportPortal - Guide de Restauration
+
+# ReportPortal - Guide de Restauration
  - Instructions de Restauration
-Étape 1 : Préparation du script :
-# Rendre le script exécutable
+# Étape 1 : Préparation du script :
+ --- Rendre le script exécutable : 
 chmod +x restore-reportportal.sh
 
-Étape 2 : Lancement de la restauration
-# Exécuter le script de restauration
+# Étape 2 : Lancement de la restauration
+ --- Exécuter le script de restauration
 ./restore-reportportal.sh
 
-Étape 3 : Processus automatique
+# Étape 3 : Processus automatique
 Le script va automatiquement :
 
 ✅ Détecter votre système d'exploitation
@@ -21,10 +22,10 @@ Le script va automatiquement :
 ✅ Construire et tester les images Docker
 ✅ Démarrer ReportPortal
 
-Étape 4 : Attente et vérification
+# Étape 4 : Attente et vérification
 - Patientez 5 minutes après le démarrage pour que tous les services s'initialisent complètement.
 
-** Accès à ReportPortal
+# Accès à ReportPortal
 Une fois la restauration terminée, ReportPortal sera accessible à l'adresse :
 - URL : http://localhost:8080
 - Identifiants par défaut :
@@ -32,8 +33,8 @@ Une fois la restauration terminée, ReportPortal sera accessible à l'adresse :
 Nom d'utilisateur : superadmin
 Mot de passe : erebus
 
-** Exécution des Tests
- - Lancer tous les tests
+#  Exécution des Tests
+ --- Lancer tous les tests
 Pour exécuter l'ensemble des tests configurés dans le projet :
 docker-compose --profile core --profile test up test
 
@@ -41,10 +42,8 @@ docker-compose --profile core --profile test up test
 
 🔄 Méthode recommandée : Tests en mode vérification
  -- Pour éviter d'ajouter des tests supplémentaires au dashboard existant, suivez cette procédure :
-Étape 1 : Arrêter les services ReportPortal
-# Arrêter les services API, Job et UI de ReportPortal
-# Exécuter les tests sans envoi vers ReportPortal :
+# Étape 1 : Arrêter les services ReportPortal
+- Arrêter les services API, Job et UI de ReportPortal
+- Exécuter les tests sans envoi vers ReportPortal :
 docker-compose --profile core --profile test up test
-
-Étape 2 : Consulter les résultats
-Les résultats des tests sont automatiquement enregistrés dans les fichiers logs. 
+- Les résultats des tests sont automatiquement enregistrés dans les fichiers logs. 
