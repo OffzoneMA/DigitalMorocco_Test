@@ -1,6 +1,5 @@
 
 # ReportPortal - Guide de Restauration
- - Instructions de Restauration
 # Étape 1 : Préparation du script :
  --- Rendre le script exécutable : 
 chmod +x restore-reportportal.sh
