@@ -34,7 +34,7 @@ Mot de passe : erebus
 
 #  Exécution des Tests
  --- Lancer tous les tests
-Pour exécuter l'ensemble des tests configurés dans le projet :
+Pour exécuter l'ensemble des tests configurés dans le projet :                                                                                 
 docker-compose --profile core --profile test up test
 
 ⚠️ Attention : Cette commande va ajouter de nouveaux tests aux tests existants dans le dashboard, ce qui peut créer des doublons ou une confusion dans l'analyse des résultats.
