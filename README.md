@@ -5,7 +5,7 @@
 chmod +x restore-reportportal.sh
 
 # Étape 2 : Lancement de la restauration
- --- Exécuter le script de restauration
+ --- Exécuter le script de restauration : 
 ./restore-reportportal.sh
 
 # Étape 3 : Processus automatique
@@ -29,7 +29,7 @@ Une fois la restauration terminée, ReportPortal sera accessible à l'adresse :
 - URL : http://localhost:8080
 - Identifiants par défaut :
 
-Nom d'utilisateur : superadmin
+Nom d'utilisateur : superadmin        
 Mot de passe : erebus
 
 #  Exécution des Tests
