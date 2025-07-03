@@ -103,17 +103,17 @@ main() {
     echo
 
     # Étape 2 : Vérifications
-    echo "[1/8] Vérification de Docker..."
+    echo "[1/9] Vérification de Docker..."
     check_docker
     echo "Docker... OK"
     
-    echo "[2/8] Vérification de docker-compose..."
+    echo "[2/9] Vérification de docker-compose..."
     check_docker_compose
     echo "Docker-compose... OK ($DOCKER_COMPOSE)"
     echo
 
     # Étape 3 : Vérification du dossier de sauvegarde
-    echo "[3/8] Vérification du dossier de sauvegarde..."
+    echo "[3/9] Vérification du dossier de sauvegarde..."
     if [ ! -d "reportportal-backup" ]; then
         echo "ERREUR: Dossier reportportal-backup introuvable"
         echo "Assurez-vous que les fichiers de sauvegarde sont présents"
@@ -122,7 +122,7 @@ main() {
     echo "Dossier de sauvegarde... OK"
 
     # Étape 4 : Vérification des fichiers de sauvegarde
-    echo "[4/8] Vérification des fichiers de sauvegarde..."
+    echo "[4/9] Vérification des fichiers de sauvegarde..."
     files=("postgres.tar.gz" "storage.tar.gz" "opensearch.tar.gz")
     for file in "${files[@]}"; do
         if [ ! -f "reportportal-backup/$file" ]; then
@@ -137,19 +137,19 @@ main() {
     echo
 
     # Étape 5 : Arrêt de ReportPortal
-    echo "[5/8] Arrêt de ReportPortal (si en cours)..."
+    echo "[5/9] Arrêt de ReportPortal (si en cours)..."
     $DOCKER_COMPOSE down -v 2>/dev/null || true
     echo "ReportPortal arrêté... OK"
     echo
 
     # Étape 6 : Nettoyage complet des volumes
-    echo "[6/8] Nettoyage des volumes existants..."
+    echo "[6/9] Nettoyage des volumes existants..."
     cleanup_volumes
     echo "Volumes nettoyés... OK"
     echo
 
     # Étape 7 : Création des volumes avec les bons noms
-    echo "[7/8] Création des nouveaux volumes..."
+    echo "[7/9] Création des nouveaux volumes..."
     docker volume create reportportal_postgres
     docker volume create reportportal_storage
     docker volume create reportportal_opensearch
@@ -157,7 +157,7 @@ main() {
     echo
 
     # Étape 8 : Restauration des données
-    echo "[8/8] Restauration des données..."
+    echo "[8/9] Restauration des données..."
     get_backup_path
     
     echo "Restauration de la base de données PostgreSQL..."
@@ -183,6 +183,25 @@ main() {
         exit 1
     fi
     echo "✓ OpenSearch restauré"
+    echo
+
+    # Étape 9 : Build et test des services
+    echo "[9/9] Build et test des services Docker..."
+    echo "Construction des images Docker..."
+    $DOCKER_COMPOSE build test
+    if [ $? -ne 0 ]; then
+        echo "ERREUR lors du build des images Docker"
+        exit 1
+    fi
+    echo "✓ Images construites avec succès"
+    
+    echo "Test de la configuration Docker Compose..."
+    $DOCKER_COMPOSE config > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "ERREUR dans la configuration Docker Compose"
+        exit 1
+    fi
+    echo "✓ Configuration Docker Compose valide"
     echo
 
     # Démarrage de ReportPortal
