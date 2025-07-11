@@ -79,5 +79,5 @@ jobs:
           if [ "${{ github.event.inputs.test_file }}" == "all" ]; then
             npm test
           else
-            npm install chromedriver@latest --save-dev && npx wdio run wdio.conf.js --spec ./tests/${{ github.event.inputs.test_file }}.test.js
+            npm install chromedriver@latest --save-dev --legacy-peer-deps && npx wdio run wdio.conf.js --spec ./tests/${{ github.event.inputs.test_file }}.test.js
           fi
