@@ -44,7 +44,7 @@ jobs:
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
         
-      - name: Installer les dépendances
+      - name: Installer les dépendances système
         run: sudo apt-get update && sudo apt-get install -y imagemagick enscript ghostscript
         
       - name: Préparer les fichiers de test
@@ -77,7 +77,7 @@ jobs:
       - name: Run selected test
         run: |
           if [ "${{ github.event.inputs.test_file }}" == "all" ]; then
-            npx wdio run wdio.conf.js
+            npm test
           else
-            npx wdio run wdio.conf.js --spec ./tests/${{ github.event.inputs.test_file }}.test.js
+            npm install chromedriver@latest --save-dev && npx wdio run wdio.conf.js --spec ./tests/${{ github.event.inputs.test_file }}.test.js
           fi
