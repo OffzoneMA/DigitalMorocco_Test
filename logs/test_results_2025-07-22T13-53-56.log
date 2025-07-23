@@ -1,0 +1,37 @@
+2025-07-22T13:54:47.044Z - Test OK : Toutes les informations du plan Basique sont affichées correctement
+2025-07-22T13:55:25.373Z - Test OK : Toutes les informations du plan Standard sont affichées correctement
+2025-07-22T13:55:59.328Z - Test OK : Toutes les informations du plan Premium sont affichées correctement
+2025-07-22T13:56:34.409Z - Test OK : Plan Basique sélectionné avec succès
+2025-07-22T13:57:10.761Z - Test OK : Plan Standard sélectionné avec succès
+2025-07-22T13:57:45.560Z - Test OK : Plan Premium sélectionné avec succès
+2025-07-22T13:58:14.984Z - Test OK : Plan Basique - Réduction de 5% correctement appliquée
+2025-07-22T13:58:53.606Z - Test OK : Plan Standard - Réduction de 10% correctement appliquée
+2025-07-22T13:59:22.332Z - Test OK : Plan Premium - Réduction de 20% correctement appliquée
+2025-07-22T14:00:07.770Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15059ms
+2025-07-22T14:01:00.415Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15081ms
+2025-07-22T14:01:49.177Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15108ms
+2025-07-22T14:02:39.117Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15096ms
+2025-07-22T14:03:27.267Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15074ms
+2025-07-22T14:04:19.683Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15132ms
+2025-07-22T14:05:06.914Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15109ms
+2025-07-22T14:05:54.101Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15034ms
+2025-07-22T14:06:35.501Z - Test OK : Annulation du paiement réussie avec redirection vers ChoosePlan
+2025-07-22T14:07:21.717Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15061ms
+2025-07-22T14:08:10.203Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15062ms
+2025-07-22T14:09:00.878Z - Test KO : Navigation vers la page de paiement Payzone échouée
+Wait timed out after 15088ms
+2025-07-22T14:09:42.079Z - Test KO : Bouton Renouvellement d'abonnement échoue
+2025-07-22T14:10:15.206Z - Test KO : Le bouton pour garder le plan non trouvé  .
+2025-07-22T14:10:59.087Z - Test KO : Le bouton pour mettre à niveau le plan non trouvé .
+2025-07-22T14:11:38.659Z - Test KO :  La vérification a échoué  pour mettre à niveau un plan déjà actif
+2025-07-22T14:12:38.755Z - Test KO : Échec du clic sur 'Annuler mon plan': Bouton 'Annuler mon plan' non trouvé ou non visible

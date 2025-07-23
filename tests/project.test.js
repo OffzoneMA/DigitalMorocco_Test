@@ -499,4 +499,88 @@ describe('Tests de création de projet', function () {
         throw error;
       }
     });
+
+  it('Vérification du changement de statut d\'un projet ', async function() {
+    try {
+      await driver.get(config.baseUrl);
+      await loginPage.login(config.validEmail, config.validPassword);
+      await driver.wait(until.urlContains('Dashboard'), 20000);
+      const dashboardUrl = await driver.getCurrentUrl();
+      
+      if (dashboardUrl.includes('Dashboard')) {
+        logResult('Étape 1 OK : Connexion réussie');
+      } else {
+        const errorMessage = `Redirection inattendue vers ${dashboardUrl}`;
+        logResult('Étape 1 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error('Échec de connexion');
+      }
+
+      const navigateSuccess = await projectsPage.navigateToProjects();
+      if (navigateSuccess) {
+        logResult('Étape 2 OK : Navigation vers la page des projets réussie');
+      } else {
+        const errorMessage = 'Échec de navigation vers la page des projets';
+        logResult('Étape 2 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
+      }
+
+      const initialStatus = await projectsPage.getProjectStatus();
+      logResult(`Étape 3 OK : Statut initial du projet: ${initialStatus}`);
+      const editSuccess = await projectsPage.clickEditFirstProject();
+      if (editSuccess) {
+        logResult('Étape 4 OK : Ouverture du formulaire d\'édition réussie');
+      } else {
+        const errorMessage = 'Échec de l\'ouverture du formulaire d\'édition';
+        logResult('Étape 4 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
+      }
+
+      const activateSuccess = await projectsPage.activateProject();
+      if (activateSuccess) {
+        logResult('Étape 5 OK : Activation du projet réussie');
+      } else {
+        const errorMessage = 'Échec de l\'activation du projet';
+        logResult('Étape 5 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
+      }
+
+      await projectsPage.navigateToProjects();
+      await driver.wait(until.urlContains('Projects'), 10000);
+      await driver.sleep(2000); // Attendre la mise à jour
+      const activeStatus = await projectsPage.getProjectStatus();
+      
+      if (activeStatus === 'Actif') {
+        logResult('Étape 6 OK : Statut du projet confirmé comme "Actif"');
+      } else {
+        const errorMessage = `Statut attendu "Actif" mais trouvé "${activeStatus}"`;
+        logResult('Étape 6 KO : ' + errorMessage);
+        global.lastTestError = errorMessage;
+        throw new Error(errorMessage);
+      }
+
+      await projectsPage.clickEditFirstProject();
+      await projectsPage.deactivateProject();
+      await projectsPage.navigateToProjects();
+      await driver.wait(until.urlContains('Projects'), 10000);
+      await driver.sleep(2000);
+      const finalStatus = await projectsPage.getProjectStatus();
+      
+      if (finalStatus === 'En attente') {
+        logResult('Étape 7 OK : Projet remis en attente avec succès');
+      } else {
+        logResult(`Étape 7 WARNING : Statut final "${finalStatus}" au lieu de "En attente"`);
+      }
+
+      logResult('Test OK : Changement de statut du projet vérifié avec succès');
+    } catch (error) {
+      const errorMessage = error.message || 'Erreur inconnue lors du test de changement de statut';
+      logResult('Test KO : ' + errorMessage);
+      global.lastTestError = errorMessage;
+      throw error;
+    }
+  });
   });

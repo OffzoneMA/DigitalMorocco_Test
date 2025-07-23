@@ -301,6 +301,108 @@ class ProjectsPage {
     }
   }
 
+async getProjectStatus() {
+  try {
+    await this.driver.wait(until.elementLocated(By.css('tbody tr')), 10000);
+    const statusElement = await this.driver.findElement(
+      By.xpath("//tbody/tr[1]/td[contains(@class, 'status') or position()=last()-1]")
+    );
+    return await statusElement.getText();
+  } catch (error) {
+    console.error('Erreur lors de la récupération du statut:', error);
+    return 'Statut non trouvé';
+  }
+}
+
+async getFirstProjectName() {
+  try {
+    await this.driver.wait(until.elementLocated(By.css('tbody tr')), 10000);
+    const nameElement = await this.driver.findElement(
+      By.xpath("//tbody/tr[1]/td[1]")
+    );
+    return await nameElement.getText();
+  } catch (error) {
+    console.error('Erreur lors de la récupération du nom du projet:', error);
+    return 'Nom non trouvé';
+  }
+}
+
+async activateProject() {
+  try {
+    const activateButton = await this.driver.wait(
+      until.elementLocated(By.xpath("//button[contains(@class, 'bg-teal-A700') and contains(text(), 'Activer')]")),
+      10000,
+      'Bouton "Activer" non trouvé'
+    );
+    await activateButton.click();
+    await this.driver.sleep(1000);
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de l\'activation du projet:', error);
+    return false;
+  }
+}
+
+async deactivateProject() {
+  try {
+    const deactivateButton = await this.driver.wait(
+      until.elementLocated(By.xpath("//button[contains(@class, 'bg-[#A9ACB0]') and contains(text(), 'En attente')]")),
+      10000,
+      'Bouton "En attente" non trouvé'
+    );
+    await deactivateButton.click();
+    await this.driver.sleep(1000);
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de la désactivation du projet:', error);
+    return false;
+  }
+}
+
+async navigateToDashboard() {
+  try {
+    const dashboardMenu = await this.driver.wait(
+      until.elementLocated(By.xpath("//span[contains(text(), 'Tableau de bord') or contains(text(), 'Dashboard')]")),
+      10000,
+      'Menu "Tableau de bord" non trouvé'
+    );
+    await dashboardMenu.click();
+    await this.driver.wait(until.urlContains('Dashboard'), 10000);
+    await this.driver.sleep(2000);
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de la navigation vers le tableau de bord:', error);
+    return false;
+  }
+}
+
+async verifyActiveProjectInDashboard(projectName) {
+  try {
+    const lastActiveProjectSection = await this.driver.wait(
+      until.elementLocated(By.xpath("//div[contains(text(), 'Dernier projet actif') or contains(text(), 'Last Active Project')]")),
+      10000,
+      'Section "Dernier projet actif" non trouvée'
+    );
+    
+    const projectInDashboard = await this.driver.findElements(
+      By.xpath(`//div[contains(text(), 'Dernier projet actif')]/following-sibling::*//text()[contains(., '${projectName}')]`)
+    );
+    
+    if (projectInDashboard.length > 0) {
+      return true;
+    }
+    
+    const projectElements = await this.driver.findElements(
+      By.xpath(`//*[contains(text(), '${projectName}')]`)
+    );
+    
+    return projectElements.length > 0;
+  } catch (error) {
+    console.error('Erreur lors de la vérification du projet dans le tableau de bord:', error);
+    return false;
+  }
+}
+
 
  
 }
